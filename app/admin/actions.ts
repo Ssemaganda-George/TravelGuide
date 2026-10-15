@@ -74,6 +74,28 @@ export async function createDestination(fd: FormData) {
   redirect(ct ? `/admin/content/${ct.id}` : "/admin/content?error=1");
 }
 
+export async function uploadMedia(fd: FormData) {
+  const sb = await authClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return { error: "Sign in to upload files." };
+  const { data: isAdmin } = await sb.rpc("is_admin");
+  if (!isAdmin) return { error: "Admins only." };
+  const file = fd.get("file") as File | null;
+  const type = String(fd.get("type") ?? "image");
+  if (!file) return { error: "No file selected." };
+  if (file.size > 10 * 1024 * 1024) return { error: "File too large (max 10 MB)." };
+  const ext = file.name.slice(file.name.lastIndexOf(".") + 1).replace(/[^a-z0-9]/gi, "").toLowerCase() || "bin";
+  const base = file.name.replace(/[^a-z0-9.\-_]/gi, "_").toLowerCase().slice(0, 60);
+  const path = `${type === "video" ? "videos" : "images"}/${user.id}/${crypto.randomUUID()}-${base}.${ext}`;
+  const { error } = await sb.storage.from("media").upload(path, file, {
+    contentType: file.type || undefined,
+    cacheControl: "3600",
+  });
+  if (error) return { error: error.message };
+  const { data } = sb.storage.from("media").getPublicUrl(path);
+  return { url: data.publicUrl, path };
+}
+
 export async function saveContent(fd: FormData) {
   const sb = await authClient();
   const status = fd.get("status") === "published" ? "published" : "draft";
