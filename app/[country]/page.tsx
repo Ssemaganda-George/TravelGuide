@@ -20,7 +20,7 @@ export default async function Country({ params }: P) {
     <>
       <section className="hero"><div className="wrap">
         <h1>{c.name}, told by a guide who takes people there.</h1>
-        <p>Honest travel times, rough costs and a local tip for every destination.</p>
+        <p>Travel times to know , rough costs and a local tip for every destination.</p>
       </div></section>
       <Browse country={c.slug} items={items} />
     </>
