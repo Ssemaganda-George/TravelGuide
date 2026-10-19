@@ -23,7 +23,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <header><div className="wrap"><Link className="brand" href="/">Uganda Guide</Link></div></header>
         <main>{children}</main>
         <footer className="about"><div className="wrap">
-          <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around Uganda. These guides come from real trips, with the tips I give my own clients. Prices and times are approximate; each page shows when it was last checked. Page views are counted anonymously, without cookies or stored IP addresses.
+          <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with the whole world. Know your destination with George.
         </div></footer>
       {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
       <PageView />
