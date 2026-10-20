@@ -125,7 +125,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                   <span className="metric likemetric" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
                     <Heart filled={isLiked} /> {eng.likes} <span className="metriclabel">likes</span>
                   </span>
-                  <span className="metric" title="Reviews">{eng.reviews} <span className="metriclabel">reviews</span> {eng.reviews > 0 && stars(eng.avgRating)}</span>
+                  <span className="metric" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>{eng.reviews} <span className="metriclabel">reviews</span> {eng.reviews > 0 && stars(eng.avgRating)}</span>
                 </div>
               </div>
             </Link>

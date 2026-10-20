@@ -144,6 +144,8 @@ tr.off{opacity:.5}
 .badge-quoted{background:#f5f2dc;color:#8a6d1a}
 .badge-booked{background:#e8f5ec;color:#2e7d4f}
 .badge-lost{background:#f1f1f3;color:#7a878f}
+.badge-approved{background:#e8f5ec;color:#2e7d4f}
+.badge-rejected{background:#fdecec;color:#a33}
 
 /* Empty state */
 .empty-state{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:40px 24px;text-align:center;color:var(--muted)}
@@ -151,4 +153,15 @@ tr.off{opacity:.5}
 
 /* Form section headers */
 .fsec h3{font-family:var(--head),system-ui,sans-serif;font-size:1.05rem;margin:0 0 8px;color:var(--ink);display:flex;align-items:center;gap:8px}
+
+/* Review form */
+.reviewer-fieldset{border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0;background:var(--paper)}
+.reviewer-fieldset legend{font-family:var(--head),system-ui,sans-serif;font-weight:600;font-size:1rem;padding:0 8px}
+.starrating{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:6px;margin:10px 0}
+.starrating button{background:none;border:none;font-size:1.5rem;cursor:pointer;color:#ccc;padding:0 2px}
+.starrating button.active{color:var(--sun)}
+.starrating button:hover{color:var(--sun)}
+.item{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0;background:var(--paper)}
+.ihead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ihead strong{font-family:var(--head),system-ui,sans-serif}
 @media(max-width:768px){.appshell{grid-template-columns:1fr}.admin-sidebar{position:relative;height:auto}}

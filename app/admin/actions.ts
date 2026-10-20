@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { authClient } from "@/lib/supabase/server";
+import { admin } from "@/lib/admin";
 import { cleanMedia } from "@/lib/media";
 
 const STATUSES = ["new", "contacted", "quoted", "booked", "lost"];
@@ -178,4 +179,23 @@ async function syncStays(sb: Awaited<ReturnType<typeof authClient>>, placeId: st
     if (keep.has(p.id)) continue;
     await sb.from("partners").update({ place_ids: (p.place_ids as string[]).filter(x => x !== placeId) }).eq("id", p.id);
   }
+}
+
+// ---- Review moderation ----
+export async function approveReview(fd: FormData) {
+  const sb = await admin();
+  if (!sb) return;
+  const id = String(fd.get("id"));
+  await sb.from("destination_reviews").update({
+    status: "approved", reviewed_at: new Date().toISOString(),
+  }).eq("id", id);
+}
+
+export async function rejectReview(fd: FormData) {
+  const sb = await admin();
+  if (!sb) return;
+  const id = String(fd.get("id"));
+  await sb.from("destination_reviews").update({
+    status: "rejected", reviewed_at: new Date().toISOString(),
+  }).eq("id", id);
 }

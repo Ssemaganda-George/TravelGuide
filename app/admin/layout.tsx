@@ -8,6 +8,7 @@ const NAV: { href: string; label: string }[] = [
   { href: "/admin/partners", label: "Partners" },
   { href: "/admin/content", label: "Content" },
   { href: "/admin/insights", label: "Insights" },
+  { href: "/admin/reviews", label: "Reviews" },
 ];
 
 const SECTIONS: Record<string, { title: string; sub: string }> = {
@@ -16,6 +17,7 @@ const SECTIONS: Record<string, { title: string; sub: string }> = {
   "/admin/partners": { title: "Partners", sub: "Lodges, operators, drivers and activity partners." },
   "/admin/content": { title: "Destination content", sub: "Edit destination pages, stories, activities and stays." },
   "/admin/insights": { title: "Insights", sub: "Views, visitors and enquiry trends over the last 30 days." },
+  "/admin/reviews": { title: "Review moderation", sub: "Approve or reject traveller reviews before they appear publicly." },
 };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

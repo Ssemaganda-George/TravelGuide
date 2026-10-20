@@ -133,6 +133,12 @@ export default async function Destination(p: P) {
         <p className="empty">No places to stay listed yet. Check back soon.</p>
       )}
 
+      <div className="tip">
+        <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
+          ➔ Read &amp; write reviews for {d.title}
+        </Link>
+      </div>
+
       {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
 
       {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
