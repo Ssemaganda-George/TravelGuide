@@ -102,33 +102,35 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
           const isLiked = liked.has(i.place_id);
           return (
             <article key={i.id} className="card">
-              <div className="cardwrapper">
-                {coverUrl ? (
-                <figure className="cardimg">
-                  <img src={coverUrl} alt="" loading="lazy" />
-                </figure>
-              ) : (
-                <figure className="cardimg cardimg-placeholder">
-                  <span className="placeholder-icon">📍</span>
-                </figure>
-              )}
-              <div className="cardbody">
-                <div className="cardhead">
-                  <h3>{i.title}</h3>
-                  {acts.length > 0 && <span className="activitycount">{acts.length} activity{acts.length !== 1 ? "s" : ""}</span>}
+              <a href={`/${country}/${i.places.slug}`} className="cardlink" onClick={() => registerView(path)}>
+                <div className="cardmedia">
+                  {coverUrl ? (
+                    <img src={coverUrl} alt="" loading="lazy" />
+                  ) : (
+                    <div className="cardplaceholder">📍</div>
+                  )}
+                  <div className="cardoverlay">
+                    <span className="cardbadge">{acts.length}</span>
+                  </div>
                 </div>
-                <p>{i.hook}</p>
-                <span className="meta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>
-                <div className="cardmetrics">
-                  <span className="metric" title="Views"><Eye /> {viewCounts[path] ?? 0} <span className="metriclabel">views</span></span>
-                  <span className="metric likemetric" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
-                    <Heart filled={isLiked} /> {eng.likes} <span className="metriclabel">likes</span>
-                  </span>
-                  <span className="metric" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>{eng.reviews} <span className="metriclabel">reviews</span> {eng.reviews > 0 && stars(eng.avgRating)}</span>
+                <div className="cardcontent">
+                  <div className="cardhead">
+                    <h3>{i.title}</h3>
+                    {acts.length > 0 && <span className="activitycount">{acts.length}</span>}
+                  </div>
+                  <p>{i.hook}</p>
+                  <span className="cardmeta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>
+                  <div className="cardstats">
+                    <span className="stat" title="Views"><Eye /> {viewCounts[path] ?? 0}</span>
+                    <span className="stat likestat" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
+                      <Heart filled={isLiked} /> {eng.likes}
+                    </span>
+                    <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>
+                      {eng.reviews} {eng.reviews > 0 && stars(eng.avgRating)}
+                    </span>
+                  </div>
                 </div>
-                <a href={`/${country}/${i.places.slug}`} className="cardcta">View details <span aria-hidden="true">→</span></a>
-              </div>
-              </div>
+              </a>
             </article>
           );
         })}

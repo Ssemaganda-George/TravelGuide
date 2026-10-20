@@ -3,32 +3,32 @@ import { embedUrl } from "@/lib/media";
 import type { Media } from "@/lib/data";
 import { useState } from "react";
 
-// Full-screen lightbox carousel: large images, scroll left/right between them.
+// True full-screen lightbox carousel: maximized images, scroll left/right between them.
 function Lightbox({ media, startIndex, onClose }: { media: Media[]; startIndex: number; onClose: () => void }) {
   const [index, setIndex] = useState(startIndex);
   const m = media[index];
   const isVideo = m.type === "video";
   const mediaSrc = embedUrl(m.url) ?? m.url;
   return (
-    <div className="lightbox" onClick={onClose}>
+    <div className="lightbox" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image gallery">
       <button className="lightbox-close" onClick={onClose}>✕</button>
-      <button className="lightbox-nav lightbox-prev" onClick={e => { e.stopPropagation(); setIndex((index - 1 + media.length) % media.length); }}>‹</button>
+      <button className="lightbox-nav lightbox-prev" onClick={e => { e.stopPropagation(); setIndex((index - 1 + media.length) % media.length); }} aria-label="Previous image">‹</button>
       <div className="lightbox-content" onClick={e => e.stopPropagation()}>
-        <div className="lightbox-counter">{index + 1} / {media.length}</div>
+        <div className="lightbox-counter">{index + 1} of {media.length}</div>
         {isVideo ? (
-          <div style={{ maxWidth: 900, maxHeight: "70vh" }}>
+          <div className="lightbox-video">
             {embedUrl(m.url) ? (
-              <iframe src={mediaSrc} title={m.caption ?? "Video"} allowFullScreen style={{ width: "100%", height: "100%" }} />
+              <iframe src={mediaSrc} title={m.caption ?? "Video"} allowFullScreen />
             ) : (
-              <video src={mediaSrc} controls playsInline style={{ width: "100%", height: "100%" }} />
+              <video src={mediaSrc} controls playsInline />
             )}
           </div>
         ) : (
-          <img src={mediaSrc} alt={m.caption ?? ""} style={{ maxWidth: "90vw", maxHeight: "75vh", objectFit: "contain", borderRadius: 8, border: "1px solid rgba(255,255,255,.2)", background: "#000" }} />
+          <img src={mediaSrc} alt={m.caption ?? ""} />
         )}
         {m.caption && <p className="lightbox-caption">{m.caption}</p>}
       </div>
-      <button className="lightbox-nav lightbox-next" onClick={e => { e.stopPropagation(); setIndex((index + 1) % media.length); }}>›</button>
+      <button className="lightbox-nav lightbox-next" onClick={e => { e.stopPropagation(); setIndex((index + 1) % media.length); }} aria-label="Next image">›</button>
       <div className="lightbox-thumbs">
         {media.map((mm, i) => (
           <button

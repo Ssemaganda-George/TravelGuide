@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import EnquirySection from "@/components/EnquirySection";
 import MediaGallery from "@/components/MediaGallery";
+import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
 import { SITE, getCountry, getDestinations, getActivities, getStays } from "@/lib/data";
-import { safeSrc } from "@/lib/media";
 import { STAY_TIERS } from "@/lib/tiers";
 
 export const revalidate = 3600;
@@ -103,11 +103,7 @@ export default async function Destination(p: P) {
                     <div className="cards">
                       {list.map(s => (
                         <div className="cell" key={s.id}>
-                          {s.media?.[0]?.url && (
-                            <figure className="cellimg">
-                              <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
-                            </figure>
-                          )}
+                          {s.media?.length && <StayImages media={s.media} />}
                           <div className="cellbody">
                             <h4>{s.name}</h4>
                             {s.description && <p>{s.description}</p>}
@@ -123,22 +119,18 @@ export default async function Destination(p: P) {
               })}
               {otherStays.length > 0 && (
                 <div className="cards">
-                  {otherStays.map(s => (
-                    <div className="cell" key={s.id}>
-                      {s.media?.[0]?.url && (
-                        <figure className="cellimg">
-                          <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
-                        </figure>
-                      )}
-                      <div className="cellbody">
-                        <h4>{s.name}</h4>
-                        {s.description && <p>{s.description}</p>}
-                        {s.contact && <p className="meta">{s.contact}</p>}
-                        {s.email && <p className="meta">Email: {s.email}</p>}
-                        {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
-                      </div>
-                    </div>
-                  ))}
+              {otherStays.map(s => (
+                <div className="cell" key={s.id}>
+                  {s.media?.length && <StayImages media={s.media} />}
+                  <div className="cellbody">
+                    <h4>{s.name}</h4>
+                    {s.description && <p>{s.description}</p>}
+                    {s.contact && <p className="meta">{s.contact}</p>}
+                    {s.email && <p className="meta">Email: {s.email}</p>}
+                    {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
+                  </div>
+                </div>
+              ))}
                 </div>
               )}
             </>
