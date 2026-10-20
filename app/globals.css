@@ -30,6 +30,13 @@ header .wrap{display:flex;align-items:center;height:64px}
 .activitycount{font-size:0.75rem;font-weight:700;background:var(--mist);color:var(--lake);padding:2px 8px;border-radius:999px;margin-left:auto}
 .cardbody p{margin:0;color:var(--muted);font-size:0.95rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cardbody .meta{margin-top:auto;font-size:0.85rem;color:var(--lake);font-weight:600}
+.cardmetrics{display:flex;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:0.8rem;color:var(--muted)}
+.metric{display:flex;align-items:center;gap:6px;font-weight:500}
+.likemetric{cursor:pointer}
+.likemetric:hover{color:var(--sun)}
+.likemetric:hover svg{color:var(--sun)}
+.metriclabel{font-weight:400;opacity:.8}
+.stars{color:var(--sun);font-size:0.9rem;letter-spacing:1px}
 .grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));padding-bottom:56px}
 .card p{margin:0 0 14px;color:var(--muted);font-size:1rem}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}

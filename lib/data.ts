@@ -95,3 +95,30 @@ export async function getStays(placeId: string): Promise<Stay[]> {
   const order = ["budget", "mid", "comfort"];
   return ((data as Stay[]) ?? []).sort((a, b) => order.indexOf(a.tier ?? "") - order.indexOf(b.tier ?? ""));
 }
+
+// Public engagement metrics for destination cards.
+export async function getViewCounts(paths: string[]): Promise<Record<string, number>> {
+  if (!paths.length) return {};
+  const { data } = await db().from("page_views").select("path").in("path", paths);
+  const counts: Record<string, number> = {};
+  for (const p of (data as { path: string }[]) ?? []) counts[p.path] = (counts[p.path] ?? 0) + 1;
+  return counts;
+}
+
+export type Engagement = { likes: number; reviews: number; avgRating: number };
+
+export async function getEngagementForPlaces(placeIds: string[]): Promise<Record<string, Engagement>> {
+  if (!placeIds.length) return {};
+  const [{ data: likes }, { data: reviews }] = await Promise.all([
+    db().from("destination_likes").select("place_id").in("place_id", placeIds),
+    db().from("destination_reviews").select("place_id, rating").in("place_id", placeIds),
+  ]);
+  const out: Record<string, Engagement> = {};
+  for (const pid of placeIds) {
+    const l = (likes as { place_id: string }[] ?? []).filter(x => x.place_id === pid).length;
+    const r = (reviews as { place_id: string; rating: number }[] ?? []).filter(x => x.place_id === pid);
+    const avg = r.length ? r.reduce((s, x) => s + x.rating, 0) / r.length : 0;
+    out[pid] = { likes: l, reviews: r.length, avgRating: Math.round(avg * 10) / 10 };
+  }
+  return out;
+}

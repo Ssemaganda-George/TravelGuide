@@ -1,12 +1,47 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import type { Activity, Dest } from "@/lib/data";
+import type { Activity, Dest, Engagement } from "@/lib/data";
 import { safeSrc } from "@/lib/media";
 
-export default function Browse({ country, items, activitiesByPlace }: { country: string; items: Dest[]; activitiesByPlace: Record<string, Activity[]> }) {
+type Props = {
+  country: string;
+  items: Dest[];
+  activitiesByPlace: Record<string, Activity[]>;
+  viewCounts: Record<string, number>;
+  engagement: Record<string, Engagement>;
+};
+
+const Eye = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const Heart = ({ filled }: { filled?: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "var(--sun)" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ color: filled ? "var(--sun)" : "var(--muted)" }}>
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3.05 1.32-3.5 3.15-0.45-1.83-1.74-3.15-3.5-3.15A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.04 3 5.5l7 7Z" />
+  </svg>
+);
+
+const stars = (rating: number) => {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  return (
+    <span className="stars" aria-label={rating.toFixed(1) + " of 5"}>
+      {Array.from({ length: full }).map(() => "★")}
+      {half && "☆"}
+      {Array.from({ length: empty }).map(() => "☆")}
+    </span>
+  );
+};
+
+export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement }: Props) {
   const [tag, setTag] = useState("all");
   const [search, setSearch] = useState("");
+  const [liked, setLiked] = useState<Set<string>>(new Set());
   const tags = ["all", ...new Set(items.flatMap(i => i.tags))];
   const list = items.filter(i => {
     const byTag = tag === "all" || i.tags.includes(tag);
@@ -14,6 +49,38 @@ export default function Browse({ country, items, activitiesByPlace }: { country:
     const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q);
     return byTag && byText;
   });
+
+  const registerView = (path: string) => {
+    fetch("/api/view", {
+      method: "POST",
+      keepalive: true,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    }).catch(() => {});
+  };
+
+  const toggleLike = async (placeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const next = !liked.has(placeId);
+    setLiked(prev => {
+      const n = new Set(prev);
+      if (next) n.add(placeId); else n.delete(placeId);
+      return n;
+    });
+    fetch("/api/like", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ placeId }),
+    }).catch(() => {
+      setLiked(prev => {
+        const n = new Set(prev);
+        if (next) n.delete(placeId); else n.add(placeId);
+        return n;
+      });
+    });
+  };
+
   return (
     <div className="wrap">
       <div className="searchbar" role="search" aria-label="Search destinations">
@@ -30,8 +97,17 @@ export default function Browse({ country, items, activitiesByPlace }: { country:
           const acts = activitiesByPlace[i.place_id] ?? [];
           const cover = acts.find(a => (a.media ?? []).some(m => safeSrc(m.url ?? ""))) ?? null;
           const coverUrl = cover ? safeSrc((cover.media ?? [])[0].url ?? "") : null;
+          const path = `/${country}/${i.places.slug}`;
+          const eng = engagement[i.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 };
+          const isLiked = liked.has(i.place_id);
           return (
-            <Link key={i.id} className="card" href={`/${country}/${i.places.slug}`}>
+            <Link
+              key={i.id}
+              className="card"
+              href={`/${country}/${i.places.slug}`}
+              onClick={() => registerView(path)}
+              style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}
+            >
               {coverUrl ? (
                 <figure className="cardimg">
                   <img src={coverUrl} alt="" loading="lazy" />
@@ -44,6 +120,13 @@ export default function Browse({ country, items, activitiesByPlace }: { country:
                 </div>
                 <p>{i.hook}</p>
                 <span className="meta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>
+                <div className="cardmetrics">
+                  <span className="metric" title="Views"><Eye /> {viewCounts[path] ?? 0} <span className="metriclabel">views</span></span>
+                  <span className="metric likemetric" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
+                    <Heart filled={isLiked} /> {eng.likes} <span className="metriclabel">likes</span>
+                  </span>
+                  <span className="metric" title="Reviews">{eng.reviews} <span className="metriclabel">reviews</span> {eng.reviews > 0 && stars(eng.avgRating)}</span>
+                </div>
               </div>
             </Link>
           );

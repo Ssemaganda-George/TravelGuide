@@ -109,7 +109,7 @@ export async function saveContent(fd: FormData) {
     tags: String(fd.get("tags") ?? "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean),
     getting_there: t(fd, "getting_there"), local_tip: t(fd, "local_tip"), tip_author: t(fd, "tip_author"),
     plan_around: t(fd, "plan_around"),
-    last_checked: t(fd, "checked"), status,
+    last_checked: new Date().toISOString().slice(0, 10), status,
   }).eq("id", String(fd.get("id")));
   try {
     await syncActivities(sb, placeId, fd.get("activities_json"));

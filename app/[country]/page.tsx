@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Browse from "@/components/Browse";
-import { getActivitiesForPlaces, getCountry, getDestinations } from "@/lib/data";
+import { getActivitiesForPlaces, getCountry, getDestinations, getEngagementForPlaces, getViewCounts } from "@/lib/data";
 
 export const revalidate = 3600; // regenerate at most hourly, no redeploy needed after content edits
 
@@ -17,14 +17,19 @@ export default async function Country({ params }: P) {
   if (!c) notFound();
   const items = await getDestinations(c.id);
   const placeIds = items.map(i => i.place_id);
-  const activitiesByPlace = await getActivitiesForPlaces(placeIds);
+  const paths = items.map(i => `/${c.slug}/${i.places.slug}`);
+  const [activitiesByPlace, viewCounts, engagement] = await Promise.all([
+    getActivitiesForPlaces(placeIds),
+    getViewCounts(paths),
+    getEngagementForPlaces(placeIds),
+  ]);
   return (
     <>
       <section className="hero"><div className="wrap">
         <h1>{c.name}, For All, Know Your Tourism Destination.</h1>
         <p>Best Travel times, rough costs and a local tip for every destination.</p>
       </div></section>
-      <Browse country={c.slug} items={items} activitiesByPlace={activitiesByPlace} />
+      <Browse country={c.slug} items={items} activitiesByPlace={activitiesByPlace} viewCounts={viewCounts} engagement={engagement} />
     </>
   );
 }
