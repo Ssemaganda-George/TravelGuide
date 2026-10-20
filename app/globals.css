@@ -5,22 +5,25 @@ a{color:var(--lake)}
 :focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 h1,h2,h3,.brand,.chip,.meta,dt,dd,label,.go,.back{font-family:var(--head),system-ui,sans-serif}
 h1,h2,h3{line-height:1.15;margin:0 0 .5em}
-.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
 header{background:var(--paper);border-bottom:1px solid var(--line)}
 header .wrap{display:flex;align-items:center;height:64px}
 .brand{font-weight:700;font-size:20px;color:var(--ink);text-decoration:none}
-.hero{background:var(--lake);color:#fff;padding:72px 0 56px}
+.hero{background:var(--lake);color:#fff;padding:96px 0 80px;position:relative;overflow:hidden}
 .hero h1{font-size:clamp(2.2rem,6vw,4rem);max-width:15em}
 .hero p{max-width:34em;font-size:1.15rem;color:#dcecea;margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0}
 .chip{font-weight:500;font-size:15px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer}
 .chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.searchbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 26px}
+.searchbar input[type=search]{flex:1 1 260px;min-width:220px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:1rem;background:var(--paper);color:var(--ink)}
+.searchbar input[type=search]:focus{border-color:var(--lake);outline:3px solid var(--sun);outline-offset:2px}
 .grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));padding-bottom:56px}
-.card{display:block;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:24px;text-decoration:none;color:inherit;transition:border-color .15s}
-.card:hover{border-color:var(--lake)}
+.card{display:block;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:24px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s}
+.card:hover{border-color:var(--lake);transform:translateY(-3px);box-shadow:0 10px 24px rgba(14,90,100,.08)}
 .card p{margin:0 0 14px;color:var(--muted);font-size:1rem}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}
-.page{padding:40px 20px 64px;max-width:760px}
+.page{padding:40px 20px 64px;max-width:960px}
 .back{font-weight:500;font-size:15px}
 .page h1{font-size:clamp(2rem,5vw,3rem);margin-top:16px}
 .hook{font-size:1.25rem;color:var(--muted)}
