@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import EnquiryForm from "@/components/EnquiryForm";
+import EnquirySection from "@/components/EnquirySection";
 import MediaGallery from "@/components/MediaGallery";
 import Story from "@/components/Story";
 import { SITE, getCountry, getDestinations, getActivities, getStays } from "@/lib/data";
@@ -53,51 +53,77 @@ export default async function Destination(p: P) {
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
   const otherStays = stays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
   return (
-    <div className="wrap page">
+    <div className="destpage">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
-      <h1>{d.title}</h1>
-      <p className="hook">{d.hook}</p>
-      <dl className="facts">{facts.map(f => <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>)}</dl>
-      <Story text={d.story} />
-
-      {paras(d.best_time).length > 0 && <><h2>Best time to visit</h2>{paras(d.best_time).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-      {paras(d.getting_there).length > 0 && <><h2>Getting there</h2>{paras(d.getting_there).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-      {activities.length > 0 && (
-        <>
-          <h2>Things to do</h2>
-          <div className="cards">
-            {activities.map(a => (
-              <div className="cell" key={a.id}>
-                <h3>{a.name}</h3>
-                <p className="meta">{[money(a.cost_low, a.cost_high), a.duration].filter(Boolean).join(" · ")}</p>
-                {a.description && <p>{a.description}</p>}
-                {a.providers?.length && (
-                  <div className="meta" style={{ fontSize: "0.85rem", marginTop: 6 }}>
-                    Providers: {a.providers.map(p => p.name).join(", ")}
-                  </div>
-                )}
-                <MediaGallery items={a.media} />
-              </div>
-            ))}
+      <div className="destwrap">
+        <main className="destmain">
+          <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
+          <div className="desthead">
+            <h1>{d.title}</h1>
+            <p className="hook">{d.hook}</p>
           </div>
-        </>
-      )}
+          <dl className="facts">{facts.map(f => <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>)}</dl>
+          <div className="story"><Story text={d.story} /></div>
 
-      <h2>Where to stay</h2>
-      <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
-      {stays.length > 0 ? (
-        <>
-          {STAY_TIERS.map(([tier, label]) => {
-            const list = stays.filter(s => s.tier === tier);
-            if (!list.length) return null;
-            return (
-              <div key={tier}>
-                <h3>{label}</h3>
+          {paras(d.best_time).length > 0 && <><h2>Best time to visit</h2>{paras(d.best_time).map((t, i) => <p key={i}>{t}</p>)}</>}
+
+          {paras(d.getting_there).length > 0 && <><h2>Getting there</h2>{paras(d.getting_there).map((t, i) => <p key={i}>{t}</p>)}</>}
+
+          {activities.length > 0 && (
+            <>
+              <h2>Things to do</h2>
+              <div className="cards">
+                {activities.map(a => (
+                  <div className="cell" key={a.id}>
+                    <h3>{a.name}</h3>
+                    <p className="meta">{[money(a.cost_low, a.cost_high), a.duration].filter(Boolean).join(" · ")}</p>
+                    {a.description && <p>{a.description}</p>}
+                    {a.providers?.length && (
+                      <div className="meta" style={{ fontSize: "0.85rem", marginTop: 6 }}>
+                        Providers: {a.providers.map(p => p.name).join(", ")}
+                      </div>
+                    )}
+                    <MediaGallery items={a.media} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <h2>Where to stay</h2>
+          <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
+          {stays.length > 0 ? (
+            <>
+              {STAY_TIERS.map(([tier, label]) => {
+                const list = stays.filter(s => s.tier === tier);
+                if (!list.length) return null;
+                return (
+                  <div key={tier}>
+                    <h3>{label}</h3>
+                    <div className="cards">
+                      {list.map(s => (
+                        <div className="cell" key={s.id}>
+                          {s.media?.[0]?.url && (
+                            <figure className="cellimg">
+                              <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
+                            </figure>
+                          )}
+                          <div className="cellbody">
+                            <h4>{s.name}</h4>
+                            {s.description && <p>{s.description}</p>}
+                            {s.contact && <p className="meta">{s.contact}</p>}
+                            {s.email && <p className="meta">Email: {s.email}</p>}
+                            {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {otherStays.length > 0 && (
                 <div className="cards">
-                  {list.map(s => (
+                  {otherStays.map(s => (
                     <div className="cell" key={s.id}>
                       {s.media?.[0]?.url && (
                         <figure className="cellimg">
@@ -114,45 +140,27 @@ export default async function Destination(p: P) {
                     </div>
                   ))}
                 </div>
-              </div>
-            );
-          })}
-          {otherStays.length > 0 && (
-            <div className="cards">
-              {otherStays.map(s => (
-                <div className="cell" key={s.id}>
-                  {s.media?.[0]?.url && (
-                    <figure className="cellimg">
-                      <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
-                    </figure>
-                  )}
-                  <div className="cellbody">
-                    <h4>{s.name}</h4>
-                    {s.description && <p>{s.description}</p>}
-                    {s.contact && <p className="meta">{s.contact}</p>}
-                    {s.email && <p className="meta">Email: {s.email}</p>}
-                    {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
-                  </div>
-                </div>
-              ))}
-            </div>
+              )}
+            </>
+          ) : (
+            <p className="empty">No places to stay listed yet. Check back soon.</p>
           )}
-        </>
-      ) : (
-        <p className="empty">No places to stay listed yet. Check back soon.</p>
-      )}
 
-      <div className="tip">
-        <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
-          ➔ Read &amp; write reviews for {d.title}
-        </Link>
+          <div className="tip">
+            <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
+              ➔ Read &amp; write reviews for {d.title}
+            </Link>
+          </div>
+
+          {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
+
+          {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
+
+          <div className="enquiry-trigger">
+            <EnquirySection placeId={d.place_id} title={d.title} page={path} />
+          </div>
+        </main>
       </div>
-
-      {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
-
-      {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-      <EnquiryForm placeId={d.place_id} title={d.title} page={path} />
     </div>
   );
 }

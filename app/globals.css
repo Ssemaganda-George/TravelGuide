@@ -179,4 +179,59 @@ tr.off{opacity:.5}
 .item{border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0;background:var(--paper)}
 .ihead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .ihead strong{font-family:var(--head),system-ui,sans-serif}
-@media(max-width:768px){.appshell{grid-template-columns:1fr}.admin-sidebar{position:relative;height:auto}}
+/* Destination page layout */
+.destpage{background:var(--mist)}
+.destwrap{display:grid;grid-template-columns:1fr;gap:28px;padding:32px 20px 64px;max-width:1400px;margin:0 auto}
+.destmain{display:flex;flex-direction:column;gap:28px}
+@media(min-width:1024px){
+  .destwrap{max-width:1200px}
+}
+
+/* Destination header */
+.desthead{margin-bottom:4px}
+.desthead h1{font-size:clamp(2rem,5vw,3.5rem);margin:0 0 8px;line-height:1.1}
+.desthead .hook{font-size:1.2rem;color:var(--muted);margin:0}
+
+/* Story content */
+.destwrap .story{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:28px;margin:20px 0;line-height:1.7}
+.destwrap .story p{margin:0 0 16px;color:var(--ink)}
+.destwrap .story p:last-child{margin-bottom:0}
+.destwrap .shots{margin:16px 0}
+.destwrap .shots img,.destwrap .shots video{border-radius:10px;border:1px solid var(--line);background:var(--paper)}
+.destwrap .shot{margin:20px 0}
+
+/* Destination fact cards */
+.destwrap dl.facts{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:20px;margin:20px 0}
+.destwrap dl.facts dt{font-size:0.75rem;letter-spacing:.08em}
+.destwrap dl.facts dd{font-size:1.1rem}
+
+/* Destination sections */
+.destmain h2{font-size:1.35rem;margin:24px 0 10px;color:var(--ink)}
+.destmain h3{font-size:1.1rem;margin:16px 0 8px}
+.destmain .hook{font-size:1rem;color:var(--muted);margin-bottom:8px}
+.destmain .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin:16px 0 28px}
+.destmain .cell{height:100%}
+.destmain .cellimg{height:180px}
+.destmain .tip{margin:20px 0}
+.destmain .empty{padding:24px 0}
+
+/* Full-width enquiry at bottom */
+.enquiry-full{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:8px}
+.enquiry-full .form{margin-top:0;padding:0}
+.enquiry-full .form h2{font-size:1.3rem;margin-top:0}
+.enquiry-full .form label{font-size:0.95rem;margin:10px 0 3px}
+.enquiry-full .form .row{grid-template-columns:1fr 1fr;gap:12px}
+.enquiry-full .form .go{width:auto;min-width:150px}
+
+/* Enquiry section wrapper */
+.enquiry-section{margin-top:20px}
+.enquiry-section .go{width:auto;display:inline-block;padding:12px 24px;font-size:1rem;margin-bottom:12px}
+
+/* Mobile */
+@media(max-width:768px){
+  .destwrap{padding:20px 16px 40px}
+  .destmain{gap:20px}
+  .desthead h1{font-size:1.8rem}
+  .enquiry-full{padding:20px}
+  .enquiry-full .form .row{grid-template-columns:1fr}
+}
