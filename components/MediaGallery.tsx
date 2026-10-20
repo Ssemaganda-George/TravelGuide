@@ -45,28 +45,28 @@ function Lightbox({ media, startIndex, onClose }: { media: Media[]; startIndex: 
 
 // Gallery for activity/lodge photos and videos. Images scroll horizontally;
 // click any image to view it full screen in a scrollable lightbox.
-export default function MediaGallery({ items }: { items: Media[] | null }) {
+export default function MediaGallery({ items, open = false }: { items: Media[] | null; open?: boolean }) {
   const media = (items ?? []).filter(m => m && m.url);
   if (!media.length) return null;
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(open);
   const [current, setCurrent] = useState(0);
 
   return (
     <div className="shots">
       {media.map((m, i) => m.type === "video" ? (
-        <figure key={i} className="vid" onClick={() => { setCurrent(i); setOpen(true); }}>
+        <figure key={i} className="vid" onClick={() => { setCurrent(i); setIsOpen(true); }}>
           {embedUrl(m.url)
             ? <iframe src={embedUrl(m.url)!} title={m.caption ?? "Video"} loading="lazy" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowFullScreen />
             : <video src={m.url} controls preload="metadata" playsInline />}
           {m.caption && <figcaption>{m.caption}</figcaption>}
         </figure>
       ) : (
-        <figure key={i} onClick={() => { setCurrent(i); setOpen(true); }} className="clickable">
+        <figure key={i} onClick={() => { setCurrent(i); setIsOpen(true); }} className="clickable">
           <img src={m.url} alt={m.caption ?? ""} loading="lazy" />
           {m.caption && <figcaption>{m.caption}</figcaption>}
         </figure>
       ))}
-      {open && <Lightbox media={media} startIndex={current} onClose={() => setOpen(false)} />}
+      {isOpen && <Lightbox media={media} startIndex={current} onClose={() => setIsOpen(false)} />}
     </div>
   );
 }
