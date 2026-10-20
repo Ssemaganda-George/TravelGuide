@@ -45,14 +45,27 @@ export default function ActivitiesEditor({ initial, providers }: { initial: Acti
           <label>Photos and videos</label>
           <MediaEditor items={a.media} onChange={media => patch(i, { media })} />
           <label>Providers (partners who run this activity)</label>
-          <select id={`ap${i}`} multiple size={4} onChange={e => {
-            const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-            patch(i, { providerIds: selected });
-          }}>
-            {providers.map(p => (
-              <option key={p.id} value={p.id} selected={a.providerIds.includes(p.id)}>{p.name} ({p.type})</option>
-            ))}
-          </select>
+          {providers.length === 0 ? (
+            <p className="hint" style={{ margin: "4px 0 10px", color: "var(--muted)", fontSize: "0.85rem" }}>
+              No partners yet. Add one at Partners first, then select it here.
+            </p>
+          ) : (
+            <div className="providers" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: "6px", marginTop: 6 }}>
+              {providers.map(p => {
+                const checked = a.providerIds.includes(p.id);
+                return (
+                  <label key={p.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", cursor: "pointer" }}>
+                    <input type="checkbox" checked={checked} onChange={e => {
+                      const next = e.target.checked;
+                      const ids = next ? [...a.providerIds, p.id] : a.providerIds.filter(x => x !== p.id);
+                      patch(i, { providerIds: ids });
+                    }} />
+                    {p.name} ({p.type})
+                  </label>
+                );
+              })}
+            </div>
+          )}
         </div>
       ))}
       <div className="madd">

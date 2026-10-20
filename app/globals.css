@@ -164,6 +164,14 @@ tr.off{opacity:.5}
 /* Review form */
 .reviewer-fieldset{border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0;background:var(--paper)}
 .reviewer-fieldset legend{font-family:var(--head),system-ui,sans-serif;font-weight:600;font-size:1rem;padding:0 8px}
+
+/* Activity provider checkboxes */
+.providers{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:8px}
+.providers label{display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);transition:border-color .2s,background .2s}
+.providers label:hover{border-color:var(--lake);background:var(--mist)}
+.providers label input{margin:0}
+.providers label input:checked{border-color:var(--sun);background:var(--sun)}
+.reviewer-fieldset legend{font-family:var(--head),system-ui,sans-serif;font-weight:600;font-size:1rem;padding:0 8px}
 .starrating{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:6px;margin:10px 0}
 .starrating button{background:none;border:none;font-size:1.5rem;cursor:pointer;color:#ccc;padding:0 2px}
 .starrating button.active{color:var(--sun)}

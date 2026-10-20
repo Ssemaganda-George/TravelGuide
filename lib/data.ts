@@ -114,14 +114,13 @@ export async function getStays(placeId: string): Promise<Stay[]> {
   return ((data as Stay[]) ?? []).sort((a, b) => order.indexOf(a.tier ?? "") - order.indexOf(b.tier ?? ""));
 }
 
-// All partners that can act as activity providers (operators, drivers, guides, activities).
+// All partners that can act as activity providers (any partner type).
 export async function getActivityProviders(): Promise<{ id: string; name: string; type: string; contact: string | null }[]> {
   const { data } = await db()
     .from("partners")
     .select("id,name,type,contact")
-    .in("type", ["operator", "driver", "guide", "activity"])
     .eq("active", true)
-    .order("name");
+    .order("type,name");
   return (data ?? []).map(p => ({ id: p.id, name: p.name, type: p.type, contact: p.contact }));
 }
 
