@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import { submitEnquiry, type FormState } from "@/app/actions";
 
-const INTERESTS = ["wildlife", "adventure", "culture", "relaxing", "birds", "food"];
+const INTERESTS = ["gorillas","chimpanzee","wildlife", "adventure", "culture", "relaxing", "birds", "food"];
 
 export default function EnquiryForm({ placeId, title, page }: { placeId: string; title: string; page: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(submitEnquiry, null);

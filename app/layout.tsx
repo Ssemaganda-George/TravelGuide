@@ -11,7 +11,7 @@ const body = Source_Serif_4({ subsets: ["latin"], variable: "--body" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
-  title: { default: "Uganda Guide", template: "%s | Uganda Guide" },
+  title: { default: "Travel Guide", template: "%s | Travel Guide" },
   description: "Uganda, told by a guide who takes people there.",
   verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } : undefined,
 };
@@ -20,7 +20,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${head.variable} ${body.variable}`}>
       <body>
-        <header><div className="wrap"><Link className="brand" href="/">Uganda Guide</Link></div></header>
+        <header><div className="wrap"><Link className="brand" href="/">Travel Guide</Link></div></header>
         <main>{children}</main>
         <footer className="about"><div className="wrap">
           <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with the whole world. Know your destination with George.
