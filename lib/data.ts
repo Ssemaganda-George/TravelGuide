@@ -22,12 +22,13 @@ export type Dest = {
 export type Activity = {
   id: string; name: string; description: string | null; cost_low: number | null;
   cost_high: number | null; currency: string | null; duration: string | null;
-  media: Media[] | null;
+  media: Media[] | null; providers: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[];
 };
 
 export type Stay = {
   id: string; name: string; description: string | null; tier: string | null;
-  contact: string | null; media: Media[] | null;
+  contact: string | null; email: string | null; website: string | null;
+  media: Media[] | null;
 };
 
 export { STAY_TIERS };
@@ -62,7 +63,24 @@ export async function getActivities(placeId: string): Promise<Activity[]> {
     .eq("status", "published")
     .eq("place_id", placeId)
     .order("name");
-  return (data as Activity[]) ?? [];
+  const acts = (data as Activity[]) ?? [];
+  for (const a of acts) {
+    const { data: prov } = await db()
+      .from("activity_providers")
+      .select("partner_id")
+      .eq("activity_id", a.id);
+    const pids = (prov ?? []).map(p => p.partner_id);
+    let partners: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[] = [];
+    if (pids.length) {
+      const { data: ps } = await db()
+        .from("partners")
+        .select("id,name,contact,email,website")
+        .in("id", pids);
+      partners = (ps ?? []).map(p => ({ id: p.id, name: p.name, contact: p.contact, email: p.email, website: p.website }));
+    }
+    a.providers = partners;
+  }
+  return acts;
 }
 
 // Published activities for many destinations at once, grouped by place_id.
@@ -88,12 +106,23 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
 export async function getStays(placeId: string): Promise<Stay[]> {
   const { data } = await db()
     .from("partners")
-    .select("id,name,description,tier,contact,media")
+    .select("id,name,description,tier,contact,email,website,media")
     .eq("type", "lodge")
     .eq("active", true)
     .contains("place_ids", [placeId]);
   const order = ["budget", "mid", "comfort"];
   return ((data as Stay[]) ?? []).sort((a, b) => order.indexOf(a.tier ?? "") - order.indexOf(b.tier ?? ""));
+}
+
+// All partners that can act as activity providers (operators, drivers, guides, activities).
+export async function getActivityProviders(): Promise<{ id: string; name: string; type: string; contact: string | null }[]> {
+  const { data } = await db()
+    .from("partners")
+    .select("id,name,type,contact")
+    .in("type", ["operator", "driver", "guide", "activity"])
+    .eq("active", true)
+    .order("name");
+  return (data ?? []).map(p => ({ id: p.id, name: p.name, type: p.type, contact: p.contact }));
 }
 
 // Public engagement metrics for destination cards.

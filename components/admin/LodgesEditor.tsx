@@ -4,9 +4,9 @@ import type { Stay } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import MediaEditor, { toDraft, type MediaDraft } from "./MediaEditor";
 
-type Draft = { id?: string; name: string; tier: string; description: string; contact: string; media: MediaDraft[] };
+type Draft = { id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string; media: MediaDraft[] };
 
-const blank = (): Draft => ({ name: "", tier: "mid", description: "", contact: "", media: [] });
+const blank = (): Draft => ({ name: "", tier: "mid", description: "", contact: "", email: "", website: "", media: [] });
 
 // "Where to stay" on the destination page: lodges by budget tier, each with a
 // one-line blurb and photos or videos. Lodges are stored as partners so enquiries
@@ -14,7 +14,7 @@ const blank = (): Draft => ({ name: "", tier: "mid", description: "", contact: "
 export default function LodgesEditor({ initial }: { initial: Stay[] }) {
   const [items, setItems] = useState<Draft[]>(() => (initial ?? []).map(s => ({
     id: s.id, name: s.name ?? "", tier: s.tier ?? "mid", description: s.description ?? "",
-    contact: s.contact ?? "", media: toDraft(s.media),
+    contact: s.contact ?? "", email: s.email ?? "", website: s.website ?? "", media: toDraft(s.media),
   })));
   const patch = (i: number, p: Partial<Draft>) => setItems(items.map((x, j) => (j === i ? { ...x, ...p } : x)));
 
@@ -34,10 +34,13 @@ export default function LodgesEditor({ initial }: { initial: Stay[] }) {
               </select>
             </div>
           </div>
+          <div className="row2">
+            <div><label htmlFor={`lc${i}`}>Contact (WhatsApp or email)</label><input id={`lc${i}`} value={l.contact} placeholder="+256 7xx xxx xxx" onChange={e => patch(i, { contact: e.target.value })} /></div>
+            <div><label htmlFor={`le${i}`}>Email</label><input id={`le${i}`} value={l.email} placeholder="info@lodge.com" onChange={e => patch(i, { email: e.target.value })} /></div>
+            <div><label htmlFor={`lw${i}`}>Website</label><input id={`lw${i}`} value={l.website} placeholder="https://lodge.com" onChange={e => patch(i, { website: e.target.value })} /></div>
+          </div>
           <label htmlFor={`ld${i}`}>One line about it</label>
           <input id={`ld${i}`} value={l.description} placeholder="Riverside bandas with a campfire, walking distance to town." onChange={e => patch(i, { description: e.target.value })} />
-          <label htmlFor={`lc${i}`}>Contact (optional)</label>
-          <input id={`lc${i}`} value={l.contact} placeholder="WhatsApp or email" onChange={e => patch(i, { contact: e.target.value })} />
           <label>Photos and videos</label>
           <MediaEditor items={l.media} onChange={media => patch(i, { media })} />
         </div>
@@ -49,7 +52,7 @@ export default function LodgesEditor({ initial }: { initial: Stay[] }) {
         .filter(l => l.name.trim() || l.media.some(m => m.url.trim()))
         .map(l => ({
           id: l.id, name: l.name.trim(), tier: l.tier, description: l.description.trim(),
-          contact: l.contact.trim(),
+          contact: l.contact.trim(), email: l.email.trim(), website: l.website.trim(),
           media: l.media.filter(m => m.url.trim()).map(m => ({ type: m.type, url: m.url.trim(), caption: m.caption.trim() })),
         })))} />
     </div>

@@ -84,14 +84,14 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
   return (
     <div className="wrap">
       <div className="searchbar" role="search" aria-label="Search destinations">
-        <label style={{ display: "block", fontSize: "12px", letterSpacing: ".08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px", fontFamily: "var(--head),system-ui,sans-serif" }}>Search trips &amp; packages</label>
+        <label style={{ display: "block", fontSize: "11px", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px", fontFamily: "var(--head),system-ui,sans-serif" }}>Search trips &amp; packages</label>
         <input type="search" placeholder="e.g. gorilla trekking, source of the nile, ssesese islands" value={search} onChange={e => setSearch(e.target.value)} />
         <button className="chip" onClick={() => setSearch("")} title="Clear" aria-label="Clear search" style={{ padding: "0 10px", borderRadius: "10px", fontSize: "1rem", lineHeight: "1", height: "auto", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>✕</button>
       </div>
       <div className="chips" role="group" aria-label="Filter destinations">
         {tags.map(t => <button key={t} className="chip" aria-pressed={t === tag} onClick={() => setTag(t)}>{t === "all" ? "All destinations" : t}</button>)}
       </div>
-      <p className="meta" style={{ margin: "6px 0 18px" }}>{list.length} destination{list.length !== 1 ? "s" : ""} found</p>
+      <p className="meta" style={{ margin: "6px 0 24px" }}>{list.length} destination{list.length !== 1 ? "s" : ""} found</p>
       {list.length ? (
         <div className="grid">{list.map(i => {
           const acts = activitiesByPlace[i.place_id] ?? [];
@@ -101,18 +101,17 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
           const eng = engagement[i.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 };
           const isLiked = liked.has(i.place_id);
           return (
-            <Link
-              key={i.id}
-              className="card"
-              href={`/${country}/${i.places.slug}`}
-              onClick={() => registerView(path)}
-              style={{ textDecoration: "none", color: "inherit", display: "block", height: "100%" }}
-            >
-              {coverUrl ? (
+            <article key={i.id} className="card">
+              <div className="cardwrapper">
+                {coverUrl ? (
                 <figure className="cardimg">
                   <img src={coverUrl} alt="" loading="lazy" />
                 </figure>
-              ) : null}
+              ) : (
+                <figure className="cardimg cardimg-placeholder">
+                  <span className="placeholder-icon">📍</span>
+                </figure>
+              )}
               <div className="cardbody">
                 <div className="cardhead">
                   <h3>{i.title}</h3>
@@ -127,8 +126,10 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                   </span>
                   <span className="metric" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>{eng.reviews} <span className="metriclabel">reviews</span> {eng.reviews > 0 && stars(eng.avgRating)}</span>
                 </div>
+                <a href={`/${country}/${i.places.slug}`} className="cardcta">View details <span aria-hidden="true">→</span></a>
               </div>
-            </Link>
+              </div>
+            </article>
           );
         })}
         </div>
