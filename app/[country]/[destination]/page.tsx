@@ -5,6 +5,7 @@ import EnquiryForm from "@/components/EnquiryForm";
 import MediaGallery from "@/components/MediaGallery";
 import Story from "@/components/Story";
 import { SITE, getCountry, getDestinations, getActivities, getStays } from "@/lib/data";
+import { safeSrc } from "@/lib/media";
 import { STAY_TIERS } from "@/lib/tiers";
 
 export const revalidate = 3600;
@@ -80,9 +81,10 @@ export default async function Destination(p: P) {
         </>
       )}
 
-      {stays.length > 0 && (
+      <h2>Where to stay</h2>
+      <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
+      {stays.length > 0 ? (
         <>
-          <h2>Where to stay</h2>
           {STAY_TIERS.map(([tier, label]) => {
             const list = stays.filter(s => s.tier === tier);
             if (!list.length) return null;
@@ -92,10 +94,16 @@ export default async function Destination(p: P) {
                 <div className="cards">
                   {list.map(s => (
                     <div className="cell" key={s.id}>
-                      <h4>{s.name}</h4>
-                      {s.description && <p>{s.description}</p>}
-                      {s.contact && <p className="meta">{s.contact}</p>}
-                      <MediaGallery items={s.media} />
+                      {s.media?.[0]?.url && (
+                        <figure className="cellimg">
+                          <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
+                        </figure>
+                      )}
+                      <div className="cellbody">
+                        <h4>{s.name}</h4>
+                        {s.description && <p>{s.description}</p>}
+                        {s.contact && <p className="meta">{s.contact}</p>}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -106,14 +114,23 @@ export default async function Destination(p: P) {
             <div className="cards">
               {otherStays.map(s => (
                 <div className="cell" key={s.id}>
-                  <h4>{s.name}</h4>
-                  {s.description && <p>{s.description}</p>}
-                  <MediaGallery items={s.media} />
+                  {s.media?.[0]?.url && (
+                    <figure className="cellimg">
+                      <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
+                    </figure>
+                  )}
+                  <div className="cellbody">
+                    <h4>{s.name}</h4>
+                    {s.description && <p>{s.description}</p>}
+                    {s.contact && <p className="meta">{s.contact}</p>}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </>
+      ) : (
+        <p className="empty">No places to stay listed yet. Check back soon.</p>
       )}
 
       {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}

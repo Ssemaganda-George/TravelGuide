@@ -1,19 +1,54 @@
 import Link from "next/link";
 import { authClient } from "@/lib/supabase/server";
+import { signOut } from "./actions";
+
+const NAV: { href: string; label: string }[] = [
+  { href: "/admin", label: "Enquiries" },
+  { href: "/admin/referrals", label: "Referrals" },
+  { href: "/admin/partners", label: "Partners" },
+  { href: "/admin/content", label: "Content" },
+  { href: "/admin/insights", label: "Insights" },
+];
+
+const SECTIONS: Record<string, { title: string; sub: string }> = {
+  "/admin": { title: "Enquiries", sub: "Manage traveller enquiries and reply to guests." },
+  "/admin/referrals": { title: "Referrals & commissions", sub: "Track partner referrals and commissions due." },
+  "/admin/partners": { title: "Partners", sub: "Lodges, operators, drivers and activity partners." },
+  "/admin/content": { title: "Destination content", sub: "Edit destination pages, stories, activities and stays." },
+  "/admin/insights": { title: "Insights", sub: "Views, visitors and enquiry trends over the last 30 days." },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const sb = await authClient();
   const { data: { user } } = await sb.auth.getUser();
+  if (!user) return children;
   return (
-    <>
-      {user && (
-        <nav className="adminnav wrap" aria-label="Admin">
-          <Link href="/admin">Enquiries</Link><Link href="/admin/referrals">Referrals</Link>
-          <Link href="/admin/partners">Partners</Link><Link href="/admin/content">Content</Link>
-          <Link href="/admin/insights">Insights</Link>
+    <div className="appshell">
+      <aside className="admin-sidebar" aria-label="Admin navigation">
+        <Link className="admin-brand" href="/admin">Travel Guide</Link>
+        <nav className="admin-nav">
+          {NAV.map(n => (
+            <Link key={n.href} href={n.href} className="admin-nav-link">{n.label}</Link>
+          ))}
         </nav>
-      )}
-      {children}
-    </>
+        <div className="admin-foot">
+          <span className="admin-user">{user.email ?? "Admin"}</span>
+          <form action={signOut} style={{ marginTop: 12 }}>
+            <button className="go" style={{ width: "100%", padding: "8px 12px", fontSize: "13px" }}>Sign out</button>
+          </form>
+        </div>
+      </aside>
+      <main className="admin-main">
+        <header className="admin-header">
+          <div className="admin-headleft">
+            <h1 className="admin-title">Admin</h1>
+          </div>
+          <div className="admin-headright">
+            <Link href="/" className="chip" style={{ background: "transparent", borderColor: "rgba(255,255,255,.5)", color: "#fff" }}>View site</Link>
+          </div>
+        </header>
+        {children}
+      </main>
+    </div>
   );
 }

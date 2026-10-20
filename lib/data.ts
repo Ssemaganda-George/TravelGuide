@@ -65,6 +65,25 @@ export async function getActivities(placeId: string): Promise<Activity[]> {
   return (data as Activity[]) ?? [];
 }
 
+// Published activities for many destinations at once, grouped by place_id.
+export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record<string, Activity[]>> {
+  if (!placeIds.length) return {};
+  const { data } = await db()
+    .from("activities")
+    .select("id,name,description,cost_low,cost_high,currency,duration,media,place_id")
+    .eq("status", "published")
+    .in("place_id", placeIds)
+    .order("place_id,name");
+  const byPlace: Record<string, Activity[]> = {};
+  for (const a of (data as Activity[]) ?? []) {
+    const pid = (a as unknown as { place_id?: string }).place_id;
+    if (!pid) continue;
+    if (!byPlace[pid]) byPlace[pid] = [];
+    byPlace[pid].push(a);
+  }
+  return byPlace;
+}
+
 // Lodges serving a destination, cheapest tier first.
 export async function getStays(placeId: string): Promise<Stay[]> {
   const { data } = await db()

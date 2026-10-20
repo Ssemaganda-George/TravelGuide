@@ -111,8 +111,12 @@ export async function saveContent(fd: FormData) {
     plan_around: t(fd, "plan_around"),
     last_checked: t(fd, "checked"), status,
   }).eq("id", String(fd.get("id")));
-  await syncActivities(sb, placeId, fd.get("activities_json"));
-  await syncStays(sb, placeId, fd.get("lodges_json"));
+  try {
+    await syncActivities(sb, placeId, fd.get("activities_json"));
+    await syncStays(sb, placeId, fd.get("lodges_json"));
+  } catch (err) {
+    redirect(`/admin/content/${fd.get("id")}?error=${encodeURIComponent(String(err))}`);
+  }
   revalidatePath("/", "layout"); // public pages update immediately
   redirect("/admin/content");
 }
@@ -135,8 +139,8 @@ async function syncActivities(sb: Awaited<ReturnType<typeof authClient>>, placeI
       cost_low: a.cost_low ?? null, cost_high: a.cost_high ?? null, currency: "USD",
       duration: a.duration?.trim() || null, media: cleanMedia(a.media), status: "published" as const,
     };
-    if (a.id) { const { error } = await sb.from("activities").update(payload).eq("id", a.id); if (!error) keep.add(a.id); }
-    else { const { data } = await sb.from("activities").insert(payload).select("id").single(); if (data) keep.add(data.id); }
+    if (a.id) { keep.add(a.id); const { error } = await sb.from("activities").update(payload).eq("id", a.id); if (error) throw new Error(`Update failed for "${name}": ${error.message}`); }
+    else { const { data, error } = await sb.from("activities").insert(payload).select("id").single(); if (error) throw new Error(`Insert failed for "${name}": ${error.message}`); if (data) keep.add(data.id); }
   }
   const { data: old } = await sb.from("activities").select("id").eq("place_id", placeId);
   const gone = (old ?? []).map(r => r.id).filter(id => !keep.has(id));
@@ -157,13 +161,15 @@ async function syncStays(sb: Awaited<ReturnType<typeof authClient>>, placeId: st
     };
     if (l.id) {
       const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();
-      await sb.from("partners").update({
+      const { error } = await sb.from("partners").update({
         ...payload, type: "lodge",
         place_ids: Array.from(new Set([...(p?.place_ids ?? []), placeId])),
       }).eq("id", l.id);
+      if (error) throw new Error(`Update failed for stay "${name}": ${error.message}`);
       keep.add(l.id);
     } else {
-      const { data } = await sb.from("partners").insert({ ...payload, type: "lodge" as const, place_ids: [placeId] }).select("id").single();
+      const { data, error } = await sb.from("partners").insert({ ...payload, type: "lodge" as const, place_ids: [placeId] }).select("id").single();
+      if (error) throw new Error(`Insert failed for stay "${name}": ${error.message}`);
       if (data) keep.add(data.id);
     }
   }

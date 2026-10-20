@@ -10,7 +10,7 @@ export default async function Partners() {
   if (!sb) return <div className="wrap page"><h1>No access</h1></div>;
   const { data } = await sb.from("partners").select("*").order("name");
   return (
-    <div className="wrap page" style={{ maxWidth: 900 }}>
+    <div className="wrap page">
       <h1>Partners</h1>
       <div className="tbl"><table>
         <thead><tr><th>Name</th><th>Type</th><th>Commission</th><th>Agreement</th><th>Payment terms</th><th></th></tr></thead>

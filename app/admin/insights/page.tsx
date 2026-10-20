@@ -29,7 +29,7 @@ export default async function Insights() {
   const booked = rows.filter(r => r.status === "booked").length;
   const lost = top(rows.filter(r => r.status === "lost"), "lost_reason");
   return (
-    <div className="wrap page" style={{ maxWidth: 900 }}>
+    <div className="wrap page">
       <h1>Insights</h1>
       <p className="hook">Last {DAYS} days: {views} views · {visitors} visitors · {recent.length} enquiries ({pct(recent.length, visitors)} of visitors)</p>
 

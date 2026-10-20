@@ -19,7 +19,7 @@ export default async function Admin() {
   const rows = data ?? [];
   const waiting = rows.filter(r => r.status === "new").length;
   return (
-    <div className="wrap page" style={{ maxWidth: 900 }}>
+    <div className="wrap page">
       <h1>Enquiries</h1>
       <p className="hook">{waiting ? `${waiting} waiting for a first reply` : "No new enquiries."}</p>
       <form action={signOut}><button className="chip">Sign out</button></form>
@@ -27,7 +27,7 @@ export default async function Admin() {
         const link = r.contact_method === "whatsapp" ? `https://wa.me/${String(r.contact).replace(/\D/g, "")}` : `mailto:${r.contact}`;
         return (
           <div className="form" key={r.id}>
-            <h3>{r.name} <span className="meta">· {r.places?.name ?? "General"}</span></h3>
+            <h3>{r.name} <span className={`badge badge-${r.status}`}>{r.status}</span> <span className="meta">· {r.places?.name ?? "General"}</span></h3>
             <p className="meta">{new Date(r.created_at).toLocaleString("en-GB", { timeZone: "Africa/Kampala" })} · from {r.source_channel || "direct"}</p>
             <p><a href={link}>{r.contact}</a> ({r.contact_method})<br />
               {[r.travel_dates, r.group_size && `${r.group_size} travellers`, r.budget, (r.interests ?? []).join(", ")].filter(Boolean).join(" · ")}</p>

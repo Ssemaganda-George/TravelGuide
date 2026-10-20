@@ -9,9 +9,10 @@ import { saveContent } from "../../actions";
 export const metadata: Metadata = { title: "Edit destination", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-export default async function Edit({ params }: { params: Promise<{ id: string }> }) {
+export default async function Edit({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const sb = await admin();
   if (!sb) return <div className="wrap page"><h1>No access</h1></div>;
+  const { error } = await searchParams;
   const { data: d } = await sb.from("destination_content").select("*").eq("id", (await params).id).maybeSingle();
   if (!d) notFound();
   const [{ data: activities }, { data: stays }] = await Promise.all([
@@ -19,9 +20,10 @@ export default async function Edit({ params }: { params: Promise<{ id: string }>
     sb.from("partners").select("id,name,description,tier,contact,media").eq("type", "lodge").contains("place_ids", [d.place_id]),
   ]);
   return (
-    <div className="wrap page" style={{ maxWidth: 960 }}>
+    <div className="wrap page">
       <Link className="back" href="/admin/content">Back to content</Link>
       <h1>Edit {d.title}</h1>
+      {error && <p className="msg" role="alert">{error}</p>}
       <p className="hook">Everything on the public page comes from this form. Save once when you are done.</p>
       <form className="form" action={saveContent}>
         <input type="hidden" name="id" value={d.id} />
