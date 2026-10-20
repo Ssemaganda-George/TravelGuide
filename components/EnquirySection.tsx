@@ -9,7 +9,7 @@ export default function EnquirySection({ placeId, title, page }: Props) {
   return (
     <div className="enquiry-section">
       <button className="go" onClick={() => setOpen(!open)} style={{ width: "auto", padding: "12px 24px", fontSize: "1rem", marginBottom: 12 }}>
-        {open ? "Hide enquiry form" : "Plan a trip &amp; ask a question"}
+        {open ? "Hide enquiry form" : "Ask about this trip"}
       </button>
       {open && (
         <div className="enquiry-full">
