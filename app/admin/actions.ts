@@ -31,6 +31,7 @@ export async function addPartner(fd: FormData) {
   const sb = await authClient();
   await sb.from("partners").insert({
     name: t(fd, "name")!, type: String(fd.get("type")), contact: t(fd, "contact"),
+    email: t(fd, "email"), website: t(fd, "website"),
     commission_rate: num(fd, "rate"), commission_flat: num(fd, "flat"),
     agreement_status: String(fd.get("agreement")), payment_terms: t(fd, "terms"), notes: t(fd, "notes"),
   });
@@ -122,7 +123,7 @@ export async function saveContent(fd: FormData) {
   redirect("/admin/content");
 }
 
-type Item = { id?: string; name?: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; tier?: string; contact?: string; media?: unknown };
+type Item = { id?: string; name?: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; tier?: string; contact?: string; email?: string; website?: string; providerIds?: string[]; media?: unknown };
 
 const arr = (v: FormDataEntryValue | null): Item[] => {
   try { const parsed = JSON.parse(String(v ?? "[]")); return Array.isArray(parsed) ? parsed : []; }
@@ -140,12 +141,24 @@ async function syncActivities(sb: Awaited<ReturnType<typeof authClient>>, placeI
       cost_low: a.cost_low ?? null, cost_high: a.cost_high ?? null, currency: "USD",
       duration: a.duration?.trim() || null, media: cleanMedia(a.media), status: "published" as const,
     };
-    if (a.id) { keep.add(a.id); const { error } = await sb.from("activities").update(payload).eq("id", a.id); if (error) throw new Error(`Update failed for "${name}": ${error.message}`); }
-    else { const { data, error } = await sb.from("activities").insert(payload).select("id").single(); if (error) throw new Error(`Insert failed for "${name}": ${error.message}`); if (data) keep.add(data.id); }
+    let actId: string | null = null;
+    if (a.id) { keep.add(a.id); actId = a.id; const { error } = await sb.from("activities").update(payload).eq("id", a.id); if (error) throw new Error(`Update failed for "${name}": ${error.message}`); }
+    else { const { data, error } = await sb.from("activities").insert(payload).select("id").single(); if (error) throw new Error(`Insert failed for "${name}": ${error.message}`); if (data) { keep.add(data.id); actId = data.id; } }
+    // Sync activity <-> providers junction table
+    if (actId) {
+      await sb.from("activity_providers").delete().eq("activity_id", actId);
+      const pids: string[] = Array.isArray(a.providerIds) ? a.providerIds : [];
+      if (pids.length) {
+        await sb.from("activity_providers").insert(pids.map(pid => ({ activity_id: actId, partner_id: pid })));
+      }
+    }
   }
   const { data: old } = await sb.from("activities").select("id").eq("place_id", placeId);
   const gone = (old ?? []).map(r => r.id).filter(id => !keep.has(id));
-  if (gone.length) await sb.from("activities").delete().in("id", gone);
+  if (gone.length) {
+    await sb.from("activity_providers").delete().in("activity_id", gone);
+    await sb.from("activities").delete().in("id", gone);
+  }
 }
 
 // "Where to stay": lodges are partners of type 'lodge'. Removals only unlink the
@@ -158,6 +171,7 @@ async function syncStays(sb: Awaited<ReturnType<typeof authClient>>, placeId: st
     const tier = ["budget", "mid", "comfort"].includes(l.tier ?? "") ? l.tier! : null;
     const payload = {
       name, tier, description: l.description?.trim() || null, contact: l.contact?.trim() || null,
+      email: l.email?.trim() || null, website: l.website?.trim() || null,
       media: cleanMedia(l.media),
     };
     if (l.id) {

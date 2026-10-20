@@ -93,7 +93,7 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
     .in("place_id", placeIds)
     .order("place_id,name");
   const byPlace: Record<string, Activity[]> = {};
-  for (const a of (data as Activity[]) ?? []) {
+  for (const a of (data as unknown as Activity[]) ?? []) {
     const pid = (a as unknown as { place_id?: string }).place_id;
     if (!pid) continue;
     if (!byPlace[pid]) byPlace[pid] = [];

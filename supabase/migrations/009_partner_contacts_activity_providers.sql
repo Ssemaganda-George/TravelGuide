@@ -11,3 +11,8 @@ create table if not exists activity_providers (
 );
 create index if not exists activity_providers_activity on activity_providers (activity_id);
 create index if not exists activity_providers_partner on activity_providers (partner_id);
+
+-- RLS for activity_providers: public can read, admins can manage
+alter table activity_providers enable row level security;
+create policy "public reads activity_providers" on activity_providers for select using (true);
+create policy "admin all activity_providers" on activity_providers for all using (is_admin()) with check (is_admin());

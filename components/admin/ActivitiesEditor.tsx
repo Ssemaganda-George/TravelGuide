@@ -1,23 +1,26 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Activity } from "@/lib/data";
 import MediaEditor, { toDraft, type MediaDraft } from "./MediaEditor";
 
+type Provider = { id: string; name: string; type: string; contact: string | null };
+
 type Draft = {
   id?: string; name: string; description: string;
-  cost_low: string; cost_high: string; duration: string; media: MediaDraft[];
+  cost_low: string; cost_high: string; duration: string; media: MediaDraft[]; providerIds: string[];
 };
 
-const blank = (): Draft => ({ name: "", description: "", cost_low: "", cost_high: "", duration: "", media: [] });
+const blank = (): Draft => ({ name: "", description: "", cost_low: "", cost_high: "", duration: "", media: [], providerIds: [] });
 
 // Lets the guide manage "Things to do" on the destination page: each activity gets
-// a description, a rough cost, and any number of photos or videos.
-export default function ActivitiesEditor({ initial }: { initial: Activity[] }) {
+// a description, a rough cost, photos/videos, and one or more provider partners.
+export default function ActivitiesEditor({ initial, providers }: { initial: Activity[]; providers: Provider[] }) {
   const [items, setItems] = useState<Draft[]>(() => (initial ?? []).map(a => ({
     id: a.id, name: a.name ?? "", description: a.description ?? "",
     cost_low: a.cost_low != null ? String(a.cost_low) : "",
     cost_high: a.cost_high != null ? String(a.cost_high) : "",
     duration: a.duration ?? "", media: toDraft(a.media),
+    providerIds: (a.providers ?? []).map(p => p.id),
   })));
   const patch = (i: number, p: Partial<Draft>) => setItems(items.map((x, j) => (j === i ? { ...x, ...p } : x)));
   const n = (v: string) => (v.trim() === "" || isNaN(Number(v)) ? null : Number(v));
@@ -41,6 +44,15 @@ export default function ActivitiesEditor({ initial }: { initial: Activity[] }) {
           </div>
           <label>Photos and videos</label>
           <MediaEditor items={a.media} onChange={media => patch(i, { media })} />
+          <label>Providers (partners who run this activity)</label>
+          <select id={`ap${i}`} multiple size={4} onChange={e => {
+            const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+            patch(i, { providerIds: selected });
+          }}>
+            {providers.map(p => (
+              <option key={p.id} value={p.id} selected={a.providerIds.includes(p.id)}>{p.name} ({p.type})</option>
+            ))}
+          </select>
         </div>
       ))}
       <div className="madd">
@@ -51,6 +63,7 @@ export default function ActivitiesEditor({ initial }: { initial: Activity[] }) {
         .map(a => ({
           id: a.id, name: a.name.trim(), description: a.description.trim(),
           cost_low: n(a.cost_low), cost_high: n(a.cost_high), duration: a.duration.trim(),
+          providerIds: a.providerIds,
           media: a.media.filter(m => m.url.trim()).map(m => ({ type: m.type, url: m.url.trim(), caption: m.caption.trim() })),
         })))} />
     </div>

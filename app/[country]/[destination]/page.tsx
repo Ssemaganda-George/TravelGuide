@@ -74,6 +74,11 @@ export default async function Destination(p: P) {
                 <h3>{a.name}</h3>
                 <p className="meta">{[money(a.cost_low, a.cost_high), a.duration].filter(Boolean).join(" · ")}</p>
                 {a.description && <p>{a.description}</p>}
+                {a.providers?.length && (
+                  <div className="meta" style={{ fontSize: "0.85rem", marginTop: 6 }}>
+                    Providers: {a.providers.map(p => p.name).join(", ")}
+                  </div>
+                )}
                 <MediaGallery items={a.media} />
               </div>
             ))}
@@ -103,6 +108,8 @@ export default async function Destination(p: P) {
                         <h4>{s.name}</h4>
                         {s.description && <p>{s.description}</p>}
                         {s.contact && <p className="meta">{s.contact}</p>}
+                        {s.email && <p className="meta">Email: {s.email}</p>}
+                        {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
                       </div>
                     </div>
                   ))}
@@ -123,6 +130,8 @@ export default async function Destination(p: P) {
                     <h4>{s.name}</h4>
                     {s.description && <p>{s.description}</p>}
                     {s.contact && <p className="meta">{s.contact}</p>}
+                    {s.email && <p className="meta">Email: {s.email}</p>}
+                    {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
                   </div>
                 </div>
               ))}

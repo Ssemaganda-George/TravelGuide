@@ -5,6 +5,7 @@ import { admin } from "@/lib/admin";
 import ActivitiesEditor from "@/components/admin/ActivitiesEditor";
 import LodgesEditor from "@/components/admin/LodgesEditor";
 import { saveContent } from "../../actions";
+import { getActivityProviders, type Activity } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Edit destination", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -15,10 +16,12 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
   const { error } = await searchParams;
   const { data: d } = await sb.from("destination_content").select("*").eq("id", (await params).id).maybeSingle();
   if (!d) notFound();
+  const providers = await getActivityProviders();
   const [{ data: activities }, { data: stays }] = await Promise.all([
     sb.from("activities").select("id,name,description,cost_low,cost_high,currency,duration,media").eq("place_id", d.place_id).order("name"),
-    sb.from("partners").select("id,name,description,tier,contact,media").eq("type", "lodge").contains("place_ids", [d.place_id]),
+    sb.from("partners").select("id,name,description,tier,contact,email,website,media").eq("type", "lodge").contains("place_ids", [d.place_id]),
   ]);
+  const actsWithProviders = ((activities ?? []) as unknown as any[]).map((a: any) => ({ ...a, providers: [] })) as Activity[];
   return (
     <div className="wrap page">
       <Link className="back" href="/admin/content">Back to content</Link>
@@ -73,8 +76,8 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
 
         <section className="fsec">
           <h3>Things to do</h3>
-          <p className="hint">Add each activity with a short description and rough cost. Photos and videos show in a gallery on the public page.</p>
-          <ActivitiesEditor initial={activities ?? []} />
+          <p className="hint">Add each activity with a short description and rough cost. Photos and videos show in a gallery on the public page. Select one or more partner providers for each activity.</p>
+          <ActivitiesEditor initial={actsWithProviders} providers={providers ?? []} />
         </section>
 
         <section className="fsec">
