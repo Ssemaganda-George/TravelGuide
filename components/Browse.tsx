@@ -25,19 +25,6 @@ const Heart = ({ filled }: { filled?: boolean }) => (
   </svg>
 );
 
-const stars = (rating: number) => {
-  const full = Math.floor(rating);
-  const half = rating % 1 >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  return (
-    <span className="stars" aria-label={rating.toFixed(1) + " of 5"}>
-      {Array.from({ length: full }).map(() => "★")}
-      {half && "☆"}
-      {Array.from({ length: empty }).map(() => "☆")}
-    </span>
-  );
-};
-
 export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement }: Props) {
   const [tag, setTag] = useState("all");
   const [search, setSearch] = useState("");
@@ -129,7 +116,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                       <Heart filled={isLiked} /> {eng.likes}
                     </span>
                     <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>
-                      {eng.reviews} {eng.reviews > 0 && stars(eng.avgRating)}
+                      {eng.reviews > 0 ? `${eng.avgRating} (${eng.reviews} reviews)` : 0}
                     </span>
                   </div>
                 </div>
