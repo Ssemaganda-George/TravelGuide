@@ -74,8 +74,8 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
   return (
     <div className="wrap">
       <div className="searchbar" role="search" aria-label="Search destinations">
-        <label style={{ display: "block", fontSize: "11px", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px", fontFamily: "var(--head),system-ui,sans-serif" }}>Search trips &amp; packages</label>
-        <input type="search" placeholder="e.g. gorilla trekking, source of the nile, ssesese islands" value={search} onChange={e => setSearch(e.target.value)} />
+        <label style={{ display: "block", fontSize: "11px", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px", fontFamily: "var(--head),system-ui,sans-serif" }}>Search destinations</label>
+        <input type="search" placeholder="gorillas, chimps, hiking" value={search} onChange={e => setSearch(e.target.value)} />
         <button className="chip" onClick={() => setSearch("")} title="Clear" aria-label="Clear search" style={{ padding: "0 10px", borderRadius: "10px", fontSize: "1rem", lineHeight: "1", height: "auto", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>✕</button>
       </div>
       <div className="chips" role="group" aria-label="Filter destinations">
