@@ -14,10 +14,11 @@ type Props = {
   staysCount: Record<string, number>;
 };
 
-export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement, staysCount }: Props) {
+export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement: initialEngagement, staysCount }: Props) {
   const [tag, setTag] = useState("all");
   const [search, setSearch] = useState("");
   const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [engagement, setEngagement] = useState<Record<string, Engagement>>(initialEngagement);
   const tags = ["all", ...new Set(items.flatMap(i => i.tags))];
   const list = items
     .slice()
@@ -47,16 +48,15 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       if (next) n.add(placeId); else n.delete(placeId);
       return n;
     });
-    fetch("/api/like", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ placeId }),
-    }).catch(() => {
-      setLiked(prev => {
-        const n = new Set(prev);
-        if (next) n.delete(placeId); else n.add(placeId);
-        return n;
-      });
+    setEngagement(prev => {
+      const curr = prev[placeId] ?? { likes: 0, reviews: 0, avgRating: 0 };
+      return {
+        ...prev,
+        [placeId]: {
+          ...curr,
+          likes: next ? curr.likes + 1 : Math.max(0, curr.likes - 1),
+        },
+      };
     });
   };
 
