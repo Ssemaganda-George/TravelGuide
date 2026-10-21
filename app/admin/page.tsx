@@ -1,11 +1,28 @@
 import type { Metadata } from "next";
 import { authClient } from "@/lib/supabase/server";
-import { updateStatus, signOut } from "./actions";
+import { revalidatePath } from "next/cache";
 
 export const metadata: Metadata = { title: "Enquiries", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 const STATUSES = ["new", "contacted", "quoted", "booked", "lost"];
+
+async function signOut(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  await sb.auth.signOut();
+  revalidatePath("/admin/login");
+}
+
+async function updateStatus(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const id = String(fd.get("id"));
+  const status = String(fd.get("status"));
+  const lost_reason = String(fd.get("lost_reason")) || null;
+  await sb.from("enquiries").update({ status, lost_reason }).eq("id", id);
+  revalidatePath("/admin");
+}
 
 export default async function Admin() {
   const sb = await authClient();

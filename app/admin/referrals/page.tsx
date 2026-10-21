@@ -1,9 +1,34 @@
 import type { Metadata } from "next";
 import { admin } from "@/lib/admin";
-import { addReferral, setCommissionStatus } from "../actions";
+import { authClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export const metadata: Metadata = { title: "Referrals", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+async function addReferral(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const t = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || null;
+  const num = (fd: FormData, k: string) => { const v = parseFloat(String(fd.get(k))); return isNaN(v) ? null : v; };
+  const value = num(fd, "value");
+  const { data: p } = await sb.from("partners").select("commission_rate,commission_flat,currency").eq("id", String(fd.get("partner"))).single();
+  const due = p ? (p.commission_rate != null && value != null ? (value * p.commission_rate) / 100 : p.commission_flat) : null;
+  await sb.from("referrals").insert({
+    enquiry_id: String(fd.get("enquiry")), partner_id: String(fd.get("partner")),
+    booking_value: value, currency: p?.currency ?? "USD", commission_due: due, trip_date: t(fd, "trip"),
+  });
+  revalidatePath("/admin/referrals");
+}
+
+async function setCommissionStatus(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const status = String(fd.get("status"));
+  if (!["pending", "invoiced", "paid"].includes(status)) return;
+  await sb.from("referrals").update({ commission_status: status, paid_date: status === "paid" ? new Date().toISOString().slice(0, 10) : null }).eq("id", String(fd.get("id")));
+  revalidatePath("/admin/referrals");
+}
 
 export default async function Referrals() {
   const sb = await admin();

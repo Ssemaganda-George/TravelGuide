@@ -1,10 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { admin } from "@/lib/admin";
-import { createDestination } from "../actions";
+import { authClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export const metadata: Metadata = { title: "Content", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+async function createDestination(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const name = String(fd.get("name") ?? "").trim();
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const { data: c } = await sb.from("places").select("id").eq("type", "country").eq("slug", String(fd.get("country"))).single();
+  if (!name || !slug || !c) redirect("/admin/content?error=1");
+  const { data: pl } = await sb.from("places").insert({ name, slug, type: "destination", parent_id: c.id }).select("id").single();
+  if (!pl) redirect("/admin/content?error=1");
+  const { data: ct } = await sb.from("destination_content").insert({ place_id: pl.id, title: name, language: "en" }).select("id").single();
+  redirect(ct ? `/admin/content/${ct.id}` : "/admin/content?error=1");
+}
 
 export default async function Content({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const sb = await admin();

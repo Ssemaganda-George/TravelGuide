@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { authClient } from "@/lib/supabase/server";
-import { signOut } from "./actions";
+import { revalidatePath } from "next/cache";
 
 const NAV: { href: string; label: string }[] = [
   { href: "/admin", label: "Enquiries" },
@@ -19,6 +19,13 @@ const SECTIONS: Record<string, { title: string; sub: string }> = {
   "/admin/insights": { title: "Insights", sub: "Views, visitors and enquiry trends over the last 30 days." },
   "/admin/reviews": { title: "Review moderation", sub: "Approve or reject traveller reviews before they appear publicly." },
 };
+
+async function signOut(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  await sb.auth.signOut();
+  revalidatePath("/admin/login");
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const sb = await authClient();

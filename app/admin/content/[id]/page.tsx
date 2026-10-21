@@ -1,14 +1,96 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { admin } from "@/lib/admin";
 import ActivitiesEditor from "@/components/admin/ActivitiesEditor";
 import LodgesEditor from "@/components/admin/LodgesEditor";
-import { saveContent } from "../../actions";
+import { authClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import { getActivityProviders, type Activity } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Edit destination", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+async function saveContent(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const t = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || null;
+  const num = (fd: FormData, k: string) => { const v = parseFloat(String(fd.get(k))); return isNaN(v) ? null : v; };
+  const id = String(fd.get("id"));
+  const place_id = String(fd.get("place_id"));
+  const title = t(fd, "title") ?? "Untitled";
+  const hook = t(fd, "hook");
+  const story = t(fd, "story");
+  const region = t(fd, "region");
+  const best_months = t(fd, "best_months");
+  const best_time = t(fd, "best_time");
+  const budget_range = t(fd, "budget_range");
+  const ideal_days = num(fd, "days");
+  const tags = String(fd.get("tags") ?? "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+  const getting_there = t(fd, "getting_there");
+  const local_tip = t(fd, "local_tip");
+  const tip_author = t(fd, "tip_author");
+  const plan_around = t(fd, "plan_around");
+  const status = String(fd.get("status"));
+  const last_checked = new Date().toISOString().slice(0, 10);
+
+  await sb.from("destination_content").update({
+    title, hook, story, region, best_months, best_time, budget_range, ideal_days,
+    tags, getting_there, local_tip, tip_author, plan_around, last_checked, status,
+  }).eq("id", id);
+
+  // Sync activities
+  const activitiesJson = String(fd.get("activities_json") ?? "[]");
+  const parsedActivities: Array<{ id?: string; name: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; providerIds?: string[] }> = JSON.parse(activitiesJson);
+  const keep = new Set<string>();
+  for (const a of parsedActivities) {
+    const name = (a.name ?? "").trim();
+    if (!name) continue;
+    const payload = {
+      place_id, name, description: a.description?.trim() || null,
+      cost_low: a.cost_low ?? null, cost_high: a.cost_high ?? null, currency: "USD",
+      duration: a.duration?.trim() || null, status: "published" as const,
+    };
+    let actId: string | null = null;
+    if (a.id) { keep.add(a.id); actId = a.id; await sb.from("activities").update(payload).eq("id", a.id); }
+    else { const { data } = await sb.from("activities").insert(payload).select("id").single(); if (data) { keep.add(data.id); actId = data.id; } }
+    if (actId) {
+      await sb.from("activity_providers").delete().eq("activity_id", actId);
+      const pids: string[] = Array.isArray(a.providerIds) ? a.providerIds : [];
+      if (pids.length) await sb.from("activity_providers").insert(pids.map(pid => ({ activity_id: actId, partner_id: pid })));
+    }
+  }
+  const { data: old } = await sb.from("activities").select("id").eq("place_id", place_id);
+  const gone = (old ?? []).map(r => r.id).filter(id => !keep.has(id));
+  if (gone.length) { await sb.from("activity_providers").delete().in("activity_id", gone); await sb.from("activities").delete().in("id", gone); }
+
+  // Sync stays
+  const staysJson = String(fd.get("lodges_json") ?? "[]");
+  const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string }> = JSON.parse(staysJson);
+  const keepStays = new Set<string>();
+  for (const l of parsedStays) {
+    const name = (l.name ?? "").trim();
+    if (!name) continue;
+    const tier = ["budget", "mid", "comfort"].includes(l.tier ?? "") ? l.tier : null;
+    const payload = {
+      name, tier, description: l.description?.trim() || null, contact: l.contact?.trim() || null,
+      email: l.email?.trim() || null, website: l.website?.trim() || null,
+    };
+    if (l.id) {
+      const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();
+      await sb.from("partners").update({ ...payload, type: "lodge", place_ids: Array.from(new Set([...(p?.place_ids ?? []), place_id])) }).eq("id", l.id);
+      keepStays.add(l.id);
+    } else {
+      const { data } = await sb.from("partners").insert({ ...payload, type: "lodge", place_ids: [place_id] }).select("id").single();
+      if (data) keepStays.add(data.id);
+    }
+  }
+  const { data: linked } = await sb.from("partners").select("id,place_ids").eq("type", "lodge").contains("place_ids", [place_id]);
+  for (const p of linked ?? []) { if (!keepStays.has(p.id)) { await sb.from("partners").update({ place_ids: (p.place_ids as string[]).filter(x => x !== place_id) }).eq("id", p.id); } }
+
+  revalidatePath("/", "layout");
+  redirect("/admin/content");
+}
 
 export default async function Edit({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const sb = await admin();
@@ -30,6 +112,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
       <p className="hook">Everything on the public page comes from this form. Save once when you are done.</p>
       <form className="form" action={saveContent}>
         <input type="hidden" name="id" value={d.id} />
+        <input type="hidden" name="place_id" value={d.place_id} />
 
         <section className="fsec">
           <h3>The basics</h3>

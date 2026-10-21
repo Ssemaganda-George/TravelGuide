@@ -1,9 +1,31 @@
 import type { Metadata } from "next";
 import { admin } from "@/lib/admin";
-import { addPartner, togglePartner } from "../actions";
+import { authClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export const metadata: Metadata = { title: "Partners", robots: { index: false } };
 export const dynamic = "force-dynamic";
+
+async function addPartner(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  const t = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || null;
+  const num = (fd: FormData, k: string) => { const v = parseFloat(String(fd.get(k))); return isNaN(v) ? null : v; };
+  await sb.from("partners").insert({
+    name: t(fd, "name")!, type: String(fd.get("type")), contact: t(fd, "contact"),
+    email: t(fd, "email"), website: t(fd, "website"),
+    commission_rate: num(fd, "rate"), commission_flat: num(fd, "flat"),
+    agreement_status: String(fd.get("agreement")), payment_terms: t(fd, "terms"), notes: t(fd, "notes"),
+  });
+  revalidatePath("/admin/partners");
+}
+
+async function togglePartner(fd: FormData) {
+  "use server";
+  const sb = await authClient();
+  await sb.from("partners").update({ active: fd.get("active") === "true" }).eq("id", String(fd.get("id")));
+  revalidatePath("/admin/partners");
+}
 
 export default async function Partners() {
   const sb = await admin();
