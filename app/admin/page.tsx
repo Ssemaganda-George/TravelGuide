@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Enquiries", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -11,7 +12,8 @@ async function signOut(fd: FormData) {
   "use server";
   const sb = await authClient();
   await sb.auth.signOut();
-  revalidatePath("/admin/login");
+  revalidatePath("/");
+  redirect("/");
 }
 
 async function updateStatus(fd: FormData) {

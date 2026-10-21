@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -24,7 +25,8 @@ async function signOut(fd: FormData) {
   "use server";
   const sb = await authClient();
   await sb.auth.signOut();
-  revalidatePath("/admin/login");
+  revalidatePath("/");
+  redirect("/");
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
