@@ -201,3 +201,18 @@ export async function getEngagementForPlaces(placeIds: string[]): Promise<Record
   }
   return out;
 }
+
+// Stays count for destination cards.
+export async function getStaysCounts(placeIds: string[]): Promise<Record<string, number>> {
+  if (!placeIds.length) return {};
+  const { data } = await db()
+    .from("partners")
+    .select("id, place_ids")
+    .eq("type", "lodge")
+    .eq("active", true);
+  const counts: Record<string, number> = {};
+  for (const pid of placeIds) {
+    counts[pid] = (data ?? []).filter(p => p.place_ids?.includes(pid)).length;
+  }
+  return counts;
+}

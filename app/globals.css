@@ -157,6 +157,24 @@ tr.off{opacity:.5}
 .admin-sub{margin:0;font-size:14px;color:var(--muted)}
 .admin-headright{display:flex;gap:8px;align-items:center;flex-shrink:0}
 
+/* Heart icon styles */
+.heart{color:var(--muted);fill:none;transition:color .2s,fill .2s}
+.heart.liked{color:var(--sun);fill:var(--sun)}
+.heart{color:var(--muted);fill:none;transition:color .2s,fill .2s}
+.likestat:hover .heart{color:var(--sun);fill:var(--sun)}
+.heart.liked{color:var(--sun);fill:var(--sun);fill-opacity:1}
+
+/* Card badges */
+.cardbadge{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:0.7rem;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.95);color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.activitycount{font-size:0.7rem;font-weight:700;background:var(--mist);color:var(--lake);padding:2px 8px;border-radius:999px;letter-spacing:.02em}
+.stays-badge{display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;font-weight:600;color:var(--lake);background:var(--mist);padding:2px 8px;border-radius:999px;margin-left:8px}
+
+/* Heart icon styles */
+.heart.liked{color:var(--sun);fill:var(--sun)}
+.heart{color:var(--muted);fill:none;transition:color .2s,fill .2s}
+.heart.liked{color:var(--sun);fill:var(--sun)}
+.likestat:hover .heart{color:var(--sun);fill:var(--sun)}
+
 /* Admin table polish */
 .tbl table{background:var(--paper)}
 .tbl tr{transition:background .1s}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Activity, Dest, Engagement } from "@/lib/data";
 import { safeSrc } from "@/lib/media";
+import { Eye, Heart, Building } from "lucide-react";
 
 type Props = {
   country: string;
@@ -10,22 +11,10 @@ type Props = {
   activitiesByPlace: Record<string, Activity[]>;
   viewCounts: Record<string, number>;
   engagement: Record<string, Engagement>;
+  staysCount: Record<string, number>;
 };
 
-const Eye = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const Heart = ({ filled }: { filled?: boolean }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "var(--sun)" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ color: filled ? "var(--sun)" : "var(--muted)" }}>
-    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3.05 1.32-3.5 3.15-0.45-1.83-1.74-3.15-3.5-3.15A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.04 3 5.5l7 7Z" />
-  </svg>
-);
-
-export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement }: Props) {
+export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement, staysCount }: Props) {
   const [tag, setTag] = useState("all");
   const [search, setSearch] = useState("");
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -34,11 +23,11 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
     .slice()
     .sort((a, b) => (viewCounts[`/${country}/${b.places.slug}`] ?? 0) - (viewCounts[`/${country}/${a.places.slug}`] ?? 0))
     .filter(i => {
-    const byTag = tag === "all" || i.tags.includes(tag);
-    const q = search.toLowerCase();
-    const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q);
-    return byTag && byText;
-  });
+      const byTag = tag === "all" || i.tags.includes(tag);
+      const q = search.toLowerCase();
+      const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q);
+      return byTag && byText;
+    });
 
   const registerView = (path: string) => {
     fetch("/api/view", {
@@ -100,20 +89,20 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                     <div className="cardplaceholder">📍</div>
                   )}
                   <div className="cardoverlay">
-                    <span className="cardbadge">{acts.length}</span>
+                    <span className="cardbadge">Activities {acts.length}</span>
                   </div>
                 </div>
                 <div className="cardcontent">
                   <div className="cardhead">
                     <h3>{i.title}</h3>
-                    {acts.length > 0 && <span className="activitycount">{acts.length}</span>}
+                    <span className="stays-badge">{staysCount[i.place_id] ?? 0} Stays</span>
                   </div>
                   <p>{i.hook}</p>
                   <span className="cardmeta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>
                   <div className="cardstats">
                     <span className="stat" title="Views"><Eye /> {viewCounts[path] ?? 0}</span>
                     <span className="stat likestat" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
-                      <Heart filled={isLiked} /> {eng.likes}
+                      <Heart className={isLiked ? "liked" : ""} size={16} strokeWidth={2} fill={isLiked ? "var(--sun)" : "none"} /> {eng.likes}
                     </span>
                     <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>
                       {eng.reviews > 0 ? `${eng.avgRating} (${eng.reviews} reviews)` : "Review"}

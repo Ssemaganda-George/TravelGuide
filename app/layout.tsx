@@ -22,7 +22,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       <body>
         <main>{children}</main>
         <footer className="about"><div className="wrap">
-          <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with the whole world. Know your next destination with TravelGuide.
+          <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with You. Know your next destination before you go.
         </div></footer>
         {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
         <PageView />
