@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import PageView from "@/components/PageView";
 import { ToastContainer } from "@/components/Toast";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ChatBot } from "@/components/ChatBot";
 import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { SITE } from "@/lib/data";
 import "./globals.css";
@@ -27,6 +29,8 @@ export default function Root({ children }: { children: React.ReactNode }) {
         {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
         <PageView />
         <ToastContainer />
+        <WhatsAppButton />
+        <ChatBot />
       </body>
     </html>
   );
