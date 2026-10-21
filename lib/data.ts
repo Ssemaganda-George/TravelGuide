@@ -22,7 +22,7 @@ export type Dest = {
 export type Activity = {
   id: string; name: string; description: string | null; cost_low: number | null;
   cost_high: number | null; currency: string | null; duration: string | null;
-  media: Media[] | null; providers: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[];
+  media: Media[] | null; providers: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[]; place_id?: string;
 };
 
 export type Stay = {
@@ -64,21 +64,32 @@ export async function getActivities(placeId: string): Promise<Activity[]> {
     .eq("place_id", placeId)
     .order("name");
   const acts = (data as Activity[]) ?? [];
+  if (!acts.length) return acts;
+
+  // Fetch all providers for all activities in one query (avoids N+1)
+  const { data: links } = await db()
+    .from("activity_providers")
+    .select("activity_id, partner_id")
+    .in("activity_id", acts.map(a => a.id));
+  const byActivity: Record<string, string[]> = {};
+  for (const l of (links ?? [])) {
+    if (!byActivity[l.activity_id]) byActivity[l.activity_id] = [];
+    byActivity[l.activity_id].push(l.partner_id);
+  }
+
+  const allPids = Array.from(new Set(Object.values(byActivity).flat()));
+  let partners: Record<string, { id: string; name: string; contact: string | null; email: string | null; website: string | null }> = {};
+  if (allPids.length) {
+    const { data: ps } = await db()
+      .from("partners")
+      .select("id,name,contact,email,website")
+      .in("id", allPids);
+    for (const p of (ps ?? [])) partners[p.id] = { id: p.id, name: p.name, contact: p.contact, email: p.email, website: p.website };
+  }
+
   for (const a of acts) {
-    const { data: prov } = await db()
-      .from("activity_providers")
-      .select("partner_id")
-      .eq("activity_id", a.id);
-    const pids = (prov ?? []).map(p => p.partner_id);
-    let partners: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[] = [];
-    if (pids.length) {
-      const { data: ps } = await db()
-        .from("partners")
-        .select("id,name,contact,email,website")
-        .in("id", pids);
-      partners = (ps ?? []).map(p => ({ id: p.id, name: p.name, contact: p.contact, email: p.email, website: p.website }));
-    }
-    a.providers = partners;
+    const pids = byActivity[a.id] ?? [];
+    a.providers = pids.map(pid => partners[pid]).filter(Boolean);
   }
   return acts;
 }
@@ -92,9 +103,38 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
     .eq("status", "published")
     .in("place_id", placeIds)
     .order("place_id,name");
+  const acts = (data as unknown as Activity[]) ?? [];
+  if (!acts.length) return {};
+
+  // Fetch all providers for all activities in one query (avoids N+1)
+  const { data: links } = await db()
+    .from("activity_providers")
+    .select("activity_id, partner_id")
+    .in("activity_id", acts.map(a => a.id));
+  const byActivity: Record<string, string[]> = {};
+  for (const l of (links ?? [])) {
+    if (!byActivity[l.activity_id]) byActivity[l.activity_id] = [];
+    byActivity[l.activity_id].push(l.partner_id);
+  }
+
+  const allPids = Array.from(new Set(Object.values(byActivity).flat()));
+  let partners: Record<string, { id: string; name: string; contact: string | null; email: string | null; website: string | null }> = {};
+  if (allPids.length) {
+    const { data: ps } = await db()
+      .from("partners")
+      .select("id,name,contact,email,website")
+      .in("id", allPids);
+    for (const p of (ps ?? [])) partners[p.id] = { id: p.id, name: p.name, contact: p.contact, email: p.email, website: p.website };
+  }
+
+  for (const a of acts) {
+    const pids = byActivity[a.id] ?? [];
+    a.providers = pids.map(pid => partners[pid]).filter(Boolean);
+  }
+
   const byPlace: Record<string, Activity[]> = {};
-  for (const a of (data as unknown as Activity[]) ?? []) {
-    const pid = (a as unknown as { place_id?: string }).place_id;
+  for (const a of acts) {
+    const pid = a.place_id;
     if (!pid) continue;
     if (!byPlace[pid]) byPlace[pid] = [];
     byPlace[pid].push(a);

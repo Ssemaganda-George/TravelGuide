@@ -260,3 +260,16 @@ tr.off{opacity:.5}
   .enquiry-full{padding:20px}
   .enquiry-full .form .row{grid-template-columns:1fr}
 }
+
+/* Skeleton loading states */
+.skeleton-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));padding:40px 0}
+.skeleton-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%}
+.skeleton-img{width:100%;height:240px;background:var(--mist)}
+.skeleton-img.skeleton-wide{height:200px}
+.skeleton-body{padding:20px;display:flex;flex-direction:column;gap:12px}
+.skeleton-line{height:10px;background:var(--mist);border-radius:4px;animation:pulse 1.5s infinite alternate}
+.skeleton-line.skeleton-wide{width:100%}
+.skeleton-line.skeleton-medium{width:70%}
+.skeleton-line.skeleton-short{width:40%}
+@keyframes pulse{from{opacity:.4}to{opacity:.8}}
+.page-title{font-size:clamp(2rem,5vw,3rem);margin:0 0 16px}
