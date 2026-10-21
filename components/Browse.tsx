@@ -116,7 +116,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                       <Heart filled={isLiked} /> {eng.likes}
                     </span>
                     <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>
-                      {eng.reviews > 0 ? `${eng.avgRating} (${eng.reviews} reviews)` : 0}
+                      {eng.reviews > 0 ? `${eng.avgRating} (${eng.reviews} reviews)` : "Review"}
                     </span>
                   </div>
                 </div>

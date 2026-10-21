@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { NotificationHandler } from "@/components/NotificationWrapper";
+import { SignOutButton } from "@/components/SignOutButton";
 
 const NAV: { href: string; label: string }[] = [
   { href: "/admin", label: "Enquiries" },
@@ -44,9 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
         <div className="admin-foot">
           <span className="admin-user">{user.email ?? "Admin"}</span>
-          <form action={signOut} style={{ marginTop: 12 }}>
-            <button className="go" style={{ width: "100%", padding: "8px 12px", fontSize: "13px" }}>Sign out</button>
-          </form>
+          <SignOutButton action={signOut} />
         </div>
       </aside>
       <main className="admin-main">
@@ -58,7 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/" className="chip" style={{ background: "transparent", borderColor: "rgba(255,255,255,.5)", color: "#fff" }}>View site</Link>
           </div>
         </header>
-        {children}
+        <NotificationHandler>{children}</NotificationHandler>
       </main>
     </div>
   );

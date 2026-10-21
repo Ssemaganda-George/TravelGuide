@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import PageView from "@/components/PageView";
+import { ToastContainer } from "@/components/Toast";
 import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { SITE } from "@/lib/data";
 import "./globals.css";
@@ -23,8 +24,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <footer className="about"><div className="wrap">
           <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with the whole world. Know your next destination with TravelGuide.
         </div></footer>
-      {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
-      <PageView />
+        {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
+        <PageView />
+        <ToastContainer />
       </body>
     </html>
   );

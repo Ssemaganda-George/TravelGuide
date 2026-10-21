@@ -2,11 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import EnquirySection from "@/components/EnquirySection";
+import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
 import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
 import { SITE, getCountry, getDestinations, getActivities, getStays } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
+import { safeSrc } from "@/lib/media";
 
 export const revalidate = 3600;
 
@@ -48,13 +50,12 @@ export default async function Destination(p: P) {
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
     ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Last checked", d.last_checked],
-  ].filter(f => f[1]);
-  const jsonLd = { "@context": "https://schema.org", "@type": "TouristDestination", name: d.title, description: d.hook, url: SITE + path, touristType: d.tags };
+  ];
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
   const otherStays = stays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
   return (
     <div className="destpage">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "TouristDestination", name: d.title, description: d.hook, url: SITE + `/${c.slug}/${d.places.slug}`, touristType: d.tags }) }} />
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
@@ -103,7 +104,11 @@ export default async function Destination(p: P) {
                     <div className="cards">
                       {list.map(s => (
                         <div className="cell" key={s.id}>
-                          {s.media?.length && <StayImages media={s.media} />}
+                          {s.media?.[0]?.url && (
+                            <figure className="cellimg">
+                              <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
+                            </figure>
+                          )}
                           <div className="cellbody">
                             <h4>{s.name}</h4>
                             {s.description && <p>{s.description}</p>}
@@ -119,18 +124,22 @@ export default async function Destination(p: P) {
               })}
               {otherStays.length > 0 && (
                 <div className="cards">
-              {otherStays.map(s => (
-                <div className="cell" key={s.id}>
-                  {s.media?.length && <StayImages media={s.media} />}
-                  <div className="cellbody">
-                    <h4>{s.name}</h4>
-                    {s.description && <p>{s.description}</p>}
-                    {s.contact && <p className="meta">{s.contact}</p>}
-                    {s.email && <p className="meta">Email: {s.email}</p>}
-                    {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
-                  </div>
-                </div>
-              ))}
+                  {otherStays.map(s => (
+                    <div className="cell" key={s.id}>
+                      {s.media?.[0]?.url && (
+                        <figure className="cellimg">
+                          <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
+                        </figure>
+                      )}
+                      <div className="cellbody">
+                        <h4>{s.name}</h4>
+                        {s.description && <p>{s.description}</p>}
+                        {s.contact && <p className="meta">{s.contact}</p>}
+                        {s.email && <p className="meta">Email: {s.email}</p>}
+                        {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </>
@@ -140,7 +149,7 @@ export default async function Destination(p: P) {
 
           <div className="tip">
             <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
-              ➔ Read &amp; write reviews for {d.title}
+              ➔ Read & write reviews for {d.title}
             </Link>
           </div>
 
@@ -148,11 +157,22 @@ export default async function Destination(p: P) {
 
           {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
 
-          <div className="enquiry-trigger">
-            <EnquirySection placeId={d.place_id} title={d.title} page={path} />
-          </div>
+          <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
         </main>
       </div>
     </div>
+  );
+}
+
+function stars(n: number) {
+  const full = Math.floor(n);
+  const half = n % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  return (
+    <span className="stars" aria-label={`${n.toFixed(1)} of 5`}>
+      {Array.from({ length: full }).map(() => "★")}
+      {half && "☆"}
+      {Array.from({ length: empty }).map(() => "☆")}
+    </span>
   );
 }

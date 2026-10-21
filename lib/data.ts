@@ -55,6 +55,17 @@ export async function getDestinations(countryId: string): Promise<Dest[]> {
   return (data as Dest[]) ?? [];
 }
 
+// Get all published destinations across all countries
+export async function getAllDestinations(): Promise<Dest[]> {
+  const { data } = await db()
+    .from("destination_content")
+    .select("*, places!inner(name,slug,parent_id)")
+    .eq("status", "published")
+    .eq("language", "en")
+    .order("title");
+  return (data as Dest[]) ?? [];
+}
+
 // Published activities for one destination, e.g. rafting, boat trips, market walks.
 export async function getActivities(placeId: string): Promise<Activity[]> {
   const { data } = await db()

@@ -7,6 +7,7 @@ import LodgesEditor from "@/components/admin/LodgesEditor";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getActivityProviders, type Activity } from "@/lib/data";
+import { cleanMedia } from "@/lib/media";
 
 export const metadata: Metadata = { title: "Edit destination", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ async function saveContent(fd: FormData) {
 
   // Sync activities
   const activitiesJson = String(fd.get("activities_json") ?? "[]");
-  const parsedActivities: Array<{ id?: string; name: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; providerIds?: string[] }> = JSON.parse(activitiesJson);
+  const parsedActivities: Array<{ id?: string; name: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; providerIds?: string[]; media?: unknown }> = JSON.parse(activitiesJson);
   const keep = new Set<string>();
   for (const a of parsedActivities) {
     const name = (a.name ?? "").trim();
@@ -49,7 +50,7 @@ async function saveContent(fd: FormData) {
     const payload = {
       place_id, name, description: a.description?.trim() || null,
       cost_low: a.cost_low ?? null, cost_high: a.cost_high ?? null, currency: "USD",
-      duration: a.duration?.trim() || null, status: "published" as const,
+      duration: a.duration?.trim() || null, media: cleanMedia(a.media), status: "published" as const,
     };
     let actId: string | null = null;
     if (a.id) { keep.add(a.id); actId = a.id; await sb.from("activities").update(payload).eq("id", a.id); }
@@ -66,7 +67,7 @@ async function saveContent(fd: FormData) {
 
   // Sync stays
   const staysJson = String(fd.get("lodges_json") ?? "[]");
-  const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string }> = JSON.parse(staysJson);
+  const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string; media?: unknown }> = JSON.parse(staysJson);
   const keepStays = new Set<string>();
   for (const l of parsedStays) {
     const name = (l.name ?? "").trim();
@@ -74,7 +75,7 @@ async function saveContent(fd: FormData) {
     const tier = ["budget", "mid", "comfort"].includes(l.tier ?? "") ? l.tier : null;
     const payload = {
       name, tier, description: l.description?.trim() || null, contact: l.contact?.trim() || null,
-      email: l.email?.trim() || null, website: l.website?.trim() || null,
+      email: l.email?.trim() || null, website: l.website?.trim() || null, media: cleanMedia(l.media),
     };
     if (l.id) {
       const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();

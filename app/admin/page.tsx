@@ -22,8 +22,9 @@ async function updateStatus(fd: FormData) {
   const id = String(fd.get("id"));
   const status = String(fd.get("status"));
   const lost_reason = String(fd.get("lost_reason")) || null;
-  await sb.from("enquiries").update({ status, lost_reason }).eq("id", id);
-  revalidatePath("/admin");
+  const { error } = await sb.from("enquiries").update({ status, lost_reason }).eq("id", id);
+  if (error) redirect("/admin?error=" + encodeURIComponent(error.message));
+  redirect("/admin?success=" + encodeURIComponent("Status updated successfully"));
 }
 
 export default async function Admin() {
