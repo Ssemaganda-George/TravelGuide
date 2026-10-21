@@ -43,7 +43,10 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
   const [search, setSearch] = useState("");
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const tags = ["all", ...new Set(items.flatMap(i => i.tags))];
-  const list = items.filter(i => {
+  const list = items
+    .slice()
+    .sort((a, b) => (viewCounts[`/${country}/${b.places.slug}`] ?? 0) - (viewCounts[`/${country}/${a.places.slug}`] ?? 0))
+    .filter(i => {
     const byTag = tag === "all" || i.tags.includes(tag);
     const q = search.toLowerCase();
     const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q);
