@@ -23,6 +23,10 @@ export async function POST(req: Request) {
       if (host !== new URL(req.url).hostname) channel = host;
     } catch {}
   }
-  await db().from("page_views").insert({ path, channel: channel || "direct", visitor });
+  const { error } = await db().from("page_views").insert({ path, channel: channel || "direct", visitor });
+  if (error) {
+    console.error("View insert error:", error);
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
   return new Response(null, { status: 204 });
 }
