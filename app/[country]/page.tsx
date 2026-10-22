@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { unstable_noStore as noStore } from "next/cache";
 import Browse from "@/components/Browse";
 import { getActivitiesForPlaces, getCountry, getDestinations, getEngagementForPlaces, getStaysCounts, getViewCounts } from "@/lib/data";
 
@@ -18,6 +19,7 @@ export default async function Country({ params }: P) {
   const items = await getDestinations(c.id);
   const placeIds = items.map(i => i.place_id);
   const paths = items.map(i => `/${c.slug}/${i.places.slug}`);
+  noStore();
   const [activitiesByPlace, viewCounts, engagement, staysCount] = await Promise.all([
     getActivitiesForPlaces(placeIds),
     getViewCounts(paths),
