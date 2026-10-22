@@ -1,4 +1,4 @@
-export function whatsappUrl({ title?: string, url?: string } = {}): string | null {
+export function whatsappUrl({ title, url }: { title?: string; url?: string } = {}): string | null {
   const number = process.env.NEXT_PUBLIC_WHATSAPP;
   if (!number) return null;
   const digits = number.replace(/\D/g, '');

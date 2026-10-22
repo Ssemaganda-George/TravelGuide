@@ -58,6 +58,13 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
         },
       };
     });
+    try {
+      await fetch("/api/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ placeId }),
+      });
+    } catch {}
   };
 
   return (

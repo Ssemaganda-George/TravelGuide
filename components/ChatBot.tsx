@@ -1,53 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send } from "lucide-react";
+import { useState } from 'react';
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Array<{ role: "user" | "bot"; content: string }>>([]);
-  const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessage = input;
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setInput("");
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage }),
-      });
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "bot", content: data.response || "I'm having trouble understanding. Could you try rephrasing?" },
-      ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "bot", content: "Sorry, I'm having trouble connecting. Please try again later." },
-      ]);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
 
   return (
     <div className="chatbot-container">
@@ -73,28 +29,17 @@ export function ChatBot() {
           </button>
         </div>
         <div className="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
-          {messages.length === 0 && (
-            <div className="bot-message">
-              Hello! I\'m your travel assistant. How can I help you plan your trip to Uganda?
-            </div>
-          )}
-          {messages.map((msg, i) => (
-            <div key={i} className={`message ${msg.role}`}>
-              {msg.content}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
+          <div className="bot-message">
+            Hello! I am your travel assistant. How can I help you plan your trip to Uganda?
+          </div>
         </div>
         <div className="chat-input">
           <input
             type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
             placeholder="Type your question..."
             aria-label="Type your message"
           />
-          <button onClick={sendMessage} disabled={!input.trim()} aria-label="Send message">
+          <button aria-label="Send message">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
