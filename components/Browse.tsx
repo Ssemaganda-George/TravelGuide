@@ -123,7 +123,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
           const isLiked = liked.has(i.place_id);
           return (
             <article key={i.id} className="card">
-              <a href={`/${country}/${i.places.slug}`} className="cardlink" onClick={() => registerView(path)}>
+              <a href={`/${country}/${i.places.slug}`} className="cardlink">
                 <div className="cardmedia">
                   {coverUrl ? (
                     <img src={coverUrl} alt="" loading="lazy" />
