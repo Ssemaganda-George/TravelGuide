@@ -23,10 +23,15 @@ export async function POST(req: Request) {
       if (host !== new URL(req.url).hostname) channel = host;
     } catch {}
   }
+  
+  console.log("View API: Inserting view for path:", path, "channel:", channel);
+  console.log("View API: Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "SET" : "NOT SET");
+  
   const { error } = await db().from("page_views").insert({ path, channel: channel || "direct", visitor });
   if (error) {
     console.error("View insert error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: error.message, code: error.code }), { status: 500 });
   }
+  console.log("View API: Successfully inserted view for:", path);
   return new Response(null, { status: 204 });
 }

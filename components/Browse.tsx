@@ -59,12 +59,47 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       };
     });
     try {
-      await fetch("/api/like", {
+      const res = await fetch("/api/like", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ placeId }),
       });
-    } catch {}
+      if (!res.ok) {
+        // Revert optimistic update on error
+        setLiked(prev => {
+          const n = new Set(prev);
+          if (next) n.delete(placeId); else n.add(placeId);
+          return n;
+        });
+        setEngagement(prev => {
+          const curr = prev[placeId] ?? { likes: 0, reviews: 0, avgRating: 0 };
+          return {
+            ...prev,
+            [placeId]: {
+              ...curr,
+              likes: next ? Math.max(0, curr.likes - 1) : curr.likes + 1,
+            },
+          };
+        });
+      }
+    } catch {
+      // Revert on network error
+      setLiked(prev => {
+        const n = new Set(prev);
+        if (next) n.delete(placeId); else n.add(placeId);
+        return n;
+      });
+      setEngagement(prev => {
+        const curr = prev[placeId] ?? { likes: 0, reviews: 0, avgRating: 0 };
+        return {
+          ...prev,
+          [placeId]: {
+            ...curr,
+            likes: next ? Math.max(0, curr.likes - 1) : curr.likes + 1,
+          },
+        };
+      });
+    }
   };
 
   return (
