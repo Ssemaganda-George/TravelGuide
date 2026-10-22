@@ -146,7 +146,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                     <span className="stat likestat" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
                       <Heart className={isLiked ? "liked" : ""} size={16} strokeWidth={2} fill={isLiked ? "var(--sun)" : "none"} /> {eng.likes}
                     </span>
-                    <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer" }}>
+                    <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer", textDecoration: "none", color: "var(--lake)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>
                       {eng.reviews > 0 ? `${eng.avgRating} (${eng.reviews} reviews)` : "Review"}
                     </span>
                   </div>
