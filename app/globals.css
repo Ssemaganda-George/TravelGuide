@@ -41,7 +41,7 @@ header .wrap{display:flex;align-items:center;height:64px}
 .likestat:hover{color:var(--sun)}
 .likestat:hover svg{color:var(--sun)}
 .likestat svg{transition:color .2s}
-@media(max-width:640px){.grid{grid-template-columns:repeat(2,1fr);gap:16px}.cardmedia{height:200px}.cardcontent{padding:16px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
+@media(max-width:640px){.grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:200px}.cardcontent{padding:16px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
 @media(max-width:400px){.grid{grid-template-columns:1fr}}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}
 .page{padding:40px 20px 64px;max-width:960px}
@@ -522,10 +522,14 @@ tr.off{opacity:.5}
 .destmain h3{font-size:1.1rem;margin:16px 0 8px}
 .destmain .hook{font-size:1rem;color:var(--muted);margin-bottom:8px}
 .destmain .cards{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin:16px 0 28px}
-.destmain .cell{height:100%}
-.destmain .cellimg{height:180px}
+.destmain .cell{height:100%;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);border:1px solid var(--line);border-radius:16px}
+.destmain .cellimg{height:200px}
 .destmain .tip{margin:20px 0}
 .destmain .empty{padding:24px 0}
+@media(max-width:640px){
+  .destmain .cards{grid-template-columns:1fr !important}
+  .destmain .cellimg{height:220px}
+}
 
 /* Full-width enquiry at bottom */
 .enquiry-full{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;margin-top:8px}
