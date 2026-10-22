@@ -6,7 +6,9 @@ import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
 import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
-import { SITE, getCountry, getDestinations, getActivities, getStays } from "@/lib/data";
+import { ViewTracker } from "@/components/ViewTracker";
+import { LikeButton } from "@/components/LikeButton";
+import { SITE, getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
 
@@ -20,8 +22,12 @@ async function load({ params }: P) {
   if (!c) return null;
   const d = (await getDestinations(c.id)).find(x => x.places.slug === destination);
   if (!d) return null;
-  const [activities, stays] = await Promise.all([getActivities(d.place_id), getStays(d.place_id)]);
-  return { c, d, activities, stays };
+  const [activities, stays, engagement] = await Promise.all([
+    getActivities(d.place_id),
+    getStays(d.place_id),
+    getEngagementForPlaces([d.place_id]),
+  ]);
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 } };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
@@ -45,7 +51,7 @@ const money = (lo: number | null, hi: number | null) => {
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays } = r;
+  const { c, d, activities, stays, engagement } = r;
   const path = `/${c.slug}/${d.places.slug}`;
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
@@ -55,13 +61,19 @@ export default async function Destination(p: P) {
   const otherStays = stays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
   return (
     <div className="destpage">
+      <ViewTracker path={path} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "TouristDestination", name: d.title, description: d.hook, url: SITE + `/${c.slug}/${d.places.slug}`, touristType: d.tags }) }} />
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
           <div className="desthead">
-            <h1>{d.title}</h1>
-            <p className="hook">{d.hook}</p>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+              <div>
+                <h1>{d.title}</h1>
+                <p className="hook">{d.hook}</p>
+              </div>
+              <LikeButton placeId={d.place_id} initialLikes={engagement.likes} initialLiked={false} />
+            </div>
           </div>
           <dl className="facts">{facts.map(f => <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>)}</dl>
           <div className="story"><Story text={d.story} /></div>
