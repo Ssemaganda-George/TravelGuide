@@ -378,6 +378,11 @@ tr.off{opacity:.5}
 .cellbody h4{font-size:1.15rem;margin:0 0 4px;line-height:1.25}
 .cellbody p{margin:0;color:var(--muted);font-size:0.95rem;line-height:1.5}
 .cellbody .meta{font-size:0.85rem;color:var(--lake);font-weight:600;margin-top:4px}
+
+/* Horizontal scrollable cards for related destinations */
+.cards.scrollable{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px;margin:16px 0 32px}
+.cards.scrollable .cell{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;display:flex;flex-direction:column;min-width:280px;max-width:280px;flex-shrink:0;scroll-snap-align:start}
+.cards.scrollable .cellbody{padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
 .shots{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;margin:12px 0 4px}
 .shots figure{margin:0;min-width:300px;scroll-snap-align:center}
 .shots img,.shots video{width:300px;height:300px;object-fit:cover;display:block;border-radius:10px;border:1px solid var(--line);background:var(--paper);cursor:pointer}

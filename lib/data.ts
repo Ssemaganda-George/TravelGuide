@@ -22,6 +22,7 @@ export type Dest = {
   meta_title: string | null; meta_description: string | null;
   faq: { q: string; a: string }[] | null;
   latitude: number | null; longitude: number | null;
+  media?: Media[] | null;
 };
 
 export type Activity = {
@@ -69,6 +70,35 @@ export async function getAllDestinations(): Promise<Dest[]> {
     .eq("language", "en")
     .order("title");
   return (data as Dest[]) ?? [];
+}
+
+// Get destinations that share tags with the given destination (excluding itself)
+export async function getRelatedDestinations(currentPlaceId: string, tags: string[], limit = 4): Promise<(Dest & { country?: string; engagement?: Engagement })[]> {
+  if (!tags.length) return [];
+  const { data } = await db()
+    .from("destination_content")
+    .select("*, places!inner(name,slug,parent_id:places!parent_id(name))")
+    .eq("status", "published")
+    .eq("language", "en")
+    .neq("place_id", currentPlaceId)
+    .overlaps("tags", tags)
+    .limit(limit);
+  const destinations = (data as (Dest & { places: { name: string; slug: string; parent_id: { name: string } }; engagement?: Engagement; country?: string })[]) ?? [];
+  
+  // Fetch first activity media and engagement for each destination
+  for (const d of destinations) {
+    const [activities, engagement] = await Promise.all([
+      getActivities(d.place_id),
+      getEngagementForPlaces([d.place_id]),
+    ]);
+    if (activities.length > 0 && activities[0].media?.length) {
+      d.media = activities[0].media;
+    }
+    d.engagement = engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 };
+    d.country = d.places?.parent_id?.name ?? "";
+  }
+  
+  return destinations;
 }
 
 // Published activities for one destination, e.g. rafting, boat trips, market walks.

@@ -10,7 +10,7 @@ import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
 import { LikeButton } from "@/components/LikeButton";
 import { SITE, SITE_NAME } from "@/lib/site";
-import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces } from "@/lib/data";
+import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -25,14 +25,15 @@ async function load({ params }: P) {
   if (!c) return null;
   const d = (await getDestinations(c.id)).find(x => x.places.slug === destination);
   if (!d) return null;
-  const [activities, stays, engagement] = await Promise.all([
+  const [activities, stays, engagement, related] = await Promise.all([
     getActivities(d.place_id),
     getStays(d.place_id),
     getEngagementForPlaces([d.place_id]),
+    getRelatedDestinations(d.place_id, d.tags ?? [], 4),
   ]);
   // Find cover image from first activity's media
   const coverImage = activities[0]?.media?.[0]?.url ?? null;
-  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage };
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
@@ -192,7 +193,7 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays, engagement, coverImage } = r;
+  const { c, d, activities, stays, engagement, coverImage, related } = r;
   const path = `/${c.slug}/${d.places.slug}`;
   const absoluteUrl = `${SITE}${path}`;
   const facts = [
@@ -343,21 +344,41 @@ export default async function Destination(p: P) {
 
           {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
 
-          {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
+{paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
 
-          {/* Related destinations */}
-          {activities.length > 0 && (
-            <section aria-labelledby="related-heading" style={{ marginTop: 40 }}>
-              <h2 id="related-heading">More destinations in {c.name}</h2>
-              <p className="hook">More places to explore nearby</p>
-              <div className="cards">
-                {/* Related destinations would be populated here based on shared tags */}
-              </div>
-            </section>
-          )}
+            <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
 
-          <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
-        </main>
+            {/* Related destinations */}
+            {related.length > 0 && (
+              <section aria-labelledby="related-heading" style={{ marginTop: 40 }}>
+                <h2 id="related-heading">More Destinations for you</h2>
+                <div className="cards scrollable">
+                  {related.map(r => (
+                    <Link key={r.id} href={`/${c.slug}/${r.places.slug}`} className="cell" style={{ textDecoration: "none", color: "inherit", minWidth: "280px", flexShrink: 0 }}>
+                      {r.media?.[0]?.url && (
+                        <figure className="cellimg">
+                          <img src={safeSrc(r.media[0].url) ?? ""} alt={r.title} loading="lazy" />
+                        </figure>
+                      )}
+                      <div className="cellbody">
+                        <h4>{r.title}</h4>
+                        {r.country && <p className="meta" style={{ fontSize: "0.85rem", marginTop: 4 }}>{r.country}</p>}
+                        {r.engagement && r.engagement.reviews > 0 && (
+                          <div style={{ marginTop: 4 }}>
+                            {stars(r.engagement.avgRating)}
+                            <span className="meta" style={{ marginLeft: 6, fontSize: "0.85rem" }}>
+                              {r.engagement.avgRating.toFixed(1)} · {r.engagement.reviews} review{r.engagement.reviews !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+          </main>
       </div>
     </div>
   );
