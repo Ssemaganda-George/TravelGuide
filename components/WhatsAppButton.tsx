@@ -2,7 +2,7 @@
 
 export function WhatsAppButton() {
   const phoneNumber = "256759918649";
-  const message = "Hello! I'd like to inquire about a trip to Uganda.";
+  const message = "Hello! I'd like to inquire about a destination on Trip Insights.";
   const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
   return (
