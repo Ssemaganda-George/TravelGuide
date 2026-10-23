@@ -2,7 +2,9 @@
 const nextConfig = {
   async redirects() {
     return [
-      // Redirect www to non-www for new domain
+      // travelguide.dirt-trails.com should be added as an alias domain in your hosting platform (Vercel, etc.)
+      // to serve the same content without redirect.
+      // Only redirect www.trip-insights.com to non-www.
       {
         source: '/:path*',
         has: [
