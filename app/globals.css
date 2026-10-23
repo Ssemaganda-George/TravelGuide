@@ -701,10 +701,6 @@ tr.off{opacity:.5}
 
 /* Mobile adjustments for header */
 @media (max-width: 640px) {
-  .brand-text {
-    display: none;
-  }
-  
   .site-header .wrap {
     height: 56px;
   }
