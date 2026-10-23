@@ -10,7 +10,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ??
 
 export const SITE_DOMAIN = new URL(SITE_URL).hostname;
 
-export const SITE_TAGLINE = "Honest travel times, rough costs and local tips for every destination.";
+export const SITE_TAGLINE = "Best travel times, rough costs and local tips for every destination.";
 
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
 
