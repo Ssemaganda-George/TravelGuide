@@ -1,4 +1,4 @@
-# Uganda Guide (Next.js + Supabase)
+# Trip Insights (Next.js + Supabase)
 
 ## 1. Database
 Run in the Supabase SQL Editor, in order: `001_init.sql`, `002_hardening.sql`, `seed.sql`.
@@ -19,6 +19,18 @@ Sign in at `/admin` to see enquiries and move them through new -> contacted -> q
 ## Deploy
 Vercel, Cloudflare or Netlify: set the same env vars and `NEXT_PUBLIC_SITE_URL` to your real domain.
 
+## Domain move (from travelguide.dirt-trails.com)
+The codebase now uses `Trip Insights` / `trip-insights.com` as the canonical brand.
+1. Buy `trip-insights.com` and add it to the hosting project.
+2. Set production env vars: `NEXT_PUBLIC_SITE_URL=https://trip-insights.com` and `NEXT_PUBLIC_SITE_NAME=Trip Insights`.
+3. Keep `travelguide.dirt-trails.com` pointing at the same deployment so the redirect works (see `next.config.js` for host-based 301 redirects).
+4. Supabase: update Authentication Site URL and redirect URL list to the new domain, then test admin login.
+4. If enquiry emails use an email service, verify the new domain there (SPF/DKIM) and update `NOTIFY_FROM`.
+5. Search Console / Bing Webmaster Tools: add the new domain as a new property, verify it, and submit the sitemap.
+6. Update the analytics site/domain setting if a separate analytics tool is used.
+7. Claim matching social handles and update profile links (Instagram, TikTok, WhatsApp Business, Google Business Profile if used).
+8. After launch, check the old address redirects correctly and watch Search Console for crawl errors.
+
 ## Notes
 - Destinations must be direct children of a country place (regions come later).
 - The anon key is public by design; RLS protects data. Never expose a service_role key.
@@ -36,5 +48,5 @@ Vercel, Cloudflare or Netlify: set the same env vars and `NEXT_PUBLIC_SITE_URL` 
 2. Set `ANALYTICS_SALT` to a long random string. Page views are then counted by `/api/view`: no cookies, no stored IPs, bots filtered, admin pages excluded.
 3. `/admin/insights` shows views, visitors and enquiries per page, traffic sources, and enquiry rate. Use `?utm_source=...` on shared links.
 4. Google Search Console: add your domain, choose the HTML tag method, put its content value in `NEXT_PUBLIC_GSC_VERIFICATION`, deploy, verify, then submit `/sitemap.xml`.
-5. Optional: the external analytics script variables from earlier still work if you also want a dedicated tool.
-6. Check Uganda's data protection rules and mention anonymous analytics in a privacy page before launch.
+4. Optional: the external analytics script variables from earlier still work if you also want a dedicated tool.
+5. Check Uganda's data protection rules and mention anonymous analytics in a privacy page before launch.

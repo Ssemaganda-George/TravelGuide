@@ -1,0 +1,17 @@
+{
+  "name": "Trip Insights",
+  "short_name": "Trip Insights",
+  "description": "Honest travel times, rough costs and local tips for every destination.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f3",
+  "theme_color": "#0e5a64",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

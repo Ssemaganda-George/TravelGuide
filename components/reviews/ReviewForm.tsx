@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, FormEvent } from "react";
 
-const KEY = "travelguide_reviewer";
+const KEY = "tripinsights_reviewer";
 
 type Reviewer = { name: string; email: string; country: string } | null;
 

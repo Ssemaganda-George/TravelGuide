@@ -1,23 +1,43 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-// Keeps the Supabase session fresh and sends signed-out visitors to the login page.
-// (Newer Next.js versions may rename this file convention: check the docs when upgrading.)
-export async function middleware(req: NextRequest) {
-  let res = NextResponse.next({ request: req });
-  const sb = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll: () => req.cookies.getAll(),
-      setAll: (list: { name: string; value: string; options?: Record<string, unknown> }[]) => {
-        list.forEach(({ name, value }) => req.cookies.set(name, value));
-        res = NextResponse.next({ request: req });
-        list.forEach(({ name, value, options }) => res.cookies.set(name, value, options));
-      },
-    },
-  });
-  const { data: { user } } = await sb.auth.getUser();
-  if (!user && !req.nextUrl.pathname.startsWith("/admin/login")) return NextResponse.redirect(new URL("/admin/login", req.url));
-  return res;
+const OLD_HOST = "travelguide.dirt-trails.com";
+const NEW_HOST = "trip-insights.com";
+
+export function middleware(request: NextRequest) {
+  const url = request.nextUrl;
+  const host = request.headers.get("host") || "";
+
+  // Redirect old host to new host
+  if (host === OLD_HOST || host === `www.${OLD_HOST}`) {
+    const newUrl = new URL(url.pathname + url.search, `https://${NEW_HOST}`);
+    return NextResponse.redirect(newUrl, 301);
+  }
+
+  // Redirect www to non-www for new domain
+  if (host === `www.${NEW_HOST}`) {
+    const newUrl = new URL(url.pathname + url.search, `https://${NEW_HOST}`);
+    return NextResponse.redirect(newUrl, 301);
+  }
+
+  // HTTP to HTTPS (when not on localhost)
+  if (url.protocol === "http:" && !url.hostname.includes("localhost")) {
+    const newUrl = new URL(url.pathname + url.search, `https://${host}`);
+    return NextResponse.redirect(newUrl, 301);
+  }
+
+  return NextResponse.next();
 }
 
-export const config = { matcher: ["/admin/:path*"] };
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, manifest.json (static assets)
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.json).*)",
+  ],
+};

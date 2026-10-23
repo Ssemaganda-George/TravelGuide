@@ -4,6 +4,7 @@ import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { NotificationHandler } from "@/components/NotificationWrapper";
 import { SignOutButton } from "@/components/SignOutButton";
+import { SITE_NAME } from "@/lib/site";
 
 const NAV: { href: string; label: string }[] = [
   { href: "/admin", label: "Enquiries" },
@@ -38,7 +39,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="appshell">
       <aside className="admin-sidebar" aria-label="Admin navigation">
-        <Link className="admin-brand" href="/admin">Travel Guide</Link>
+        <Link className="admin-brand" href="/admin">{SITE_NAME}</Link>
         <nav className="admin-nav">
           {NAV.map(n => (
             <Link key={n.href} href={n.href} className="admin-nav-link">{n.label}</Link>

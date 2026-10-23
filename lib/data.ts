@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { STAY_TIERS } from "./tiers";
+import { SITE, SITE_NAME, SITE_URL, SITE_DOMAIN, SITE_TAGLINE, CONTACT_EMAIL } from "./site";
 
-export const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+export { SITE, SITE_NAME, SITE_URL, SITE_DOMAIN, SITE_TAGLINE, CONTACT_EMAIL };
 
 // Anon key + Row Level Security: public can only read published content and insert enquiries.
 export const db = () =>
@@ -16,7 +17,11 @@ export type Dest = {
   region: string | null; best_months: string | null; best_time: string | null;
   budget_range: string | null; ideal_days: number | null;
   tags: string[]; getting_there: string | null; local_tip: string | null; tip_author: string | null;
-  plan_around: string | null; last_checked: string | null; places: { name: string; slug: string };
+  plan_around: string | null; last_checked: string | null; updated_at: string | null;
+  places: { name: string; slug: string };
+  meta_title: string | null; meta_description: string | null;
+  faq: { q: string; a: string }[] | null;
+  latitude: number | null; longitude: number | null;
 };
 
 export type Activity = {

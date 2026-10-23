@@ -8,7 +8,8 @@ import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
 import { LikeButton } from "@/components/LikeButton";
-import { SITE, getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces } from "@/lib/data";
+import { SITE, SITE_NAME } from "@/lib/site";
+import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
 
@@ -35,10 +36,10 @@ export async function generateMetadata(p: P): Promise<Metadata> {
   if (!r) return {};
   const { c, d } = r;
   return {
-    title: `${d.title}, ${c.name}: travel guide`,
+    title: `${d.title}, ${c.name}: ${SITE_NAME}`,
     description: d.hook ?? undefined,
     alternates: { canonical: `/${c.slug}/${d.places.slug}` },
-    openGraph: { title: `${d.title}, ${c.name}`, description: d.hook ?? undefined, type: "article" },
+    openGraph: { title: `${d.title}, ${c.name}`, description: d.hook ?? undefined, type: "article", siteName: "Trip Insights" },
   };
 }
 

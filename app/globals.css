@@ -564,3 +564,69 @@ tr.off{opacity:.5}
 .skeleton-line.skeleton-short{width:40%}
 @keyframes pulse{from{opacity:.4}to{opacity:.8}}
 .page-title{font-size:clamp(2rem,5vw,3rem);margin:0 0 16px}
+
+/* Site header and brand */
+.site-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--head), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.brand:hover {
+  color: var(--lake);
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: var(--lake);
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Mobile adjustments for header */
+@media (max-width: 640px) {
+  .brand-text {
+    display: none;
+  }
+  
+  .site-header .wrap {
+    height: 56px;
+  }
+}

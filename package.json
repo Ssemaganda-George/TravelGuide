@@ -1,5 +1,5 @@
 {
-  "name": "uganda-guide",
+  "name": "trip-insights",
   "private": true,
   "scripts": {
     "dev": "next dev",

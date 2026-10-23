@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SITE_NAME } from "@/lib/site";
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,9 +19,9 @@ export function ChatBot() {
         </svg>
       </button>
 
-      <div className={`chat-window ${isOpen ? "open" : ""}`} role="dialog" aria-label="Travel assistant chat">
+      <div className={`chat-window ${isOpen ? "open" : ""}`} role="dialog" aria-label={`${SITE_NAME} chat`}>
         <div className="chat-header">
-          <h3>Travel Assistant</h3>
+          <h3>{SITE_NAME} Assistant</h3>
           <button onClick={() => setIsOpen(false)} aria-label="Close chat" className="chat-close-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -30,7 +31,7 @@ export function ChatBot() {
         </div>
         <div className="chat-messages" role="log" aria-live="polite" aria-label="Chat messages">
           <div className="bot-message">
-            Hello! I am your travel assistant. How can I help you plan your trip to Uganda?
+            Hello! I am your {SITE_NAME} assistant. How can I help you plan your trip?
           </div>
         </div>
         <div className="chat-input">

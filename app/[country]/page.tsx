@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import Browse from "@/components/Browse";
 import { getActivitiesForPlaces, getCountry, getDestinations, getEngagementForPlaces, getStaysCounts, getViewCounts } from "@/lib/data";
+import { SITE_TAGLINE } from "@/lib/site";
 
 export const revalidate = 3600; // regenerate at most hourly, no redeploy needed after content edits
 
@@ -31,7 +32,7 @@ export default async function Country({ params }: P) {
       <section className="hero"><div className="wrap">
         <h1>Know {c.name}, before you go.</h1>
         {/* <h1>Know your Destination before you go.</h1> */}
-        <p>Best Travel times, rough costs and a local tip for every destination.</p>
+        <p>{SITE_TAGLINE}</p>
       </div></section>
       <Browse country={c.slug} items={items} activitiesByPlace={activitiesByPlace} viewCounts={viewCounts} engagement={engagement} staysCount={staysCount} />
     </>
