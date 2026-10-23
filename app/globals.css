@@ -557,6 +557,80 @@ tr.off{opacity:.5}
   .enquiry-full .form .row{grid-template-columns:1fr}
 }
 
+/* Mobile optimizations for destination page */
+@media(max-width:640px){
+  /* Ensure scrollable cards work well on mobile */
+  .cards.scrollable{
+    gap:12px;
+    padding-bottom:12px;
+  }
+  .cards.scrollable .cell{
+    min-width:260px;
+    max-width:260px;
+  }
+  .cellimg{
+    height:180px;
+  }
+  .cellbody{
+    padding:12px 14px;
+    gap:6px;
+  }
+  .cellbody h4{
+    font-size:1.05rem;
+  }
+  .cellbody .meta{
+    font-size:0.8rem;
+  }
+  /* Facts grid */
+  .destwrap dl.facts{
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+    padding:16px;
+    margin:16px 0;
+  }
+  .destwrap dl.facts dt{
+    font-size:0.7rem;
+  }
+  .destwrap dl.facts dd{
+    font-size:1rem;
+  }
+  /* Floating icons - ensure they don't overlap */
+  .whatsapp-float{
+    bottom: 16px;
+    left: 16px;
+    width: 48px;
+    height: 48px;
+  }
+  .chat-toggle{
+    bottom: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+  .chatbot-container{
+    width: calc(100% - 32px);
+    right: 16px;
+    left: 16px;
+    max-width: 320px;
+    height: calc(100vh - 120px);
+    max-height: 500px;
+  }
+  /* Back link */
+  .back{
+    font-size:14px;
+  }
+  /* Touch targets */
+  .go, button, a[href]{
+    min-height: 44px;
+  }
+  .enquiry-full .form .row{
+    grid-template-columns:1fr;
+  }
+  .enquiry-full{
+    padding:16px;
+  }
+}
+
 /* Skeleton loading states */
 .skeleton-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));padding:40px 0}
 .skeleton-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%}
