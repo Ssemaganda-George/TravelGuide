@@ -30,7 +30,7 @@ export default async function Country({ params }: P) {
   return (
     <>
       <section className="hero"><div className="wrap">
-        <h1>Know {c.name}, before you go.</h1>
+        <h1>Know Your Destination, before you go.</h1>
         {/* <h1>Know your Destination before you go.</h1> */}
         <p>{SITE_TAGLINE}</p>
       </div></section>
