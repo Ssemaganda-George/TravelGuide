@@ -39,7 +39,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
             <a href="/" className="brand" aria-label={`${SITE_NAME} - Home`}>
               <svg className="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
                 <rect width="32" height="32" rx="6" fill="var(--lake)"/>
-                <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="18" fill="white">TI</text>
+                <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="18" fill="white">TI</text>
               </svg>
               <span className="brand-text">{SITE_NAME}</span>
             </a>

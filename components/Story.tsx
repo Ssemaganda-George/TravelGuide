@@ -5,7 +5,12 @@ const IMAGE_MD = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g;
 // Renders the story. A paragraph that is only an image link (or ![caption](url)
 // syntax) becomes a photo inside the narrative instead of a text paragraph.
 export default function Story({ text }: { text: string | null }) {
-  const blocks = (text ?? "").split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  const normalized = (text ?? "").replace(/\r\n?/g, "\n");
+  let blocks = normalized.split(/\n\n+/).map(b => b.trim()).filter(Boolean);
+  // Fallback: if no double newlines, split on single newlines
+  if (blocks.length === 1 && normalized.includes("\n")) {
+    blocks = normalized.split("\n").map(b => b.trim()).filter(Boolean);
+  }
   if (!blocks.length) return null;
   return (
     <>

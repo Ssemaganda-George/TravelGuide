@@ -30,11 +30,7 @@ async function updateStatus(fd: FormData) {
 export default async function Admin() {
   const sb = await authClient();
   const { data: admin } = await sb.from("admins").select("user_id").maybeSingle();
-  if (!admin) return (
-    <div className="wrap page"><h1>No access</h1>
-      <p>This account isn&apos;t an admin. Add its user id to the admins table.</p>
-      <form action={signOut}><button className="go">Sign out</button></form></div>
-  );
+  if (!admin) redirect("/admin/login");
   const { data } = await sb.from("enquiries").select("*, places(name)").order("created_at", { ascending: false }).limit(100);
   const rows = data ?? [];
   const waiting = rows.filter(r => r.status === "new").length;

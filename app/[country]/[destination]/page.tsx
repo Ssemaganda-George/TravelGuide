@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 import EnquirySection from "@/components/EnquirySection";
 import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
@@ -12,6 +13,7 @@ import { SITE, SITE_NAME } from "@/lib/site";
 import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const revalidate = 3600;
 
@@ -28,18 +30,42 @@ async function load({ params }: P) {
     getStays(d.place_id),
     getEngagementForPlaces([d.place_id]),
   ]);
-  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 } };
+  // Find cover image from first activity's media
+  const coverImage = activities[0]?.media?.[0]?.url ?? null;
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
   const r = await load(p);
   if (!r) return {};
-  const { c, d } = r;
+  const { c, d, coverImage } = r;
+  const path = `/${c.slug}/${d.places.slug}`;
+  const absoluteUrl = `${SITE}${path}`;
+  const ogImage = coverImage ? `${SITE}${coverImage}` : `${SITE}/og-default`;
+
   return {
-    title: `${d.title}, ${c.name}: ${SITE_NAME}`,
-    description: d.hook ?? undefined,
-    alternates: { canonical: `/${c.slug}/${d.places.slug}` },
-    openGraph: { title: `${d.title}, ${c.name}`, description: d.hook ?? undefined, type: "article", siteName: "Trip Insights" },
+    title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
+    description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`,
+    alternates: { canonical: `${SITE}/${c.slug}/${d.places.slug}` },
+    openGraph: {
+      title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
+      description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips.`,
+      type: "article",
+      siteName: "Trip Insights",
+      url: absoluteUrl,
+      images: coverImage ? [{ url: `${SITE}${coverImage}`, alt: d.title, width: 1200, height: 630 }] : [{ url: `${SITE}/og-default`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
+      description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips.`,
+      images: coverImage ? [`${SITE}${coverImage}`] : [`${SITE}/og-default`],
+    },
+    verification: {
+      google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
+      bing: process.env.NEXT_PUBLIC_BING_VERIFICATION,
+    } as Record<string, string>,
+    robots: { index: true, follow: true },
   };
 }
 
@@ -49,24 +75,147 @@ const money = (lo: number | null, hi: number | null) => {
   return `from $${lo ?? hi}`;
 };
 
+function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: string, absoluteUrl: string, engagement: any, coverImage?: string | null) {
+  const jsonLd: any[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Trip Insights",
+      url: SITE,
+      logo: `${SITE}/favicon.svg`,
+      sameAs: [
+        "https://instagram.com/tripinsights",
+        "https://tiktok.com/@tripinsights",
+        "https://wa.me/256759918649"
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Trip Insights",
+      url: SITE,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `${SITE}/?q={search_term_string}` },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "TouristDestination",
+      name: d.title,
+      description: d.hook,
+      url: `${SITE}/${d.places.slug}`,
+      image: coverImage ? `${SITE}${coverImage}` : `${SITE}/og-default`,
+      touristType: d.tags ?? [],
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: d.region ? `${d.region}, Uganda` : "Uganda",
+      },
+      geo: d.latitude && d.longitude ? {
+        "@type": "GeoCoordinates",
+        latitude: d.latitude,
+        longitude: d.longitude,
+      } : undefined,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+        { "@type": "ListItem", position: 2, name: d.places.name, item: `${SITE}/${d.places.slug}` },
+        { "@type": "ListItem", position: 3, name: d.title, item: `${SITE}/${d.places.slug}` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: d.title,
+      description: d.hook,
+      url: `${SITE}/${d.places.slug}`,
+      isPartOf: { "@id": SITE },
+      author: {
+        "@type": "Person",
+        name: "George",
+        url: `${SITE}/about`,
+        sameAs: [
+          "https://instagram.com/tripinsights",
+          "https://tiktok.com/@tripinsights",
+        ],
+      },
+      datePublished: d.updated_at ?? undefined,
+      dateModified: d.updated_at ?? undefined,
+      about: d.title,
+      mainEntity: {
+        "@type": "TouristDestination",
+        name: d.title,
+        description: d.hook,
+      },
+    },
+  ];
+
+  // Add FAQ schema if FAQs exist
+  if (d.faq && d.faq.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: d.faq.map((f: { q: string; a: string }) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: f.a,
+        },
+      })),
+    });
+  }
+
+  // Add review/rating schema if there are real reviews
+  if (engagement.reviews > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "AggregateRating",
+      itemReviewed: {
+        "@type": "TouristDestination",
+        name: d.title,
+      },
+      ratingValue: engagement.avgRating,
+      reviewCount: engagement.reviews,
+      bestRating: "5",
+      worstRating: "1",
+    });
+  }
+
+  return jsonLd;
+}
+
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays, engagement } = r;
+  const { c, d, activities, stays, engagement, coverImage } = r;
   const path = `/${c.slug}/${d.places.slug}`;
+  const absoluteUrl = `${SITE}${path}`;
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
     ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Last checked", d.last_checked],
   ];
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
   const otherStays = stays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
+  const jsonLd = generateJsonLd(d, c, activities, stays, path, `${SITE}${path}`, engagement, coverImage);
+  const hasMultipleH2 = (d.story?.match(/^## /gm) || []).length >= 3;
+
   return (
     <div className="destpage">
-      <ViewTracker path={path} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "TouristDestination", name: d.title, description: d.hook, url: SITE + `/${c.slug}/${d.places.slug}`, touristType: d.tags }) }} />
+      <ViewTracker path={`/${c.slug}/${d.places.slug}`} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
+          <Breadcrumbs items={[
+            { label: "Home", href: "/" },
+            { label: c.name, href: `/${c.slug}` },
+            { label: d.title, href: path },
+          ]} />
           <div className="desthead">
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
               <div>
@@ -77,7 +226,24 @@ export default async function Destination(p: P) {
             </div>
           </div>
           <dl className="facts">{facts.map(f => <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>)}</dl>
-          <div className="story"><Story text={d.story} /></div>
+          
+{d.story && (
+              <>
+                <h2>The story</h2>
+                <div className="story"><Story text={d.story} /></div>
+              </>
+            )}
+
+            {hasMultipleH2 && (
+            <nav className="toc" aria-label="On this page">
+              <h3>On this page</h3>
+              <ol>
+                {(d.story?.match(/^## (.+)/gm) || []).map((heading, i) => (
+                  <li key={i}><a href={`#${heading.replace(/^##\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{heading.replace(/^##\s*/, '')}</a></li>
+                ))}
+              </ol>
+            </nav>
+          )}
 
           {paras(d.best_time).length > 0 && <><h2>Best time to visit</h2>{paras(d.best_time).map((t, i) => <p key={i}>{t}</p>)}</>}
 
@@ -114,24 +280,20 @@ export default async function Destination(p: P) {
                 return (
                   <div key={tier}>
                     <h3>{label}</h3>
-                    <div className="cards">
-                      {list.map(s => (
-                        <div className="cell" key={s.id}>
-                          {s.media?.[0]?.url && (
-                            <figure className="cellimg">
-                              <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
-                            </figure>
-                          )}
-                          <div className="cellbody">
-                            <h4>{s.name}</h4>
-                            {s.description && <p>{s.description}</p>}
-                            {s.contact && <p className="meta">{s.contact}</p>}
-                            {s.email && <p className="meta">Email: {s.email}</p>}
-                            {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
+<div className="cards">
+                        {list.map(s => (
+                          <div className="cell" key={s.id}>
+                            <MediaGallery items={s.media} />
+                            <div className="cellbody">
+                              <h4>{s.name}</h4>
+                              {s.description && <p>{s.description}</p>}
+                              {s.contact && <p className="meta">{s.contact}</p>}
+                              {s.email && <p className="meta">Email: {s.email}</p>}
+                              {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
                   </div>
                 );
               })}
@@ -139,11 +301,7 @@ export default async function Destination(p: P) {
                 <div className="cards">
                   {otherStays.map(s => (
                     <div className="cell" key={s.id}>
-                      {s.media?.[0]?.url && (
-                        <figure className="cellimg">
-                          <img src={safeSrc(s.media[0].url) ?? ""} alt="" loading="lazy" />
-                        </figure>
-                      )}
+                      <MediaGallery items={s.media} />
                       <div className="cellbody">
                         <h4>{s.name}</h4>
                         {s.description && <p>{s.description}</p>}
@@ -160,6 +318,23 @@ export default async function Destination(p: P) {
             <p className="empty">No places to stay listed yet. Check back soon.</p>
           )}
 
+          {/* FAQ Section */}
+          {d.faq && d.faq.length > 0 && (
+            <section aria-labelledby="faq-heading" style={{ marginTop: 40 }}>
+              <h2 id="faq-heading">Frequently asked questions</h2>
+              <dl className="faq">
+                {d.faq.map((f: { q: string; a: string }, i: number) => (
+                  <div key={i} className="faq-item">
+                    <dt><details>
+                      <summary>{f.q}</summary>
+                      <p>{f.a}</p>
+                    </details></dt>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
           <div className="tip">
             <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
               ➔ Read & write reviews for {d.title}
@@ -169,6 +344,17 @@ export default async function Destination(p: P) {
           {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
 
           {paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
+
+          {/* Related destinations */}
+          {activities.length > 0 && (
+            <section aria-labelledby="related-heading" style={{ marginTop: 40 }}>
+              <h2 id="related-heading">More destinations in {c.name}</h2>
+              <p className="hook">More places to explore nearby</p>
+              <div className="cards">
+                {/* Related destinations would be populated here based on shared tags */}
+              </div>
+            </section>
+          )}
 
           <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
         </main>
