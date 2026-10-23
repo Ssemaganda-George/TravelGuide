@@ -77,13 +77,32 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
   if (!tags.length) return [];
   const { data } = await db()
     .from("destination_content")
-    .select("*, places!inner(name,slug,parent_id:places!parent_id(name))")
+    .select("*, places!inner(name,slug,parent_id)")
     .eq("status", "published")
     .eq("language", "en")
     .neq("place_id", currentPlaceId)
     .overlaps("tags", tags)
-    .limit(limit);
-  const destinations = (data as (Dest & { places: { name: string; slug: string; parent_id: { name: string } }; engagement?: Engagement; country?: string })[]) ?? [];
+    .limit(limit * 2); // Fetch more to account for dedup
+  let destinations = (data as (Dest & { places: { name: string; slug: string; parent_id: string } } & { engagement?: Engagement; country?: string })[]) ?? [];
+  
+  // Deduplicate by place_id
+  const seen = new Set<string>();
+  destinations = destinations.filter(d => {
+    if (seen.has(d.place_id)) return false;
+    seen.add(d.place_id);
+    return true;
+  }).slice(0, limit);
+  
+  // Fetch country names and engagement for each destination
+  const countryIds = [...new Set(destinations.map(d => d.places?.parent_id).filter(Boolean))];
+  const countryNames = new Map<string, string>();
+  if (countryIds.length) {
+    const { data: countries } = await db()
+      .from("places")
+      .select("id,name")
+      .in("id", countryIds);
+    for (const c of countries ?? []) countryNames.set(c.id, c.name);
+  }
   
   // Fetch first activity media and engagement for each destination
   for (const d of destinations) {
@@ -95,7 +114,7 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
       d.media = activities[0].media;
     }
     d.engagement = engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 };
-    d.country = d.places?.parent_id?.name ?? "";
+    d.country = d.places?.parent_id ? countryNames.get(d.places.parent_id) ?? "" : "";
   }
   
   return destinations;

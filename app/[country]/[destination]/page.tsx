@@ -13,7 +13,6 @@ import { SITE, SITE_NAME } from "@/lib/site";
 import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const revalidate = 3600;
 
@@ -212,12 +211,7 @@ export default async function Destination(p: P) {
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
-          <Breadcrumbs items={[
-            { label: "Home", href: "/" },
-            { label: c.name, href: `/${c.slug}` },
-            { label: d.title, href: path },
-          ]} />
-          <div className="desthead">
+            <div className="desthead">
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
               <div>
                 <h1>{d.title}</h1>
@@ -367,7 +361,7 @@ export default async function Destination(p: P) {
                           <div style={{ marginTop: 4 }}>
                             {stars(r.engagement.avgRating)}
                             <span className="meta" style={{ marginLeft: 6, fontSize: "0.85rem" }}>
-                              {r.engagement.avgRating.toFixed(1)} · {r.engagement.reviews} review{r.engagement.reviews !== 1 ? "s" : ""}
+                              {r.engagement.avgRating.toFixed(1)} ({r.engagement.reviews} review{r.engagement.reviews !== 1 ? "s" : ""})
                             </span>
                           </div>
                         )}
