@@ -197,10 +197,17 @@ export default async function Destination(p: P) {
   const absoluteUrl = `${SITE}${path}`;
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
-    ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Last checked", d.last_checked],
+    ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Travel time", d.travel_time], ["Last checked", d.last_checked],
   ];
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
-  const otherStays = stays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
+  
+  // Normalize stay tiers: map old "comfort" tier to "luxury"
+  const normalizedStays = stays.map(s => ({
+    ...s,
+    tier: s.tier === "comfort" ? "luxury" : s.tier
+  }));
+  
+  const otherStays = normalizedStays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
   const jsonLd = generateJsonLd(d, c, activities, stays, path, `${SITE}${path}`, engagement, coverImage);
   const hasMultipleH2 = (d.story?.match(/^## /gm) || []).length >= 3;
 
@@ -267,10 +274,10 @@ export default async function Destination(p: P) {
 
           <h2>Where to stay</h2>
           <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
-          {stays.length > 0 ? (
+          {normalizedStays.length > 0 ? (
             <>
               {STAY_TIERS.map(([tier, label]) => {
-                const list = stays.filter(s => s.tier === tier);
+                const list = normalizedStays.filter(s => s.tier === tier);
                 if (!list.length) return null;
                 return (
                   <div key={tier}>

@@ -27,6 +27,7 @@ async function saveContent(fd: FormData) {
   const best_time = t(fd, "best_time");
   const budget_range = t(fd, "budget_range");
   const ideal_days = num(fd, "days");
+  const travel_time = t(fd, "travel_time");
   const tags = String(fd.get("tags") ?? "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
   const getting_there = t(fd, "getting_there");
   const local_tip = t(fd, "local_tip");
@@ -36,7 +37,7 @@ async function saveContent(fd: FormData) {
   const last_checked = new Date().toISOString().slice(0, 10);
 
   await sb.from("destination_content").update({
-    title, hook, story, region, best_months, best_time, budget_range, ideal_days,
+    title, hook, story, region, best_months, best_time, budget_range, ideal_days, travel_time,
     tags, getting_there, local_tip, tip_author, plan_around, last_checked, status,
   }).eq("id", id);
 
@@ -139,6 +140,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
             <div><label htmlFor="bm">Best months</label><input id="bm" name="best_months" defaultValue={d.best_months ?? ""} placeholder="Dec-Feb, Jun-Aug" /></div>
             <div><label htmlFor="br">Budget range</label><input id="br" name="budget_range" defaultValue={d.budget_range ?? ""} placeholder="Backpacker to luxury" /></div>
             <div><label htmlFor="dy">Ideal stay (days)</label><input id="dy" name="days" type="number" min="1" defaultValue={d.ideal_days ?? ""} /></div>
+            <div><label htmlFor="tt">Travel time</label><input id="tt" name="travel_time" defaultValue={d.travel_time ?? ""} placeholder="~5 hrs from Kampala" /></div>
             <div><label htmlFor="tg">Tags (comma separated)</label><input id="tg" name="tags" defaultValue={(d.tags ?? []).join(", ")} placeholder="adventure, relaxing, birds" /></div>
           </div>
         </section>

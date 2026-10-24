@@ -15,7 +15,7 @@ export type Media = { type: "image" | "video"; url: string; caption?: string | n
 export type Dest = {
   id: string; place_id: string; title: string; hook: string | null; story: string | null;
   region: string | null; best_months: string | null; best_time: string | null;
-  budget_range: string | null; ideal_days: number | null;
+  budget_range: string | null; ideal_days: number | null; travel_time: string | null;
   tags: string[]; getting_there: string | null; local_tip: string | null; tip_author: string | null;
   plan_around: string | null; last_checked: string | null; updated_at: string | null;
   places: { name: string; slug: string };
