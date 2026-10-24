@@ -2,66 +2,131 @@ import type { Metadata } from "next";
 import { admin } from "@/lib/admin";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { PartnersDashboardContent } from "@/components/PartnersDashboardContent";
 
-export const metadata: Metadata = { title: "Partners", robots: { index: false } };
+export const metadata: Metadata = { title: "Partner Dashboard", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
-async function addPartner(fd: FormData) {
-  "use server";
-  const sb = await authClient();
-  const t = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || null;
-  const num = (fd: FormData, k: string) => { const v = parseFloat(String(fd.get(k))); return isNaN(v) ? null : v; };
-  await sb.from("partners").insert({
-    name: t(fd, "name")!, type: String(fd.get("type")), contact: t(fd, "contact"),
-    email: t(fd, "email"), website: t(fd, "website"),
-    commission_rate: num(fd, "rate"), commission_flat: num(fd, "flat"),
-    agreement_status: String(fd.get("agreement")), payment_terms: t(fd, "terms"), notes: t(fd, "notes"),
-  });
-  revalidatePath("/admin/partners");
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-async function togglePartner(fd: FormData) {
-  "use server";
-  const sb = await authClient();
-  await sb.from("partners").update({ active: fd.get("active") === "true" }).eq("id", String(fd.get("id")));
-  revalidatePath("/admin/partners");
+function getPresetRange(preset: string) {
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  const start = new Date(end);
+  switch (preset) {
+    case "today":
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "week":
+      start.setDate(end.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "month":
+      start.setMonth(end.getMonth() - 1);
+      start.setDate(end.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "quarter":
+      start.setMonth(end.getMonth() - 3);
+      start.setDate(end.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      break;
+    case "year":
+      start.setFullYear(end.getFullYear() - 1);
+      start.setDate(end.getDate() + 1);
+      start.setHours(0, 0, 0, 0);
+      break;
+    default:
+      start.setHours(0, 0, 0, 0);
+  }
+  return { start: start.toISOString().split("T")[0], end: end.toISOString().split("T")[0] };
 }
 
-export default async function Partners() {
+function getTrialStatus(trialEndsAt: string | null, status: string) {
+  if (status === "active") return { label: "Active Partner", class: "badge-active" };
+  if (status === "expired") return { label: "Expired", class: "badge-expired" };
+  if (status === "cancelled") return { label: "Cancelled", class: "badge-cancelled" };
+  if (!trialEndsAt) return { label: "No trial set", class: "badge-trial" };
+  const daysLeft = Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  if (daysLeft <= 0) return { label: "Trial expired", class: "badge-expired" };
+  return { label: `${daysLeft} days left of trial`, class: "badge-trial" };
+}
+
+export default async function Partners({ searchParams }: { searchParams: Promise<{ preset?: string; start?: string; end?: string }> }) {
   const sb = await admin();
   if (!sb) return <div className="wrap page"><h1>No access</h1></div>;
-  const { data } = await sb.from("partners").select("*").order("name");
+  
+  const params = await searchParams;
+  const preset = params.preset ?? "month";
+  const customStart = params.start;
+  const customEnd = params.end;
+  
+  const { start, end } = customStart && customEnd 
+    ? { start: customStart, end: customEnd }
+    : getPresetRange(preset);
+  
+  const { data: partners } = await sb.from("partners").select("*").order("name");
+  
+  // Fetch metrics for date range
+  const { data: metrics } = await sb
+    .from("partner_metrics")
+    .select("partner_id, date, page_views, inquiry_clicks, whatsapp_clicks, email_clicks, country")
+    .gte("date", start)
+    .lte("date", end)
+    .order("date", { ascending: false });
+    
+  // Aggregate metrics per partner
+  const aggregated = new Map<string, {
+    page_views: number;
+    inquiry_clicks: number;
+    whatsapp_clicks: number;
+    email_clicks: number;
+    countries: Map<string, number>;
+    daily: Map<string, { page_views: number; inquiry_clicks: number; whatsapp_clicks: number; email_clicks: number }>;
+  }>();
+  
+  for (const m of metrics ?? []) {
+    const existing = aggregated.get(m.partner_id) ?? {
+      page_views: 0, inquiry_clicks: 0, whatsapp_clicks: 0, email_clicks: 0,
+      countries: new Map(), daily: new Map()
+    };
+    existing.page_views += m.page_views ?? 0;
+    existing.inquiry_clicks += m.inquiry_clicks ?? 0;
+    existing.whatsapp_clicks += m.whatsapp_clicks ?? 0;
+    existing.email_clicks += m.email_clicks ?? 0;
+    if (m.country) {
+      existing.countries.set(m.country, (existing.countries.get(m.country) ?? 0) + 1);
+    }
+    const dayKey = m.date;
+    const dayExisting = existing.daily.get(dayKey) ?? { page_views: 0, inquiry_clicks: 0, whatsapp_clicks: 0, email_clicks: 0 };
+    dayExisting.page_views += m.page_views ?? 0;
+    dayExisting.inquiry_clicks += m.inquiry_clicks ?? 0;
+    dayExisting.whatsapp_clicks += m.whatsapp_clicks ?? 0;
+    dayExisting.email_clicks += m.email_clicks ?? 0;
+    existing.daily.set(dayKey, dayExisting);
+    aggregated.set(m.partner_id, existing);
+  }
+  
+  // Calculate totals
+  const totalPageViews = Array.from(aggregated.values()).reduce((sum, a) => sum + a.page_views, 0);
+  const totalInquiries = Array.from(aggregated.values()).reduce((sum, a) => sum + a.inquiry_clicks, 0);
+  const totalWhatsApp = Array.from(aggregated.values()).reduce((sum, a) => sum + a.whatsapp_clicks, 0);
+  const totalEmails = Array.from(aggregated.values()).reduce((sum, a) => sum + a.email_clicks, 0);
+
   return (
-    <div className="wrap page">
-      <h1>Partners</h1>
-      <div className="tbl"><table>
-        <thead><tr><th>Name</th><th>Type</th><th>Contact</th><th>Email</th><th>Website</th><th>Commission</th><th>Agreement</th><th>Payment terms</th><th></th></tr></thead>
-        <tbody>{(data ?? []).map(p => (
-          <tr key={p.id} className={p.active ? "" : "off"}>
-            <td>{p.name}<br /><span className="meta">{p.contact}</span></td><td>{p.type}</td><td>{p.contact}</td>
-            <td>{p.email ?? "-"}</td><td>{p.website ?? "-"}</td>
-            <td>{p.commission_rate != null ? `${p.commission_rate}%` : p.commission_flat != null ? `${p.commission_flat} ${p.currency}` : "-"}</td>
-            <td>{p.agreement_status}</td><td>{p.payment_terms}</td>
-            <td><form action={togglePartner}><input type="hidden" name="id" value={p.id} /><input type="hidden" name="active" value={String(!p.active)} />
-              <button className="chip">{p.active ? "Deactivate" : "Activate"}</button></form></td>
-          </tr>))}</tbody>
-      </table></div>
-      <form className="form" action={addPartner}>
-        <h2>Add a partner</h2>
-        <label htmlFor="pn">Name</label><input id="pn" name="name" required />
-        <div className="row2">
-          <div><label htmlFor="pt">Type</label><select id="pt" name="type">{["lodge", "operator", "driver", "guide", "activity"].map(x => <option key={x}>{x}</option>)}</select></div>
-          <div><label htmlFor="pc">Contact (WhatsApp or email)</label><input id="pc" name="contact" /></div>
-          <div><label htmlFor="pe">Email</label><input id="pe" name="email" placeholder="info@partner.com" /></div>
-          <div><label htmlFor="pw">Website</label><input id="pw" name="website" placeholder="https://partner.com" /></div>
-          <div><label htmlFor="pr">Commission %</label><input id="pr" name="rate" type="number" step="0.1" min="0" max="100" /></div>
-          <div><label htmlFor="pf">or flat fee</label><input id="pf" name="flat" type="number" step="0.01" min="0" /></div>
-          <div><label htmlFor="pa">Agreement</label><select id="pa" name="agreement"><option>none</option><option>agreed</option><option>signed</option></select></div>
-          <div><label htmlFor="pp">Payment terms</label><input id="pp" name="terms" placeholder="e.g. 30 days after trip" /></div>
-        </div>
-        <label htmlFor="po">Notes</label><textarea id="po" name="notes" rows={2} />
-        <button className="go">Add partner</button>
-      </form>
-    </div>
+    <PartnersDashboardContent
+      preset={preset}
+      start={start}
+      end={end}
+      partners={partners ?? []}
+      aggregated={aggregated}
+      totalPageViews={totalPageViews}
+      totalInquiries={totalInquiries}
+      totalWhatsApp={totalWhatsApp}
+      totalEmails={totalEmails}
+    />
   );
 }

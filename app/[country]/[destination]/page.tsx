@@ -13,6 +13,7 @@ import { SITE, SITE_NAME } from "@/lib/site";
 import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
+import { PartnerCard } from "@/components/PartnerCard";
 
 export const revalidate = 3600;
 
@@ -282,36 +283,18 @@ export default async function Destination(p: P) {
                 return (
                   <div key={tier}>
                     <h3>{label}</h3>
-<div className="cards">
-                        {list.map(s => (
-                          <div className="cell" key={s.id}>
-                            <MediaGallery items={s.media} />
-                            <div className="cellbody">
-                              <h4>{s.name}</h4>
-                              {s.description && <p>{s.description}</p>}
-                              {s.contact && <p className="meta">{s.contact}</p>}
-                              {s.email && <p className="meta">Email: {s.email}</p>}
-                              {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="cards">
+                      {list.map(s => (
+                        <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
+                      ))}
+                    </div>
                   </div>
                 );
               })}
               {otherStays.length > 0 && (
                 <div className="cards">
                   {otherStays.map(s => (
-                    <div className="cell" key={s.id}>
-                      <MediaGallery items={s.media} />
-                      <div className="cellbody">
-                        <h4>{s.name}</h4>
-                        {s.description && <p>{s.description}</p>}
-                        {s.contact && <p className="meta">{s.contact}</p>}
-                        {s.email && <p className="meta">Email: {s.email}</p>}
-                        {s.website && <p className="meta">Website: <a href={s.website} target="_blank" rel="noopener noreferrer">{s.website}</a></p>}
-                      </div>
-                    </div>
+                    <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
                   ))}
                 </div>
               )}
