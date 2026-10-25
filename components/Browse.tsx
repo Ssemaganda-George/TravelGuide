@@ -16,6 +16,7 @@ interface MapMarker {
   position: [number, number];
   name: string;
   thumbnail?: string;
+  media?: string[];
   travelTime?: string;
   category?: "destination";
   link?: string;
@@ -75,13 +76,15 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       .map(i => {
         // Fall back to first activity image for destination card thumbnails
         const acts = activitiesByPlace[i.place_id] || [];
-        const media = i.media?.[0]?.url ?? acts[0]?.media?.[0]?.url ?? null;
+        const media = acts.flatMap(a => (a.media ?? []).map(m => m.url).filter(Boolean));
+        const thumbnail = media[0] ?? i.media?.[0]?.url ?? null;
         return {
           id: i.id,
           place_id: i.place_id,
           position: [i.latitude!, i.longitude!] as [number, number],
           name: i.title,
-          thumbnail: media ? safeSrc(media) : undefined,
+          thumbnail: thumbnail ? safeSrc(thumbnail) : undefined,
+          media: media.length ? media : (i.media ?? []).map(m => m.url).filter(Boolean),
           travelTime: i.travel_time,
           durationMin: i.duration_min,
           category: "destination" as const,
