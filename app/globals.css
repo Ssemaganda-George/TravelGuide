@@ -1064,6 +1064,16 @@ tr.off{opacity:.5}
   font-weight: 700;
   color: var(--ink);
 }
+
+#back-to-top:hover {
+  background: #0B5A5A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+#back-to-top:active {
+  transform: translateY(0);
+}
 .header-stats .stat-icon {
   font-size: 0.85rem;
   width: 0.85rem;

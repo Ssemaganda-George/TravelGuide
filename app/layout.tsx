@@ -4,6 +4,7 @@ import PageView from "@/components/PageView";
 import { ToastContainer } from "@/components/Toast";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
+import BackToTop from "@/components/BackToTop";
 import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import "./globals.css";
@@ -74,6 +75,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <ToastContainer />
         <WhatsAppButton />
         <ChatBot />
+        <BackToTop />
       </body>
     </html>
   );

@@ -99,11 +99,11 @@ export async function generateMetadata(p: P): Promise<Metadata> {
 
   return {
     title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
-    description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`,
+    description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
     alternates: { canonical: `${SITE}/${c.slug}/${d.places.slug}` },
     openGraph: {
       title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
-      description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips.`,
+      description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
       type: "article",
       siteName: "Trip Insights",
       url: absoluteUrl,
@@ -112,7 +112,7 @@ export async function generateMetadata(p: P): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
-      description: d.meta_description ?? d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips.`,
+      description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
       images: coverImage ? [`${SITE}${coverImage}`] : [`${SITE}/og-default`],
     },
     verification: {
@@ -200,11 +200,6 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
       datePublished: d.updated_at ?? undefined,
       dateModified: d.updated_at ?? undefined,
       about: d.title,
-      mainEntity: {
-        "@type": "TouristDestination",
-        name: d.title,
-        description: d.hook,
-      },
     },
   ];
 
@@ -346,7 +341,7 @@ export default async function Destination(p: P) {
           {/* Top bar: Quick Facts + Map button */}
           <div className="dest-topbar">
             <section className="sidebar-card quick-facts-card topbar-card--wide">
-              <h3>Quick Facts</h3>
+              <h2>Quick Facts</h2>
               <dl className="facts">
                 {facts.filter(f => f[1]).map(f => (
                   <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>
