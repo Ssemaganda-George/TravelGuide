@@ -72,20 +72,25 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
   const mapMarkers = useMemo(() => {
     const baseMarkers = (targetDestination ? [targetDestination] : filteredItems)
       .filter(i => i.latitude != null && i.longitude != null)
-      .map(i => ({
-        id: i.id,
-        place_id: i.place_id,
-        position: [i.latitude!, i.longitude!] as [number, number],
-        name: i.title,
-        thumbnail: i.media?.[0]?.url ? safeSrc(i.media[0].url!) : undefined,
-        travelTime: i.travel_time,
-        durationMin: i.duration_min,
-        category: "destination" as const,
-        link: `/${country}/${i.places.slug}`,
-        ideal_days: i.ideal_days,
-        best_months: i.best_months,
-        hook: i.hook,
-      }));
+      .map(i => {
+        // Fall back to first activity image for destination card thumbnails
+        const acts = activitiesByPlace[i.place_id] || [];
+        const media = i.media?.[0]?.url ?? acts[0]?.media?.[0]?.url ?? null;
+        return {
+          id: i.id,
+          place_id: i.place_id,
+          position: [i.latitude!, i.longitude!] as [number, number],
+          name: i.title,
+          thumbnail: media ? safeSrc(media) : undefined,
+          travelTime: i.travel_time,
+          durationMin: i.duration_min,
+          category: "destination" as const,
+          link: `/${country}/${i.places.slug}`,
+          ideal_days: i.ideal_days,
+          best_months: i.best_months,
+          hook: i.hook,
+        };
+      });
 
     // Add stays and activities markers for target destination
     if (targetDestination) {
