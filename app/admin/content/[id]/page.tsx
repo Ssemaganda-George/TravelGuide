@@ -9,6 +9,35 @@ import { revalidatePath } from "next/cache";
 import { getActivityProviders, type Activity } from "@/lib/data";
 import { cleanMedia } from "@/lib/media";
 
+function formatTravelTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `~${mins} min from capital`;
+  if (mins === 0) return `~${hours} hr${hours > 1 ? 's' : ''} from capital`;
+  return `~${hours} hr${hours > 1 ? 's' : ''} ${mins} min from capital`;
+}
+
+function getTerrainMultiplier(tags: string[], region: string | null): number {
+  const allTags = [...tags, ...(region?.toLowerCase().split(/\s+/) || [])];
+  const tagStr = allTags.join(' ');
+  
+  // Mountain/high altitude destinations - significantly slower
+  if (tagStr.includes('mountain') || tagStr.includes('rwenzori') || tagStr.includes('elgon') || 
+      tagStr.includes('volcano') || tagStr.includes('hiking') || tagStr.includes('trekking')) {
+    return 1.5; // 50% slower
+  }
+  // Rough terrain / parks with bad roads
+  if (tagStr.includes('park') || tagStr.includes('wildlife') || tagStr.includes('reserve') ||
+      tagStr.includes('forest') || tagStr.includes('gorilla') || tagStr.includes('chimpanzee')) {
+    return 1.3; // 30% slower
+  }
+  // Remote areas
+  if (tagStr.includes('remote') || tagStr.includes('kidepo') || tagStr.includes('far')) {
+    return 1.25; // 25% slower
+  }
+  return 1.0; // Normal roads
+}
+
 export const metadata: Metadata = { title: "Edit destination", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
@@ -28,6 +57,8 @@ async function saveContent(fd: FormData) {
   const budget_range = t(fd, "budget_range");
   const ideal_days = num(fd, "days");
   const travel_time = t(fd, "travel_time");
+  const latitude = num(fd, "latitude");
+  const longitude = num(fd, "longitude");
   const tags = String(fd.get("tags") ?? "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
   const getting_there = t(fd, "getting_there");
   const local_tip = t(fd, "local_tip");
@@ -36,10 +67,47 @@ async function saveContent(fd: FormData) {
   const status = String(fd.get("status"));
   const last_checked = new Date().toISOString().slice(0, 10);
 
+  // Calculate distance and duration from capital if coordinates provided
+  let distance_km: number | null = null;
+  let duration_min: number | null = null;
+  
+  if (latitude != null && longitude != null) {
+    try {
+      // Get the country's capital coordinates
+      const { data: dest } = await sb.from("destination_content").select("place_id").eq("id", id).single();
+      if (dest) {
+        const { data: place } = await sb.from("places").select("parent_id").eq("id", dest.place_id).single();
+        if (place) {
+          const { data: country } = await sb.from("places").select("lat,lng").eq("id", place.parent_id).single();
+          if (country && country.lat != null && country.lng != null) {
+            const url = `https://router.project-osrm.org/route/v1/driving/${country.lng},${country.lat};${longitude},${latitude}?overview=false`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.routes && data.routes.length > 0) {
+              const route = data.routes[0];
+              distance_km = Math.round(route.distance / 1000 * 10) / 10; // km with 1 decimal
+              const baseDurationMin = Math.round(route.duration / 60); // minutes
+              
+              // Apply terrain multiplier based on tags and region
+              const multiplier = getTerrainMultiplier(tags, region);
+              duration_min = Math.round(baseDurationMin * multiplier);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to calculate distance from capital:", e);
+    }
+  }
+
   await sb.from("destination_content").update({
     title, hook, story, region, best_months, best_time, budget_range, ideal_days, travel_time,
     tags, getting_there, local_tip, tip_author, plan_around, last_checked, status,
+    distance_km, duration_min,
   }).eq("id", id);
+
+  // Update place coordinates
+  await sb.from("places").update({ latitude, longitude }).eq("id", place_id);
 
   // Sync activities
   const activitiesJson = String(fd.get("activities_json") ?? "[]");
@@ -68,7 +136,7 @@ async function saveContent(fd: FormData) {
 
   // Sync stays
   const staysJson = String(fd.get("lodges_json") ?? "[]");
-  const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string; media?: unknown }> = JSON.parse(staysJson);
+  const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string; latitude?: number | null; longitude?: number | null; media?: unknown }> = JSON.parse(staysJson);
   const keepStays = new Set<string>();
   for (const l of parsedStays) {
     const name = (l.name ?? "").trim();
@@ -76,7 +144,9 @@ async function saveContent(fd: FormData) {
     const tier = ["budget", "mid", "comfort"].includes(l.tier ?? "") ? l.tier : null;
     const payload = {
       name, tier, description: l.description?.trim() || null, contact: l.contact?.trim() || null,
-      email: l.email?.trim() || null, website: l.website?.trim() || null, media: cleanMedia(l.media),
+      email: l.email?.trim() || null, website: l.website?.trim() || null,
+      latitude: l.latitude ?? null, longitude: l.longitude ?? null,
+      media: cleanMedia(l.media),
     };
     if (l.id) {
       const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();
@@ -98,12 +168,16 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
   const sb = await admin();
   if (!sb) return <div className="wrap page"><h1>No access</h1></div>;
   const { error } = await searchParams;
-  const { data: d } = await sb.from("destination_content").select("*").eq("id", (await params).id).maybeSingle();
+  const { data: d } = await sb
+    .from("destination_content")
+    .select("*, places!inner(id, name, slug, latitude, longitude, parent_id)")
+    .eq("id", (await params).id)
+    .maybeSingle();
   if (!d) notFound();
   const providers = await getActivityProviders();
   const [{ data: activities }, { data: stays }] = await Promise.all([
-    sb.from("activities").select("id,name,description,cost_low,cost_high,currency,duration,media").eq("place_id", d.place_id).order("name"),
-    sb.from("partners").select("id,name,description,tier,contact,email,website,media").eq("type", "lodge").contains("place_ids", [d.place_id]),
+    sb.from("activities").select("id,name,description,cost_low,cost_high,currency,duration,media").eq("place_id", d.places.id).order("name"),
+    sb.from("partners").select("id,name,description,tier,contact,email,website,media,latitude,longitude").eq("type", "lodge").contains("place_ids", [d.places.id]),
   ]);
   const actsWithProviders = ((activities ?? []) as unknown as any[]).map((a: any) => ({ ...a, providers: [] })) as Activity[];
   return (
@@ -114,7 +188,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
       <p className="hook">Everything on the public page comes from this form. Save once when you are done.</p>
       <form className="form" action={saveContent}>
         <input type="hidden" name="id" value={d.id} />
-        <input type="hidden" name="place_id" value={d.place_id} />
+        <input type="hidden" name="place_id" value={d.places.id} />
 
         <section className="fsec">
           <h3>The basics</h3>
@@ -140,7 +214,13 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
             <div><label htmlFor="bm">Best months</label><input id="bm" name="best_months" defaultValue={d.best_months ?? ""} placeholder="Dec-Feb, Jun-Aug" /></div>
             <div><label htmlFor="br">Budget range</label><input id="br" name="budget_range" defaultValue={d.budget_range ?? ""} placeholder="Backpacker to luxury" /></div>
             <div><label htmlFor="dy">Ideal stay (days)</label><input id="dy" name="days" type="number" min="1" defaultValue={d.ideal_days ?? ""} /></div>
-            <div><label htmlFor="tt">Travel time</label><input id="tt" name="travel_time" defaultValue={d.travel_time ?? ""} placeholder="~5 hrs from Kampala" /></div>
+            <div>
+              <label htmlFor="tt">Travel time from capital</label>
+              <input id="tt" name="travel_time" defaultValue={d.duration_min ? formatTravelTime(d.duration_min) : ""} readOnly style={{ background: "var(--mist)" }} />
+              <p className="hint">Auto-calculated from coordinates. Fill latitude/longitude and save to update.</p>
+            </div>
+            <div><label htmlFor="lat">Latitude</label><input id="lat" name="latitude" type="number" step="any" defaultValue={d.places.latitude ?? ""} placeholder="-0.123456" /></div>
+            <div><label htmlFor="lng">Longitude</label><input id="lng" name="longitude" type="number" step="any" defaultValue={d.places.longitude ?? ""} placeholder="32.123456" /></div>
             <div><label htmlFor="tg">Tags (comma separated)</label><input id="tg" name="tags" defaultValue={(d.tags ?? []).join(", ")} placeholder="adventure, relaxing, birds" /></div>
           </div>
         </section>

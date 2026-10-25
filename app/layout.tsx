@@ -20,7 +20,27 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: "website",
     locale: "en_GB",
+    url: SITE,
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
+    images: [
+      {
+        url: `${SITE}/og-default.jpg`,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    site: "@tripinsights",
+    creator: "@george_travels",
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
+    images: [`${SITE}/og-default.jpg`],
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function Root({ children }: { children: React.ReactNode }) {

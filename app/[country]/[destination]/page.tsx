@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { Eye, Heart, Star, Building, Activity } from "lucide-react";
 import EnquirySection from "@/components/EnquirySection";
 import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
@@ -10,10 +11,12 @@ import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
 import { LikeButton } from "@/components/LikeButton";
 import { SITE, SITE_NAME } from "@/lib/site";
-import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations } from "@/lib/data";
+import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
 import { PartnerCard } from "@/components/PartnerCard";
+import DestinationMap from "@/components/DestinationMap";
+import FullMapModalWrapper from "@/components/FullMapModal";
 
 export const revalidate = 3600;
 
@@ -25,15 +28,16 @@ async function load({ params }: P) {
   if (!c) return null;
   const d = (await getDestinations(c.id)).find(x => x.places.slug === destination);
   if (!d) return null;
-  const [activities, stays, engagement, related] = await Promise.all([
+  const path = `/${c.slug}/${d.places.slug}`;
+  const [activities, stays, engagement, related, viewCounts] = await Promise.all([
     getActivities(d.place_id),
     getStays(d.place_id),
     getEngagementForPlaces([d.place_id]),
     getRelatedDestinations(d.place_id, d.tags ?? [], 4),
+    getViewCounts([path]),
   ]);
-  // Find cover image from first activity's media
-  const coverImage = activities[0]?.media?.[0]?.url ?? null;
-  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related };
+  const coverImage = d.media?.[0]?.url ?? activities[0]?.media?.[0]?.url ?? null;
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related, viewCounts };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
@@ -155,7 +159,6 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
     },
   ];
 
-  // Add FAQ schema if FAQs exist
   if (d.faq && d.faq.length > 0) {
     jsonLd.push({
       "@context": "https://schema.org",
@@ -171,7 +174,6 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
     });
   }
 
-  // Add review/rating schema if there are real reviews
   if (engagement.reviews > 0) {
     jsonLd.push({
       "@context": "https://schema.org",
@@ -193,21 +195,73 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays, engagement, coverImage, related } = r;
+  const { c, d, activities, stays, engagement, coverImage, related, viewCounts } = r;
   const path = `/${c.slug}/${d.places.slug}`;
   const absoluteUrl = `${SITE}${path}`;
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
     ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Travel time", d.travel_time], ["Last checked", d.last_checked],
   ];
-  const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
-  
-  // Normalize stay tiers: map old "comfort" tier to "luxury"
+
   const normalizedStays = stays.map(s => ({
     ...s,
     tier: s.tier === "comfort" ? "luxury" : s.tier
   }));
-  
+
+  const stayMarkers = normalizedStays
+    .filter(s => s.latitude != null && s.longitude != null)
+    .map(s => ({
+      id: `stay-${s.id}`,
+      position: [s.latitude!, s.longitude!] as [number, number],
+      name: s.name,
+      thumbnail: s.media?.[0]?.url ? safeSrc(s.media[0].url!) : undefined,
+      media: s.media?.map(m => m.url).filter(Boolean) ?? [],
+      travelTime: undefined,
+      category: "stay" as const,
+      tier: s.tier,
+      link: `/${c.slug}/${d.places.slug}#stay-${s.id}`,
+      type: "Stay",
+    }));
+
+  const activityMarkers = activities
+    .filter(a => a.latitude != null && a.longitude != null)
+    .map(a => ({
+      id: `activity-${a.id}`,
+      position: [a.latitude!, a.longitude!] as [number, number],
+      name: a.name,
+      thumbnail: a.media?.[0]?.url ? safeSrc(a.media[0].url!) : undefined,
+      media: a.media?.map(m => m.url).filter(Boolean) ?? [],
+      travelTime: undefined,
+      category: "activity" as const,
+      type: "Activity",
+      link: `/${c.slug}/${d.places.slug}#activity-${a.id}`,
+    }));
+
+  const destinationMarker = (d.latitude != null && d.longitude != null) ? [{
+    id: `destination-${d.place_id}`,
+    position: [d.latitude!, d.longitude!] as [number, number],
+    name: d.title,
+    thumbnail: coverImage ? safeSrc(coverImage) : undefined,
+    media: d.media?.map(m => m.url).filter(Boolean) ?? [],
+    travelTime: undefined,
+    category: "destination" as const,
+    hook: d.hook,
+    best_months: d.best_months,
+    ideal_days: d.ideal_days,
+    place_id: d.place_id,
+    link: `/${c.slug}/${d.places.slug}`,
+  }] : [];
+
+  const localMarkers = [...stayMarkers, ...activityMarkers];
+
+  const allLocalMarkers = [...destinationMarker, ...localMarkers];
+
+  const mapCenter = (d.latitude != null && d.longitude != null)
+    ? [d.latitude, d.longitude] as [number, number]
+    : [1.3733, 32.2903] as [number, number];
+
+  const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
+
   const otherStays = normalizedStays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
   const jsonLd = generateJsonLd(d, c, activities, stays, path, `${SITE}${path}`, engagement, coverImage);
   const hasMultipleH2 = (d.story?.match(/^## /gm) || []).length >= 3;
@@ -219,150 +273,291 @@ export default async function Destination(p: P) {
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
-            <div className="desthead">
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+          <header className="desthead">
+            <div className="desthead-inner">
               <div>
                 <h1>{d.title}</h1>
                 <p className="hook">{d.hook}</p>
               </div>
               <LikeButton placeId={d.place_id} initialLikes={engagement.likes} initialLiked={false} />
             </div>
-          </div>
-          <dl className="facts">{facts.map(f => <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>)}</dl>
-          
-{d.story && (
-              <>
-                <h2>The story</h2>
-                <div className="story"><Story text={d.story} /></div>
-              </>
-            )}
+          </header>
 
-            {hasMultipleH2 && (
-            <nav className="toc" aria-label="On this page">
-              <h3>On this page</h3>
-              <ol>
-                {(d.story?.match(/^## (.+)/gm) || []).map((heading, i) => (
-                  <li key={i}><a href={`#${heading.replace(/^##\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{heading.replace(/^##\s*/, '')}</a></li>
-                ))}
-              </ol>
-            </nav>
-          )}
-
-          {paras(d.best_time).length > 0 && <><h2>Best time to visit</h2>{paras(d.best_time).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-          {paras(d.getting_there).length > 0 && <><h2>Getting there</h2>{paras(d.getting_there).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-          {activities.length > 0 && (
-            <>
-              <h2>Things to do</h2>
-              <div className="cards">
-                {activities.map(a => (
-                  <div className="cell" key={a.id}>
-                    <h3>{a.name}</h3>
-                    <p className="meta">{[money(a.cost_low, a.cost_high), a.duration].filter(Boolean).join(" · ")}</p>
-                    {a.description && <p>{a.description}</p>}
-                    {a.providers?.length && (
-                      <div className="meta" style={{ fontSize: "0.85rem", marginTop: 6 }}>
-                        Providers: {a.providers.map(p => p.name).join(", ")}
-                      </div>
-                    )}
-                    <MediaGallery items={a.media} />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          <h2>Where to stay</h2>
-          <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
-          {normalizedStays.length > 0 ? (
-            <>
-              {STAY_TIERS.map(([tier, label]) => {
-                const list = normalizedStays.filter(s => s.tier === tier);
-                if (!list.length) return null;
-                return (
-                  <div key={tier}>
-                    <h3>{label}</h3>
-                    <div className="cards">
-                      {list.map(s => (
-                        <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {otherStays.length > 0 && (
-                <div className="cards">
-                  {otherStays.map(s => (
-                    <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="empty">No places to stay listed yet. Check back soon.</p>
-          )}
-
-          {/* FAQ Section */}
-          {d.faq && d.faq.length > 0 && (
-            <section aria-labelledby="faq-heading" style={{ marginTop: 40 }}>
-              <h2 id="faq-heading">Frequently asked questions</h2>
-              <dl className="faq">
-                {d.faq.map((f: { q: string; a: string }, i: number) => (
-                  <div key={i} className="faq-item">
-                    <dt><details>
-                      <summary>{f.q}</summary>
-                      <p>{f.a}</p>
-                    </details></dt>
-                  </div>
+          {/* Top bar: Quick Facts + Engagement + Map button */}
+          <div className="dest-topbar">
+            <section className="sidebar-card quick-facts-card topbar-card--wide">
+              <h3>Quick Facts</h3>
+              <dl className="facts">
+                {facts.filter(f => f[1]).map(f => (
+                  <div key={String(f[0])}><dt>{f[0]}</dt><dd>{f[1]}</dd></div>
                 ))}
               </dl>
             </section>
-          )}
 
-          <div className="tip">
-            <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
-              ➔ Read & write reviews for {d.title}
-            </Link>
-          </div>
+            <section className="sidebar-card engagement-card topbar-card--medium">
+              <h3>Engagement</h3>
+              <div className="engagement-stats">
+                <div className="stat">
+                  <Eye className="stat-icon" size={16} strokeWidth={2} />
+                  <div>
+                    <span className="stat-label">Views</span>
+                    <span className="stat-value">{viewCounts[path] ?? 0}</span>
+                  </div>
+                </div>
+                <div className="stat">
+                  <Heart className="stat-icon" size={16} strokeWidth={2} />
+                  <div>
+                    <span className="stat-label">Likes</span>
+                    <span className="stat-value">{engagement.likes}</span>
+                  </div>
+                </div>
+                <div className="stat">
+                  <Star className="stat-icon" size={16} strokeWidth={2} fill="var(--sun)" />
+                  <div>
+                    <span className="stat-label">Reviews</span>
+                    <span className="stat-value">
+                      {engagement.reviews > 0 ? `${engagement.avgRating.toFixed(1)} (${engagement.reviews})` : "No reviews yet"}
+                    </span>
+                  </div>
+                </div>
+                <div className="stat">
+                  <Building className="stat-icon" size={16} strokeWidth={2} />
+                  <div>
+                    <span className="stat-label">Stays Listed</span>
+                    <span className="stat-value">{normalizedStays.length}</span>
+                  </div>
+                </div>
+                <div className="stat">
+                  <Activity className="stat-icon" size={16} strokeWidth={2} />
+                  <div>
+                    <span className="stat-label">Activities</span>
+                    <span className="stat-value">{activities.length}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-          {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
-
-{paras(d.plan_around).length > 0 && <><h2>Plan around it</h2>{paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}</>}
-
-            <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
-
-            {/* Related destinations */}
-            {related.length > 0 && (
-              <section aria-labelledby="related-heading" style={{ marginTop: 40 }}>
-                <h2 id="related-heading">More Destinations for you</h2>
-                <div className="cards scrollable">
-                  {related.map(r => (
-                    <Link key={r.id} href={`/${c.slug}/${r.places.slug}`} className="cell" style={{ textDecoration: "none", color: "inherit", minWidth: "280px", flexShrink: 0 }}>
-                      {r.media?.[0]?.url && (
-                        <figure className="cellimg">
-                          <img src={safeSrc(r.media[0].url) ?? ""} alt={r.title} loading="lazy" />
-                        </figure>
-                      )}
-                      <div className="cellbody">
-                        <h4>{r.title}</h4>
-                        {r.country && <p className="meta" style={{ fontSize: "0.85rem", marginTop: 4 }}>{r.country}</p>}
-                        {r.engagement && r.engagement.reviews > 0 && (
-                          <div style={{ marginTop: 4 }}>
-                            {stars(r.engagement.avgRating)}
-                            <span className="meta" style={{ marginLeft: 6, fontSize: "0.85rem" }}>
-                              {r.engagement.avgRating.toFixed(1)} ({r.engagement.reviews} review{r.engagement.reviews !== 1 ? "s" : ""})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
+            {d.distance_km && d.duration_min && (
+              <section className="sidebar-card sidebar-card--highlight travel-card topbar-card--medium">
+                <h3>From Capital</h3>
+                <div className="travel-info">
+                  <div className="travel-item">
+                    <span className="travel-icon">📍</span>
+                    <div>
+                      <span className="travel-label">Distance</span>
+                      <span className="travel-value">{d.distance_km} km</span>
+                    </div>
+                  </div>
+                  <div className="travel-item">
+                    <span className="travel-icon">⏱️</span>
+                    <div>
+                      <span className="travel-label">Drive Time</span>
+                      <span className="travel-value">
+                        {(() => {
+                          const hours = Math.floor(d.duration_min! / 60);
+                          const mins = d.duration_min! % 60;
+                          if (hours === 0) return `${mins} min`;
+                          if (mins === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
+                          return `${hours} hr ${mins} min`;
+                        })()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </section>
             )}
 
-          </main>
+            {((normalizedStays.length > 0) || (activities.length > 0)) && (
+              <section className="sidebar-card map-card topbar-card--narrow">
+                <div className="sidebar-card-header">
+                  <h3>📍 Stays & Activities</h3>
+                  <p className="sidebar-card-subtitle">{normalizedStays.length} stays · {activities.length} activities</p>
+                </div>
+                <FullMapModalWrapper
+                  title={d.title}
+                  center={mapCenter}
+                  markers={allLocalMarkers}
+                  country={c.slug}
+                  buttonLabel="View full map"
+                />
+              </section>
+            )}
+          </div>
+
+          <div className="destgrid">
+            <aside className="destsidebar" style={{display: 'none'}}>
+              {activities.some(a => a.providers?.length) && (
+                <section className="sidebar-card">
+                  <h3>Activity Providers</h3>
+                  <div className="providers-list">
+                    {activities
+                      .filter(a => a.providers?.length)
+                      .map(a => (
+                        <div key={a.id} className="provider-item">
+                          <div className="provider-name">{a.name}</div>
+                          <div className="provider-names">
+                            {a.providers.map(p => p.name).join(", ")}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </section>
+              )}
+            </aside>
+
+            <div className="destcontent" style={{gridColumn: '1 / -1'}}>
+              {d.story && (
+                <>
+                  <h2>The story</h2>
+                  <div className="story"><Story text={d.story} /></div>
+                </>
+              )}
+
+              {hasMultipleH2 && (
+                <nav className="toc" aria-label="On this page">
+                  <h3>On this page</h3>
+                  <ol>
+                    {(d.story?.match(/^## (.+)/gm) || []).map((heading, i) => (
+                      <li key={i}><a href={`#${heading.replace(/^##\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{heading.replace(/^##\s*/, '')}</a></li>
+                    ))}
+                  </ol>
+                </nav>
+              )}
+
+              {paras(d.best_time).length > 0 && (
+                <>
+                  <h2>Best time to visit</h2>
+                  {paras(d.best_time).map((t, i) => <p key={i}>{t}</p>)}
+                </>
+              )}
+
+              {paras(d.getting_there).length > 0 && (
+                <>
+                  <h2>Getting there</h2>
+                  {paras(d.getting_there).map((t, i) => <p key={i}>{t}</p>)}
+                </>
+              )}
+
+              {activities.length > 0 && (
+                <>
+                  <h2>Things to do</h2>
+                  <div className="activities-list">
+                    {activities.map(a => (
+                      <article className="activity-item" key={a.id}>
+                        <div className="activity-header">
+                          <h3>{a.name}</h3>
+                          <p className="meta">{[money(a.cost_low, a.cost_high), a.duration].filter(Boolean).join(" · ")}</p>
+                        </div>
+                        {a.description && <p className="activity-desc">{a.description}</p>}
+                        {a.providers?.length && (
+                          <p className="meta activity-providers">
+                            Providers: {a.providers.map(p => p.name).join(", ")}
+                          </p>
+                        )}
+                        <MediaGallery items={a.media} />
+                      </article>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <h2>Where to stay</h2>
+              <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
+              {normalizedStays.length > 0 ? (
+                <>
+                  {STAY_TIERS.map(([tier, label]) => {
+                    const list = normalizedStays.filter(s => s.tier === tier);
+                    if (!list.length) return null;
+                    return (
+                      <section key={tier} className="stay-tier">
+                        <h3>{label}</h3>
+                        <div className="stays-grid">
+                          {list.map(s => (
+                            <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  })}
+                  {otherStays.length > 0 && (
+                    <section className="stay-tier">
+                      <div className="stays-grid">
+                        {otherStays.map(s => (
+                          <PartnerCard key={s.id} partner={s} country={c.name} category="stay" />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </>
+              ) : (
+                <p className="empty">No places to stay listed yet. Check back soon.</p>
+              )}
+
+              {d.faq && d.faq.length > 0 && (
+                <section aria-labelledby="faq-heading" className="faq-section">
+                  <h2 id="faq-heading">Frequently asked questions</h2>
+                  <dl className="faq">
+                    {d.faq.map((f: { q: string; a: string }, i: number) => (
+                      <div key={i} className="faq-item">
+                        <dt><details>
+                          <summary>{f.q}</summary>
+                          <p>{f.a}</p>
+                        </details></dt>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
+
+              <div className="tip">
+                <Link href={`/${c.slug}/${d.places.slug}/reviews`} style={{ color: "var(--lake)", textDecoration: "underline" }}>
+                  ➔ Read & write reviews for {d.title}
+                </Link>
+              </div>
+
+              {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
+
+              {paras(d.plan_around).length > 0 && (
+                <>
+                  <h2>Plan around it</h2>
+                  {paras(d.plan_around).map((t, i) => <p key={i}>{t}</p>)}
+                </>
+              )}
+
+              <EnquiryTrigger placeId={d.place_id} title={d.title} page={`/${c.slug}/${d.places.slug}`} />
+
+              {related.length > 0 && (
+                <section aria-labelledby="related-heading" className="related-section">
+                  <h2 id="related-heading">More Destinations for you</h2>
+                  <div className="cards scrollable">
+                    {related.map(r => (
+                      <Link key={r.id} href={`/${c.slug}/${r.places.slug}`} className="cell" style={{ textDecoration: "none", color: "inherit", minWidth: "280px", flexShrink: 0 }}>
+                        {r.media?.[0]?.url && (
+                          <figure className="cellimg">
+                            <img src={safeSrc(r.media[0].url) ?? ""} alt={r.title} loading="lazy" />
+                          </figure>
+                        )}
+                        <div className="cellbody">
+                          <h4>{r.title}</h4>
+                          {r.country && <p className="meta" style={{ fontSize: "0.85rem", marginTop: 4 }}>{r.country}</p>}
+                          {r.engagement && r.engagement.reviews > 0 && (
+                            <div style={{ marginTop: 4 }}>
+                              {stars(r.engagement.avgRating)}
+                              <span className="meta" style={{ marginLeft: 6, fontSize: "0.85rem" }}>
+                                {r.engagement.avgRating.toFixed(1)} ({r.engagement.reviews} review{r.engagement.reviews !== 1 ? "s" : ""})
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

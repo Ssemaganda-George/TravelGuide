@@ -13,11 +13,55 @@ async function createDestination(fd: FormData) {
   const sb = await authClient();
   const name = String(fd.get("name") ?? "").trim();
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const { data: c } = await sb.from("places").select("id").eq("type", "country").eq("slug", String(fd.get("country"))).single();
+  const latitude = parseFloat(String(fd.get("latitude"))) || null;
+  const longitude = parseFloat(String(fd.get("longitude"))) || null;
+  const tags = String(fd.get("tags") ?? "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+  const region = String(fd.get("region") ?? "").trim() || null;
+  const { data: c } = await sb.from("places").select("id, lat, lng").eq("type", "country").eq("slug", String(fd.get("country"))).single();
   if (!name || !slug || !c) redirect("/admin/content?error=1");
-  const { data: pl } = await sb.from("places").insert({ name, slug, type: "destination", parent_id: c.id }).select("id").single();
+  
+  function getTerrainMultiplier(tags: string[], region: string | null): number {
+    const allTags = [...tags, ...(region?.toLowerCase().split(/\s+/) || [])];
+    const tagStr = allTags.join(' ');
+    
+    if (tagStr.includes('mountain') || tagStr.includes('rwenzori') || tagStr.includes('elgon') || 
+        tagStr.includes('volcano') || tagStr.includes('hiking') || tagStr.includes('trekking')) {
+      return 1.5;
+    }
+    if (tagStr.includes('park') || tagStr.includes('wildlife') || tagStr.includes('reserve') ||
+        tagStr.includes('forest') || tagStr.includes('gorilla') || tagStr.includes('chimpanzee')) {
+      return 1.3;
+    }
+    if (tagStr.includes('remote') || tagStr.includes('kidepo') || tagStr.includes('far')) {
+      return 1.25;
+    }
+    return 1.0;
+  }
+  
+  // Calculate distance and duration from capital if coordinates provided
+  let distance_km: number | null = null;
+  let duration_min: number | null = null;
+  
+  if (latitude != null && longitude != null && c.lat != null && c.lng != null) {
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${c.lng},${c.lat};${longitude},${latitude}?overview=false`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        distance_km = Math.round(route.distance / 1000 * 10) / 10;
+        const baseDurationMin = Math.round(route.duration / 60);
+        const multiplier = getTerrainMultiplier(tags, region);
+        duration_min = Math.round(baseDurationMin * multiplier);
+      }
+    } catch (e) {
+      console.warn("Failed to calculate distance from capital:", e);
+    }
+  }
+  
+  const { data: pl } = await sb.from("places").insert({ name, slug, type: "destination", parent_id: c.id, latitude, longitude }).select("id").single();
   if (!pl) redirect("/admin/content?error=1");
-  const { data: ct } = await sb.from("destination_content").insert({ place_id: pl.id, title: name, language: "en" }).select("id").single();
+  const { data: ct } = await sb.from("destination_content").insert({ place_id: pl.id, title: name, language: "en", distance_km, duration_min }).select("id").single();
   redirect(ct ? `/admin/content/${ct.id}` : "/admin/content?error=1");
 }
 
@@ -43,6 +87,11 @@ export default async function Content({ searchParams }: { searchParams: Promise<
           <div><label htmlFor="dn">Name</label><input id="dn" name="name" required /></div>
           <div><label htmlFor="dc">Country</label><select id="dc" name="country">{(countries ?? []).map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
         </div>
+        <div className="row2">
+          <div><label htmlFor="lat">Latitude</label><input id="lat" name="latitude" type="number" step="any" placeholder="-0.123456" /></div>
+          <div><label htmlFor="lng">Longitude</label><input id="lng" name="longitude" type="number" step="any" placeholder="32.123456" /></div>
+        </div>
+        <p className="hint">Enter coordinates first, then save. Travel time from capital will be auto-calculated.</p>
         {error && <p className="msg" role="alert">Could not create it. The name may already exist.</p>}
         <button className="go">Create and edit</button>
       </form>

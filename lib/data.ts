@@ -4,6 +4,14 @@ import { SITE, SITE_NAME, SITE_URL, SITE_DOMAIN, SITE_TAGLINE, CONTACT_EMAIL } f
 
 export { SITE, SITE_NAME, SITE_URL, SITE_DOMAIN, SITE_TAGLINE, CONTACT_EMAIL };
 
+// Country reference points (capitals/major cities) for routing
+export const COUNTRY_REFERENCE_POINTS: Record<string, { name: string; position: [number, number] }> = {
+  uganda: { name: "Kampala", position: [0.3476, 32.5825] },
+  kenya: { name: "Nairobi", position: [-1.2921, 36.8219] },
+  tanzania: { name: "Dodoma", position: [-6.1659, 35.7516] },
+  rwanda: { name: "Kigali", position: [-1.9441, 30.0619] },
+};
+
 // Anon key + Row Level Security: public can only read published content and insert enquiries.
 export const db = () =>
   createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -22,6 +30,7 @@ export type Dest = {
   meta_title: string | null; meta_description: string | null;
   faq: { q: string; a: string }[] | null;
   latitude: number | null; longitude: number | null;
+  distance_km: number | null; duration_min: number | null;
   media?: Media[] | null;
 };
 
@@ -29,12 +38,14 @@ export type Activity = {
   id: string; name: string; description: string | null; cost_low: number | null;
   cost_high: number | null; currency: string | null; duration: string | null;
   media: Media[] | null; providers: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[]; place_id?: string;
+  latitude: number | null; longitude: number | null;
 };
 
 export type Stay = {
   id: string; name: string; description: string | null; tier: string | null;
   contact: string | null; email: string | null; website: string | null;
   media: Media[] | null;
+  latitude: number | null; longitude: number | null;
 };
 
 export { STAY_TIERS };
@@ -53,23 +64,33 @@ export async function getCountry(slug: string) {
 export async function getDestinations(countryId: string): Promise<Dest[]> {
   const { data } = await db()
     .from("destination_content")
-    .select("*, places!inner(name,slug,parent_id)")
+    .select("*, places!inner(name,slug,parent_id,latitude,longitude)")
     .eq("status", "published")
     .eq("language", "en")
     .eq("places.parent_id", countryId)
     .order("title");
-  return (data as Dest[]) ?? [];
+  const results = (data as (Dest & { places: { latitude: number | null; longitude: number | null } })[]) ?? [];
+  return results.map(d => ({
+    ...d,
+    latitude: d.places?.latitude ?? null,
+    longitude: d.places?.longitude ?? null,
+  }));
 }
 
 // Get all published destinations across all countries
 export async function getAllDestinations(): Promise<Dest[]> {
   const { data } = await db()
     .from("destination_content")
-    .select("*, places!inner(name,slug,parent_id)")
+    .select("*, places!inner(name,slug,parent_id,latitude,longitude)")
     .eq("status", "published")
     .eq("language", "en")
     .order("title");
-  return (data as Dest[]) ?? [];
+  const results = (data as (Dest & { places: { latitude: number | null; longitude: number | null } })[]) ?? [];
+  return results.map(d => ({
+    ...d,
+    latitude: d.places?.latitude ?? null,
+    longitude: d.places?.longitude ?? null,
+  }));
 }
 
 // Get destinations that share tags with the given destination (excluding itself)
@@ -77,14 +98,21 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
   if (!tags.length) return [];
   const { data } = await db()
     .from("destination_content")
-    .select("*, places!inner(name,slug,parent_id)")
+    .select("*, places!inner(name,slug,parent_id,latitude,longitude)")
     .eq("status", "published")
     .eq("language", "en")
     .neq("place_id", currentPlaceId)
     .overlaps("tags", tags)
     .limit(limit * 2); // Fetch more to account for dedup
-  let destinations = (data as (Dest & { places: { name: string; slug: string; parent_id: string } } & { engagement?: Engagement; country?: string })[]) ?? [];
+  let destinations = (data as (Dest & { places: { name: string; slug: string; parent_id: string; latitude: number | null; longitude: number | null } } & { engagement?: Engagement; country?: string })[]) ?? [];
   
+  // Flatten lat/lon from places to top level
+  destinations = destinations.map(d => ({
+    ...d,
+    latitude: d.places?.latitude ?? null,
+    longitude: d.places?.longitude ?? null,
+  }));
+
   // Deduplicate by place_id
   const seen = new Set<string>();
   destinations = destinations.filter(d => {
@@ -124,7 +152,7 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
 export async function getActivities(placeId: string): Promise<Activity[]> {
   const { data } = await db()
     .from("activities")
-    .select("id,name,description,cost_low,cost_high,currency,duration,media")
+    .select("id,name,description,cost_low,cost_high,currency,duration,media,latitude,longitude")
     .eq("status", "published")
     .eq("place_id", placeId)
     .order("name");
@@ -211,7 +239,7 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
 export async function getStays(placeId: string): Promise<Stay[]> {
   const { data } = await db()
     .from("partners")
-    .select("id,name,description,tier,contact,email,website,media")
+    .select("id,name,description,tier,contact,email,website,media,latitude,longitude")
     .eq("type", "lodge")
     .eq("active", true)
     .contains("place_ids", [placeId]);
