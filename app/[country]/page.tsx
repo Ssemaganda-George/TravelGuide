@@ -7,18 +7,23 @@ import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
 export const revalidate = 3600; // regenerate at most hourly, no redeploy needed after content edits
 
-type P = { params: Promise<{ country: string }> };
+type P = { params: Promise<{ country: string }>; searchParams?: Promise<{ [key: string]: string | string[] | undefined }> };
 
-export async function generateMetadata({ params }: P): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: P): Promise<Metadata> {
   const c = await getCountry((await params).country);
   if (!c) return {};
   const ogImage = `${SITE}/og-default.jpg`;
+  const sp = (await searchParams) ?? {};
+  const hasFilters = Boolean(sp.destination || sp.tag || sp.q);
+  const title = `${c.name} Travel Guide: Best Time to Visit, Costs & Local Tips | ${SITE_NAME}`;
+  const description = `Honest travel times, rough costs and local tips for ${c.name}. Gorilla trekking, Jinja, Murchison Falls and more from a Kampala-based guide.`;
   return {
-    title: `${c.name} travel guides`,
-    description: `Honest travel times, rough costs and local tips for ${c.name}, from a guide who takes people there.`,
+    title,
+    description,
+    alternates: { canonical: `${SITE}/${c.slug}` },
     openGraph: {
-      title: `${c.name} travel guides | ${SITE_NAME}`,
-      description: `Honest travel times, rough costs and local tips for ${c.name}, from a guide who takes people there.`,
+      title,
+      description,
       type: "website",
       locale: "en_GB",
       url: `${SITE}/${c.slug}`,
@@ -27,10 +32,11 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${c.name} travel guides | ${SITE_NAME}`,
-      description: `Honest travel times, rough costs and local tips for ${c.name}.`,
+      title,
+      description,
       images: [`${SITE}/og-default.jpg`],
     },
+    robots: hasFilters ? { index: false, follow: true } : { index: true, follow: true },
   };
 }
 

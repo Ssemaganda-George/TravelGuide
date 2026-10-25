@@ -51,7 +51,6 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="canonical" href={SITE} />
       </head>
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>

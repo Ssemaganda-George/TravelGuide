@@ -10,7 +10,7 @@ import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
 import HeaderStats from "@/components/HeaderStats";
 import { SITE, SITE_NAME } from "@/lib/site";
-import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
+import { getCountry, getCountries, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
 import { COUNTRY_REFERENCE_POINTS } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
@@ -98,14 +98,15 @@ export async function generateMetadata(p: P): Promise<Metadata> {
   const ogImage = coverImage ? `${SITE}${coverImage}` : `${SITE}/og-default`;
 
   return {
-    title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
+    title: d.meta_title ?? `${d.title}, ${c.name}: travel guide | ${SITE_NAME}`,
     description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
     alternates: { canonical: `${SITE}/${c.slug}/${d.places.slug}` },
     openGraph: {
-      title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
+      title: d.meta_title ?? `${d.title}, ${c.name}: travel guide | ${SITE_NAME}`,
       description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
       type: "article",
       siteName: "Trip Insights",
+      locale: "en_GB",
       url: absoluteUrl,
       images: coverImage ? [{ url: `${SITE}${coverImage}`, alt: d.title, width: 1200, height: 630 }] : [{ url: `${SITE}/og-default`, width: 1200, height: 630 }],
     },
@@ -121,6 +122,18 @@ export async function generateMetadata(p: P): Promise<Metadata> {
     } as Record<string, string>,
     robots: { index: true, follow: true },
   };
+}
+
+export async function generateStaticParams() {
+  const countries = await getCountries();
+  const params: Array<{ country: string; destination: string }> = [];
+  for (const c of countries) {
+    const destinations = await getDestinations(c.id, c.slug);
+    for (const d of destinations) {
+      params.push({ country: c.slug, destination: d.places.slug });
+    }
+  }
+  return params;
 }
 
 const money = (lo: number | null, hi: number | null) => {

@@ -1,10 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { getCountry, getDestinations, getStays } from "@/lib/data";
 import { authClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 type P = { params: Promise<{ country: string; destination: string }> };
 

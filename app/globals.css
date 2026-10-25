@@ -824,11 +824,11 @@ tr.off{opacity:.5}
     margin:0 0 16px;
     border-radius:12px;
   }
-  /* Hero image */
-  .hero{
+  /* Hero image - destination page only */
+  .hero--image{
     position: relative;
   }
-  .hero .wrap {
+  .hero--image .wrap {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -836,11 +836,11 @@ tr.off{opacity:.5}
     padding: 32px 20px;
     background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
   }
-  .hero .wrap h1 {
+  .hero--image .wrap h1 {
     font-size: 2rem;
     margin-bottom: 8px;
   }
-  .hero .wrap p {
+  .hero--image .wrap p {
     font-size: 1rem;
     max-width: 90%;
   }
