@@ -8,6 +8,7 @@ import type { Media } from "@/lib/data";
 import L from "leaflet";
 import { useRouter } from "next/navigation";
 import { Eye, Heart, MessageSquare, Building } from "lucide-react";
+import StayModal from "@/components/StayModal";
 
 interface MapProps {
   center: [number, number];
@@ -34,6 +35,10 @@ interface MapMarker {
   id: string;
   position: [number, number];
   name: string;
+  description?: string | null;
+  contact?: string | null;
+  email?: string | null;
+  website?: string | null;
   thumbnail?: string | null;
   media?: string[];
   travelTime?: string | null;
@@ -275,6 +280,7 @@ function DestinationCard({
   marker, 
   onClose, 
   onNavigate,
+  onExploreStay,
   viewCounts,
   engagement,
   staysCount,
@@ -286,6 +292,7 @@ function DestinationCard({
   marker: MapMarker; 
   onClose: () => void;
   onNavigate: (link: string) => void;
+  onExploreStay: (marker: MapMarker) => void;
   viewCounts: Record<string, number>;
   engagement: Record<string, Engagement>;
   staysCount: Record<string, number>;
@@ -585,8 +592,14 @@ function DestinationCard({
         </div>
         
         {marker.link && (
-          <button 
-            onClick={() => onNavigate(marker.link!)}
+          <button
+            onClick={() => {
+              if (marker.category === "stay") {
+                onExploreStay(marker);
+              } else {
+                onNavigate(marker.link!);
+              }
+            }}
             style={{
               display: "block",
               width: "100%",
@@ -703,6 +716,8 @@ export default function InteractiveMap({
   const [hoveredRoute, setHoveredRoute] = useState<RouteData | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   const [showDestinationCard, setShowDestinationCard] = useState<MapMarker | null>(null);
+  const [showStayModal, setShowStayModal] = useState(false);
+  const [selectedStay, setSelectedStay] = useState<MapMarker | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -782,9 +797,16 @@ export default function InteractiveMap({
     if (marker.category === "reference") {
       setSelectedMarker(marker);
       setShowDestinationCard(null);
+      setShowStayModal(false);
+    } else if (marker.category === "stay") {
+      setSelectedStay(marker);
+      setShowStayModal(true);
+      setShowDestinationCard(null);
+      setSelectedMarker(null);
     } else {
       setSelectedMarker(marker);
       setShowDestinationCard(marker);
+      setShowStayModal(false);
     }
   }, []);
 
@@ -871,6 +893,11 @@ export default function InteractiveMap({
           marker={showDestinationCard} 
           onClose={handleCloseCard}
           onNavigate={handleNavigate}
+          onExploreStay={(m) => {
+            setSelectedStay(m);
+            setShowStayModal(true);
+            setShowDestinationCard(null);
+          }}
           viewCounts={viewCounts || {}}
           engagement={engagement || {}}
           staysCount={staysCount || {}}
@@ -891,6 +918,23 @@ export default function InteractiveMap({
         }}>
           <MarkerPopup marker={selectedMarker} />
         </div>
+      )}
+
+      {showStayModal && selectedStay && (
+        <StayModal
+          open={showStayModal}
+          onClose={() => setShowStayModal(false)}
+          stay={{
+            id: selectedStay.id.replace("stay-", ""),
+            name: selectedStay.name,
+            description: selectedStay.description ?? null,
+            contact: selectedStay.contact ?? null,
+            email: selectedStay.email ?? null,
+            website: selectedStay.website ?? null,
+            media: selectedStay.media,
+            tier: selectedStay.tier ?? null,
+          }}
+        />
       )}
     </div>
   );
