@@ -152,7 +152,7 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
 export async function getActivities(placeId: string): Promise<Activity[]> {
   const { data } = await db()
     .from("activities")
-    .select("id,name,description,cost_low,cost_high,currency,duration,media,latitude,longitude")
+    .select("id,name,description,cost_low,cost_high,currency,duration,media")
     .eq("status", "published")
     .eq("place_id", placeId)
     .order("name");
