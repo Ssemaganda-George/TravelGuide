@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: P): Promise<Metadata> {
 export default async function Country({ params }: P) {
   const c = await getCountry((await params).country);
   if (!c) notFound();
-  const items = await getDestinations(c.id);
+  const items = await getDestinations(c.id, c.slug);
   const placeIds = items.map(i => i.place_id);
   const paths = items.map(i => `/${c.slug}/${i.places.slug}`);
   noStore();

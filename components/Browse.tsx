@@ -74,25 +74,35 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
     const baseMarkers = (targetDestination ? [targetDestination] : filteredItems)
       .filter(i => i.latitude != null && i.longitude != null)
       .map(i => {
-        // Fall back to first activity image for destination card thumbnails
-        const acts = activitiesByPlace[i.place_id] || [];
-        const media = acts.flatMap(a => (a.media ?? []).map(m => m.url).filter(Boolean));
-        const thumbnail = media[0] ?? i.media?.[0]?.url ?? null;
-        return {
-          id: i.id,
-          place_id: i.place_id,
-          position: [i.latitude!, i.longitude!] as [number, number],
-          name: i.title,
-          thumbnail: thumbnail ? safeSrc(thumbnail) : undefined,
-          media: media.length ? media : (i.media ?? []).map(m => m.url).filter(Boolean),
-          travelTime: i.travel_time,
-          durationMin: i.duration_min,
-          category: "destination" as const,
-          link: `/${country}/${i.places.slug}`,
-          ideal_days: i.ideal_days,
-          best_months: i.best_months,
-          hook: i.hook,
-        };
+    // Fall back to first activity image for destination card thumbnails
+    const acts = activitiesByPlace[i.place_id] || [];
+    const media = acts.flatMap(a => (a.media ?? []).map(m => m.url).filter(Boolean));
+    const thumbnail = media[0] ?? i.media?.[0]?.url ?? null;
+    
+    // Compute duration from distance: 1 min/km + terrain & traffic multipliers
+    let durationMinutes = i.duration_min ?? null;
+    let travelTimeStr = null;
+    if (durationMinutes) {
+      const h = Math.floor(durationMinutes / 60);
+      const m = durationMinutes % 60;
+      travelTimeStr = h === 0 ? `${m} min` : m === 0 ? `${h} hr` : `${h} hr ${m} min`;
+    }
+    
+    return {
+      id: i.id,
+      place_id: i.place_id,
+      position: [i.latitude!, i.longitude!] as [number, number],
+      name: i.title,
+      thumbnail: thumbnail ? safeSrc(thumbnail) : undefined,
+      media: media.length ? media : (i.media ?? []).map(m => m.url).filter(Boolean),
+      travelTime: travelTimeStr,
+      durationMin: durationMinutes,
+      category: "destination" as const,
+      link: `/${country}/${i.places.slug}`,
+      ideal_days: i.ideal_days,
+      best_months: i.best_months,
+      hook: i.hook,
+    };
       });
 
     // Add stays and activities markers for target destination
@@ -351,7 +361,9 @@ interface MapMarker {
   position: [number, number];
   name: string;
   thumbnail?: string;
+  media?: string[];
   travelTime?: string;
+  durationMin?: number | null;
   category?: "destination";
   link?: string;
 }

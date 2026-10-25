@@ -528,27 +528,17 @@ tr.off{opacity:.5}
 .desthead .hook{font-size:1.2rem;color:var(--muted);margin:0}
 .desthead-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
-/* Top bar: Quick Facts + Engagement + Map - smart column widths */
-.dest-topbar{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:20px}
+/* Top bar: Quick Facts + Map - balanced 2 columns */
+.dest-topbar{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:20px}
 @media(min-width:768px){
   .dest-topbar{
-    grid-template-columns:repeat(8,1fr);
+    grid-template-columns:2fr 1fr;
     grid-template-areas:
-      "facts facts facts facts engagement engagement map map"
-      "facts facts facts facts travel travel map map";
+      "facts map";
   }
 }
-@media(min-width:1024px){
-  .dest-topbar{
-    grid-template-columns:repeat(10,1fr);
-    grid-template-areas:
-      "facts facts facts facts facts engagement engagement travel map map";
-  }
-}
-.quick-facts-card,.engagement-card,.travel-card,.map-card{height:100%;display:flex;flex-direction:column}
+.quick-facts-card,.map-card{height:100%;display:flex;flex-direction:column}
 .topbar-card--wide{grid-area:facts}
-.topbar-card--medium{grid-area:engagement}
-.topbar-card--medium.travel-card{grid-area:travel}
 .topbar-card--narrow{grid-area:map}
 .quick-facts-card .facts{margin:0;padding:0;flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 16px}
 .quick-facts-card dt{font-size:0.65rem}
@@ -1029,6 +1019,75 @@ tr.off{opacity:.5}
 
 .skip-link:focus {
   top: 0;
+}
+
+/* Header stats - engagement bar under title/hook */
+.header-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+.header-stats .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  text-align: center;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  flex-wrap: nowrap;
+}
+.header-stats .stat.clickable {
+  cursor: pointer;
+  transition: color 0.2s, transform 0.1s;
+}
+.header-stats .stat.clickable:hover {
+  color: var(--lake);
+  transform: translateY(-1px);
+}
+.header-stats .stat.clickable:hover .stat-icon {
+  color: var(--lake);
+}
+.header-stats .stat.clickable:hover .stat-value {
+  text-decoration: underline;
+}
+.header-stats .stat-label {
+  font-size: 0.62rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.header-stats .stat-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.header-stats .stat-icon {
+  font-size: 0.85rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+}
+@media (max-width: 768px) {
+  .header-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .header-stats .stat-label {
+    font-size: 0.6rem;
+  }
+  .header-stats .stat-value {
+    font-size: 0.85rem;
+  }
+}
+@media (max-width: 480px) {
+  .header-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
 }
 
 /* Mobile adjustments for header */

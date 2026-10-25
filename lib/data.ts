@@ -12,6 +12,49 @@ export const COUNTRY_REFERENCE_POINTS: Record<string, { name: string; position: 
   rwanda: { name: "Kigali", position: [-1.9441, 30.0619] },
 };
 
+// Compute travel time from distance: 1 min/km + terrain & traffic multipliers
+function getTravelTimeMultiplier(tags: string[], country: string): number {
+  const allTags = tags.map(t => t.toLowerCase()).join(' ');
+  let multiplier = 1.0;
+
+  if (allTags.includes('mountain') || allTags.includes('rwenzori') || allTags.includes('elgon') ||
+      allTags.includes('volcano') || allTags.includes('hiking') || allTags.includes('trekking')) {
+    multiplier = 1.5;
+  } else if (allTags.includes('park') || allTags.includes('wildlife') || allTags.includes('reserve') ||
+             allTags.includes('forest') || allTags.includes('gorilla') || allTags.includes('chimpanzee')) {
+    multiplier = 1.3;
+  } else if (allTags.includes('remote') || allTags.includes('kidepo') || allTags.includes('far')) {
+    multiplier = 1.25;
+  }
+
+  if (country === 'uganda') {
+    multiplier *= 1.15;
+  }
+
+  return multiplier;
+}
+
+async function computeRouteFromCapital(country: string, lat: number | null, lng: number | null, tags: string[]): Promise<{ distance_km: number | null; duration_min: number | null }> {
+  if (lat == null || lng == null) return { distance_km: null, duration_min: null };
+  const ref = COUNTRY_REFERENCE_POINTS[country];
+  if (!ref) return { distance_km: null, duration_min: null };
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${ref.position[1]},${ref.position[0]};${lng},${lat}?overview=false&annotations=duration,distance&approaches=curb;curb&alternatives=false`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.routes?.[0]) {
+      const route = data.routes[0];
+      const distance_km = Math.round(route.distance / 1000 * 10) / 10;
+      const multiplier = getTravelTimeMultiplier(tags, country);
+      const duration_min = Math.round(distance_km * multiplier);
+      return { distance_km, duration_min };
+    }
+  } catch {
+    // leave null
+  }
+  return { distance_km: null, duration_min: null };
+}
+
 // Anon key + Row Level Security: public can only read published content and insert enquiries.
 export const db = () =>
   createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -61,7 +104,7 @@ export async function getCountry(slug: string) {
 }
 
 // MVP assumption: destinations are direct children of a country. Regions can be added later.
-export async function getDestinations(countryId: string): Promise<Dest[]> {
+export async function getDestinations(countryId: string, countrySlug?: string): Promise<Dest[]> {
   const { data } = await db()
     .from("destination_content")
     .select("*, places!inner(name,slug,parent_id,latitude,longitude)")
@@ -69,12 +112,25 @@ export async function getDestinations(countryId: string): Promise<Dest[]> {
     .eq("language", "en")
     .eq("places.parent_id", countryId)
     .order("title");
-  const results = (data as (Dest & { places: { latitude: number | null; longitude: number | null } })[]) ?? [];
-  return results.map(d => ({
-    ...d,
-    latitude: d.places?.latitude ?? null,
-    longitude: d.places?.longitude ?? null,
+  const results = (data as (Dest & { places: { name: string; slug: string; parent_id: string; latitude: number | null; longitude: number | null } })[]) ?? [];
+  // Compute distance + travel time from capital when not stored in DB
+  const enriched = await Promise.all(results.map(async d => {
+    let distance_km = d.distance_km;
+    let duration_min = d.duration_min;
+    if ((!distance_km || !duration_min) && d.places?.latitude != null && d.places?.longitude != null) {
+      const route = await computeRouteFromCapital(countrySlug || countryId, d.places.latitude, d.places.longitude, d.tags ?? []);
+      if (route.distance_km) distance_km = route.distance_km;
+      if (route.duration_min) duration_min = route.duration_min;
+    }
+    return {
+      ...d,
+      latitude: d.places?.latitude ?? null,
+      longitude: d.places?.longitude ?? null,
+      distance_km,
+      duration_min,
+    };
   }));
+  return enriched;
 }
 
 // Get all published destinations across all countries

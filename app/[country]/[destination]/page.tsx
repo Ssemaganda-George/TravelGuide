@@ -2,16 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Eye, Heart, Star, Building, Activity } from "lucide-react";
 import EnquirySection from "@/components/EnquirySection";
 import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
 import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
-import { LikeButton } from "@/components/LikeButton";
+import HeaderStats from "@/components/HeaderStats";
 import { SITE, SITE_NAME } from "@/lib/site";
 import { getCountry, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
+import { COUNTRY_REFERENCE_POINTS } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
 import { safeSrc } from "@/lib/media";
 import { PartnerCard } from "@/components/PartnerCard";
@@ -21,6 +21,30 @@ import FullMapModalWrapper from "@/components/FullMapModal";
 export const revalidate = 3600;
 
 type P = { params: Promise<{ country: string; destination: string }> };
+
+function getTravelTimeMultiplier(tags: string[], country: string): number {
+  const allTags = tags.map(t => t.toLowerCase()).join(' ');
+  let multiplier = 1.0;
+
+  // Terrain multipliers
+  if (allTags.includes('mountain') || allTags.includes('rwandori') || allTags.includes('elgon') ||
+      allTags.includes('volcano') || allTags.includes('hiking') || allTags.includes('trekking')) {
+    multiplier = 1.5;
+  } else if (allTags.includes('park') || allTags.includes('wildlife') || allTags.includes('reserve') ||
+             allTags.includes('forest') || allTags.includes('gorilla') || allTags.includes('chimpanzee')) {
+    multiplier = 1.3;
+  } else if (allTags.includes('remote') || allTags.includes('kidepo') || allTags.includes('far')) {
+    multiplier = 1.25;
+  }
+
+  // Busy capital areas: add extra time for traffic/congestion
+  // Destinations close to capital have more traffic
+  if (country === 'uganda') {
+    multiplier *= 1.15; // Kampala traffic factor
+  }
+
+  return multiplier;
+}
 
 async function load({ params }: P) {
   const { country, destination } = await params;
@@ -36,8 +60,33 @@ async function load({ params }: P) {
     getRelatedDestinations(d.place_id, d.tags ?? [], 4),
     getViewCounts([path]),
   ]);
+
+  // Compute travel time + distance from capital via OSRM if not stored
+  let duration_min = d.duration_min;
+  let distance_km = d.distance_km;
+  if ((!duration_min || !distance_km) && d.latitude != null && d.longitude != null) {
+    const ref = COUNTRY_REFERENCE_POINTS[country];
+    if (ref) {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${ref.position[1]},${ref.position[0]};${d.longitude},${d.latitude}?overview=false&annotations=duration,distance&approaches=curb;curb&alternatives=false`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.routes?.[0]) {
+          const route = data.routes[0];
+          distance_km = Math.round(route.distance / 1000 * 10) / 10;
+          // Base: 1 minute per 1 km, then apply terrain/busy multipliers
+          const baseMinutes = Math.round(distance_km);
+          const multiplier = getTravelTimeMultiplier(d.tags ?? [], country);
+          duration_min = Math.round(baseMinutes * multiplier);
+        }
+      } catch {
+        // leave null
+      }
+    }
+  }
+
   const coverImage = d.media?.[0]?.url ?? activities[0]?.media?.[0]?.url ?? null;
-  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related, viewCounts };
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related, viewCounts, duration_min, distance_km };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
@@ -195,12 +244,12 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays, engagement, coverImage, related, viewCounts } = r;
+  const { c, d, activities, stays, engagement, coverImage, related, viewCounts, duration_min, distance_km } = r;
   const path = `/${c.slug}/${d.places.slug}`;
   const absoluteUrl = `${SITE}${path}`;
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
-    ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Travel time", d.travel_time], ["Last checked", d.last_checked],
+    ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Duration from capital", duration_min ? (() => { const h = Math.floor(duration_min / 60); const m = duration_min % 60; return h === 0 ? `${m} min` : m === 0 ? `${h} hr` : `${h} hr ${m} min`; })() : d.travel_time], ["Distance from capital", distance_km ? `${distance_km} km` : null], ["Last checked", d.last_checked],
   ];
 
   const normalizedStays = stays.map(s => ({
@@ -282,12 +331,19 @@ export default async function Destination(p: P) {
               <div>
                 <h1>{d.title}</h1>
                 <p className="hook">{d.hook}</p>
+                <HeaderStats
+                  views={viewCounts[path] ?? 0}
+                  placeId={d.place_id}
+                  path={path}
+                  engagement={engagement}
+                  staysCount={normalizedStays.length}
+                  activitiesCount={activities.length}
+                />
               </div>
-              <LikeButton placeId={d.place_id} initialLikes={engagement.likes} initialLiked={false} />
             </div>
           </header>
 
-          {/* Top bar: Quick Facts + Engagement + Map button */}
+          {/* Top bar: Quick Facts + Map button */}
           <div className="dest-topbar">
             <section className="sidebar-card quick-facts-card topbar-card--wide">
               <h3>Quick Facts</h3>
@@ -297,79 +353,6 @@ export default async function Destination(p: P) {
                 ))}
               </dl>
             </section>
-
-            <section className="sidebar-card engagement-card topbar-card--medium">
-              <h3>Engagement</h3>
-              <div className="engagement-stats">
-                <div className="stat">
-                  <Eye className="stat-icon" size={16} strokeWidth={2} />
-                  <div>
-                    <span className="stat-label">Views</span>
-                    <span className="stat-value">{viewCounts[path] ?? 0}</span>
-                  </div>
-                </div>
-                <div className="stat">
-                  <Heart className="stat-icon" size={16} strokeWidth={2} />
-                  <div>
-                    <span className="stat-label">Likes</span>
-                    <span className="stat-value">{engagement.likes}</span>
-                  </div>
-                </div>
-                <div className="stat">
-                  <Star className="stat-icon" size={16} strokeWidth={2} fill="var(--sun)" />
-                  <div>
-                    <span className="stat-label">Reviews</span>
-                    <span className="stat-value">
-                      {engagement.reviews > 0 ? `${engagement.avgRating.toFixed(1)} (${engagement.reviews})` : "No reviews yet"}
-                    </span>
-                  </div>
-                </div>
-                <div className="stat">
-                  <Building className="stat-icon" size={16} strokeWidth={2} />
-                  <div>
-                    <span className="stat-label">Stays Listed</span>
-                    <span className="stat-value">{normalizedStays.length}</span>
-                  </div>
-                </div>
-                <div className="stat">
-                  <Activity className="stat-icon" size={16} strokeWidth={2} />
-                  <div>
-                    <span className="stat-label">Activities</span>
-                    <span className="stat-value">{activities.length}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {d.distance_km && d.duration_min && (
-              <section className="sidebar-card sidebar-card--highlight travel-card topbar-card--medium">
-                <h3>From Capital</h3>
-                <div className="travel-info">
-                  <div className="travel-item">
-                    <span className="travel-icon">📍</span>
-                    <div>
-                      <span className="travel-label">Distance</span>
-                      <span className="travel-value">{d.distance_km} km</span>
-                    </div>
-                  </div>
-                  <div className="travel-item">
-                    <span className="travel-icon">⏱️</span>
-                    <div>
-                      <span className="travel-label">Drive Time</span>
-                      <span className="travel-value">
-                        {(() => {
-                          const hours = Math.floor(d.duration_min! / 60);
-                          const mins = d.duration_min! % 60;
-                          if (hours === 0) return `${mins} min`;
-                          if (mins === 0) return `${hours} hr${hours > 1 ? 's' : ''}`;
-                          return `${hours} hr ${mins} min`;
-                        })()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
 
             {((normalizedStays.length > 0) || (activities.length > 0)) && (
               <section className="sidebar-card map-card topbar-card--narrow">
@@ -444,8 +427,8 @@ export default async function Destination(p: P) {
 
               {activities.length > 0 && (
                 <>
-                  <h2>Things to do</h2>
-                  <div className="activities-list">
+              <h2 id="things-to-do">Things to do</h2>
+              <div className="activities-list">
                     {activities.map(a => (
                       <article className="activity-item" key={a.id}>
                         <div className="activity-header">
@@ -465,7 +448,7 @@ export default async function Destination(p: P) {
                 </>
               )}
 
-              <h2>Where to stay</h2>
+              <h2 id="where-to-stay">Where to stay</h2>
               <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
               {normalizedStays.length > 0 ? (
                 <>
