@@ -68,6 +68,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <main id="main">{children}</main>
         <footer className="about"><div className="wrap">
           <strong>Written by George.</strong> I&apos;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and i am happy to share with You. Know your next destination before you go.
+          <div className="footer-links">
+            <a href="/terms">Terms and Conditions</a>
+            <a href="/privacy">Privacy Policy</a>
+          </div>
         </div></footer>
         {process.env.NEXT_PUBLIC_ANALYTICS_SRC && <Script defer data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN} src={process.env.NEXT_PUBLIC_ANALYTICS_SRC} />}
         <PageView />
