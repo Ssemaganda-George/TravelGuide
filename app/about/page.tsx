@@ -1,8 +1,11 @@
-export const revalidate = 3600;
+"use client";
 
 import Image from "next/image";
+import { useState } from "react";
 
 export default function About() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   return (
     <main className="wrap page about-page">
       <header className="about-header">
@@ -24,12 +27,18 @@ export default function About() {
         <h2>Meet the team</h2>
         <div className="team-grid">
           <div className="team-card">
-            <Image src="/team/George.jpg" alt="George" className="team-image" width={160} height={160} />
+            <div
+              className="team-image-wrap"
+              onClick={() => { setSelectedImage("/team/George.jpg"); setModalOpen(true); }}
+              style={{ cursor: "pointer" }}
+            >
+              <Image src="/team/George.jpg" alt="George" className="team-image" width={160} height={160} />
+            </div>
             <div className="team-name">George</div>
             <div className="team-role">Founder &amp; Lead Guide</div>
             <p className="team-bio">Kampala-based guide and tech person who takes travellers around Uganda and beyond. Real costs, real travel times, local knowledge you won&rsquo;t find in glossy brochures.</p>
             <div className="team-contact">
-              <a href="mailto:content@trip-insights.com" aria-label="Email" className="team-social">
+              <a href="mailto:ssgeorge480@gmail.com" aria-label="Email" className="team-social">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
               </a>
               <a href="https://wa.me/256759918649" aria-label="WhatsApp" className="team-social">
@@ -42,7 +51,13 @@ export default function About() {
             </div>
           </div>
           <div className="team-card">
-            <Image src="/team/Winnie.jpg" alt="Winnie" className="team-image" width={160} height={160} />
+            <div
+              className="team-image-wrap"
+              onClick={() => { setSelectedImage("/team/Winnie.jpg"); setModalOpen(true); }}
+              style={{ cursor: "pointer" }}
+            >
+              <Image src="/team/Winnie.jpg" alt="Winnie" className="team-image" width={160} height={160} />
+            </div>
             <div className="team-name">Winnie</div>
             <div className="team-role">CFO &amp; Chief Editor — Destination Content</div>
             <p className="team-bio">Winnie oversees all destination content on Trip Insights, ensuring every guide, review, and recommendation is accurate, up to date, and written from firsthand experience.</p>
@@ -82,6 +97,21 @@ export default function About() {
       </section>
 
       <p className="meta back-link" style={{ marginTop: 32 }}><a href="/">&larr; Back to homepage</a></p>
+
+      {modalOpen && selectedImage && (
+        <div className="image-modal-overlay" onClick={() => { setModalOpen(false); setSelectedImage(null); }} style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 3000,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: "24px",
+        }}>
+          <button onClick={() => { setModalOpen(false); setSelectedImage(null); }} style={{
+            position: "absolute", top: 16, right: 16, background: "none", border: "none",
+            color: "white", fontSize: "2rem", cursor: "pointer", lineHeight: 1,
+          }} aria-label="Close">×</button>
+          <img src={selectedImage} alt="Team member" style={{
+            maxWidth: "90vw", maxHeight: "85vh", borderRadius: 12, boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          }} />
+        </div>
+      )}
     </main>
   );
 }
