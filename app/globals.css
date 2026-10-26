@@ -84,12 +84,11 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
 .team-name{font-size:1.4rem;font-weight:800;color:var(--ink);margin-bottom:6px}
 .team-role{font-size:1rem;color:var(--lake);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px}
 .team-bio{font-size:0.95rem;color:var(--ink);line-height:1.7;margin-bottom:16px}
-.team-contact{font-size:0.85rem;color:var(--muted)}
+.team-contact{font-size:0.85rem;color:var(--muted);margin-top:16px}
+.team-contact{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .team-contact a{color:var(--lake);text-decoration:none}
 .team-contact a:hover{text-decoration:underline}
-.team-social{margin-top:8px;display:inline-flex;align-items:center;color:var(--lake);text-decoration:none;font-size:0.85rem}
-.team-social:hover{text-decoration:none;color:var(--lake)}
-.team-social img{display:block;margin-right:6px}
+.team-contact .team-social{margin:0}
 .footer-links{margin-top:8px;display:flex;gap:20px;font-size:0.9rem}
 .footer-links a{color:var(--lake);text-decoration:none}
 .footer-links a:hover{text-decoration:underline}
