@@ -8,9 +8,15 @@ export default function About() {
         <p className="about-sub">Honest Uganda travel guides — real costs, real travel times, local tips from a Kampala-based guide.</p>
       </header>
 
-      <div className="about-bio">
-        <p><strong>Written by George.</strong> I&rsquo;m a Kampala-based guide and tech person who takes travellers around the World. These are the tips I give my own clients and I am happy to share with you. Know your next destination before you go.</p>
-      </div>
+      <section className="about-section">
+        <h2>Who we are</h2>
+        <p>
+          Trip Insights is run by George, a Kampala-based guide and tech person who takes travellers around Uganda and beyond. These are the honest tips he gives his own clients — real costs, real travel times, and local knowledge you won&rsquo;t find in glossy brochures.
+        </p>
+        <p>
+          I built this site because planning a trip to Uganda shouldn&rsquo;t be guesswork. Whether you&rsquo;re heading to Bwindi for gorillas, Sipi Falls for waterfalls, Kidepo for remote wilderness, or Jinja for the source of the Nile, you deserve to know what to expect before you go.
+        </p>
+      </section>
 
       <section className="about-section">
         <h2>Meet the team</h2>
@@ -25,20 +31,10 @@ export default function About() {
           <div className="team-card">
             <div className="team-image">W</div>
             <div className="team-name">Winnie</div>
-            <div className="team-role">Chief Editor — Destination Content</div>
+            <div className="team-role">CFO &amp; Chief Editor — Destination Content</div>
             <p className="team-bio">Winnie oversees all destination content on Trip Insights, ensuring every guide, review, and recommendation is accurate, up to date, and written from firsthand experience.</p>
           </div>
         </div>
-      </section>
-
-      <section className="about-section">
-        <h2>Who we are</h2>
-        <p>
-          Trip Insights is run by George, a Kampala-based guide and tech person who takes travellers around Uganda and beyond. These are the honest tips he gives his own clients — real costs, real travel times, and local knowledge you won&rsquo;t find in glossy brochures.
-        </p>
-        <p>
-          I built this site because planning a trip to Uganda shouldn&rsquo;t be guesswork. Whether you&rsquo;re heading to Bwindi for gorillas, Sipi Falls for waterfalls, Kidepo for remote wilderness, or Jinja for the source of the Nile, you deserve to know what to expect before you go.
-        </p>
       </section>
 
       <section className="about-section">
