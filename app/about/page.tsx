@@ -1,5 +1,7 @@
 export const revalidate = 3600;
 
+import Image from "next/image";
+
 export default function About() {
   return (
     <main className="wrap page about-page">
@@ -22,14 +24,14 @@ export default function About() {
         <h2>Meet the team</h2>
         <div className="team-grid">
           <div className="team-card">
-            <div className="team-image">G</div>
+            <Image src="/team/George.jpg" alt="George" className="team-image" width={160} height={160} />
             <div className="team-name">George</div>
             <div className="team-role">Founder &amp; Lead Guide</div>
             <p className="team-bio">Kampala-based guide and tech person who takes travellers around Uganda and beyond. Real costs, real travel times, local knowledge you won&rsquo;t find in glossy brochures.</p>
             <p className="team-contact"><a href="mailto:content@trip-insights.com">content@trip-insights.com</a> &bull; <a href="https://wa.me/256759918649">+256 759 918 649</a></p>
           </div>
           <div className="team-card">
-            <div className="team-image">W</div>
+            <Image src="/team/Winnie.jpg" alt="Winnie" className="team-image" width={160} height={160} />
             <div className="team-name">Winnie</div>
             <div className="team-role">CFO &amp; Chief Editor — Destination Content</div>
             <p className="team-bio">Winnie oversees all destination content on Trip Insights, ensuring every guide, review, and recommendation is accurate, up to date, and written from firsthand experience.</p>

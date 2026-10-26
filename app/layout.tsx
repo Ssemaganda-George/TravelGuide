@@ -77,6 +77,9 @@ export default function Root({ children }: { children: React.ReactNode }) {
             <div className="footer-links">
               <a href="/terms">Terms</a>
               <a href="/privacy">Privacy</a>
+              <a href="https://www.linkedin.com/company/trip-insights/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style={{ color: "var(--lake)", textDecoration: "none", marginLeft: 16, display: "inline-flex", alignItems: "center" }}>
+                <img src="/logo/Linkedin.png" alt="LinkedIn" width="20" height="20" style={{ display: "block" }} />
+              </a>
             </div>
           </div>
         </div></footer>
