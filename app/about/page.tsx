@@ -29,12 +29,20 @@ export default function About() {
             <div className="team-role">Founder &amp; Lead Guide</div>
             <p className="team-bio">Kampala-based guide and tech person who takes travellers around Uganda and beyond. Real costs, real travel times, local knowledge you won&rsquo;t find in glossy brochures.</p>
             <p className="team-contact"><a href="mailto:content@trip-insights.com">content@trip-insights.com</a> &bull; <a href="https://wa.me/256759918649">+256 759 918 649</a></p>
+            <a href="https://www.linkedin.com/in/ssemaganda-george/" target="_blank" rel="noopener noreferrer" aria-label="George LinkedIn" className="team-social">
+              <img src="/logo/Linkedin.png" alt="LinkedIn" width="16" height="16" />
+              LinkedIn
+            </a>
           </div>
           <div className="team-card">
             <Image src="/team/Winnie.jpg" alt="Winnie" className="team-image" width={160} height={160} />
             <div className="team-name">Winnie</div>
             <div className="team-role">CFO &amp; Chief Editor — Destination Content</div>
             <p className="team-bio">Winnie oversees all destination content on Trip Insights, ensuring every guide, review, and recommendation is accurate, up to date, and written from firsthand experience.</p>
+            <a href="https://www.linkedin.com/in/winfred-nandete-7821a5180/" target="_blank" rel="noopener noreferrer" aria-label="Winnie LinkedIn" className="team-social">
+              <img src="/logo/Linkedin.png" alt="LinkedIn" width="16" height="16" />
+              LinkedIn
+            </a>
           </div>
         </div>
       </section>

@@ -87,6 +87,9 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
 .team-contact{font-size:0.85rem;color:var(--muted)}
 .team-contact a{color:var(--lake);text-decoration:none}
 .team-contact a:hover{text-decoration:underline}
+.team-social{margin-top:8px;display:inline-flex;align-items:center;color:var(--lake);text-decoration:none;font-size:0.85rem}
+.team-social:hover{text-decoration:none;color:var(--lake)}
+.team-social img{display:block;margin-right:6px}
 .footer-links{margin-top:8px;display:flex;gap:20px;font-size:0.9rem}
 .footer-links a{color:var(--lake);text-decoration:none}
 .footer-links a:hover{text-decoration:underline}
