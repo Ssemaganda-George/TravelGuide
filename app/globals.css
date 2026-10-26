@@ -1077,6 +1077,126 @@ tr.off{opacity:.5}
 #back-to-top:active {
   transform: translateY(0);
 }
+
+/* Reviews page activity cards */
+.reviews-activities {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.reviews-activities h2 {
+  font-size: 1.5rem;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.reviews-activities .meta {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.activity-cards {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.activity-card {
+  flex: 0 0 auto;
+  width: min(320px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  scroll-snap-align: start;
+  height: 100%;
+}
+.activity-card:hover {
+  border-color: var(--lake);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.activity-card-media {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: var(--mist);
+}
+.activity-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.activity-card:hover .activity-card-img {
+  transform: scale(1.04);
+}
+.activity-card-link {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  transform: translateY(4px);
+  z-index: 5;
+}
+.activity-card:hover .activity-card-link {
+  opacity: 1;
+  transform: translateY(0);
+}
+.activity-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 3rem;
+  background: var(--mist);
+}
+.activity-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.activity-card-body h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.activity-card-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.activity-card-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .header-stats .stat-icon {
   font-size: 0.85rem;
   width: 0.85rem;
