@@ -18,30 +18,30 @@ export const metadata: Metadata = {
   title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
   description: SITE_TAGLINE,
   verification: process.env.NEXT_PUBLIC_GSC_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } : undefined,
-  openGraph: {
-    siteName: SITE_NAME,
-    type: "website",
-    locale: "en_GB",
-    url: SITE,
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
-    images: [
-      {
-        url: `${SITE}/og-default.jpg`,
-        width: 1200,
-        height: 630,
-        alt: SITE_NAME,
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@tripinsights",
-    creator: "@george_travels",
-    title: SITE_NAME,
-    description: SITE_TAGLINE,
-    images: [`${SITE}/og-default.jpg`],
-  },
+    openGraph: {
+      siteName: SITE_NAME,
+      type: "website",
+      locale: "en_GB",
+      url: SITE,
+      title: SITE_NAME,
+      description: SITE_TAGLINE,
+      images: [
+        {
+          url: `${SITE}/logo/logo.png`,
+          width: 1200,
+          height: 630,
+          alt: SITE_NAME,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@tripinsights",
+      creator: "@george_travels",
+      title: SITE_NAME,
+      description: SITE_TAGLINE,
+      images: [`${SITE}/logo/logo.png`],
+    },
   robots: { index: true, follow: true },
 };
 

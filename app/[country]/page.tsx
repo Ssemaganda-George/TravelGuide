@@ -12,7 +12,7 @@ type P = { params: Promise<{ country: string }>; searchParams?: Promise<{ [key: 
 export async function generateMetadata({ params, searchParams }: P): Promise<Metadata> {
   const c = await getCountry((await params).country);
   if (!c) return {};
-  const ogImage = `${SITE}/og-default.jpg`;
+  const ogImage = `${SITE}/logo/logo.png`;
   const sp = (await searchParams) ?? {};
   const hasFilters = Boolean(sp.destination || sp.tag || sp.q);
   const title = `${c.name} Travel Guide: Best Time to Visit, Costs & Local Tips | ${SITE_NAME}`;
@@ -28,13 +28,13 @@ export async function generateMetadata({ params, searchParams }: P): Promise<Met
       locale: "en_GB",
       url: `${SITE}/${c.slug}`,
       siteName: SITE_NAME,
-      images: [{ url: `${SITE}/og-default.jpg`, width: 1200, height: 630, alt: `${c.name} travel guides` }],
+      images: [{ url: `${SITE}/logo/logo.png`, width: 1200, height: 630, alt: `${c.name} travel guides` }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [`${SITE}/og-default.jpg`],
+      images: [`${SITE}/logo/logo.png`],
     },
     robots: hasFilters ? { index: false, follow: true } : { index: true, follow: true },
   };
