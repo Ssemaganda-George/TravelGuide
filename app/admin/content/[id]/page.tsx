@@ -181,7 +181,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
   ]);
   const actsWithProviders = ((activities ?? []) as unknown as any[]).map((a: any) => ({ ...a, providers: [] })) as Activity[];
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <Link className="back" href="/admin/content">Back to content</Link>
       <h1>Edit {d.title}</h1>
       {error && <p className="msg" role="alert">{error}</p>}
@@ -266,7 +266,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
           <textarea id="pa" name="plan_around" rows={3} defaultValue={d.plan_around ?? ""} placeholder="Pair Jinja with Sipi Falls, Mabira Forest, or a night in Kampala before your flight." />
         </section>
 
-        <button className="go">Save changes</button>
+        <button className="go" style={{ width: "100%" }}>Save changes</button>
       </form>
     </div>
   );

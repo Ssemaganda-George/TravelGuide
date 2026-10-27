@@ -14,7 +14,7 @@ async function signIn(fd: FormData) {
 export default async function Login({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <h1>Admin sign in</h1>
       <form className="form" action={signIn}>
         <label htmlFor="email">Email</label><input id="email" name="email" type="email" required autoComplete="email" />

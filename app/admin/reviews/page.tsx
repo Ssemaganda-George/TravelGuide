@@ -66,7 +66,7 @@ export default async function Reviews() {
   };
 
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <h1>Review moderation</h1>
       <p className="hook">{byStatus.pending.length} pending · {byStatus.approved.length} approved · {byStatus.rejected.length} rejected</p>
 
@@ -74,7 +74,7 @@ export default async function Reviews() {
         <h3>Pending reviews</h3>
         {byStatus.pending.length === 0 && <p className="meta">No reviews waiting for approval.</p>}
         {byStatus.pending.map(r => (
-          <div className="item" key={r.id}>
+          <div className="item" key={r.id} style={{ padding: "16px" }}>
             <div className="ihead">
               <strong>{r.author}</strong>
               <span className="badge badge-new">Pending</span>
@@ -82,11 +82,11 @@ export default async function Reviews() {
             <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {destMap.get(r.place_id)?.country ?? ""}</div>
             <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
             {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <form action={setReviewStatus} style={{ margin: 0 }}>
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="status" value="approved" />
-                <button className="go" style={{ width: "auto", padding: "6px 14px" }}>Approve</button>
+                <button className="go" style={{ width: "auto", padding: "6px 14px", minHeight: "auto" }}>Approve</button>
               </form>
               <form action={setReviewStatus} style={{ margin: 0 }}>
                 <input type="hidden" name="id" value={r.id} />
@@ -102,7 +102,7 @@ export default async function Reviews() {
         <h3>Approved reviews</h3>
         {byStatus.approved.length === 0 && <p className="meta">No approved reviews yet.</p>}
         {byStatus.approved.map(r => (
-          <div className="item" key={r.id}>
+          <div className="item" key={r.id} style={{ padding: "16px" }}>
             <div className="ihead">
               <strong>{r.author}</strong>
               <span className="badge badge-approved">Approved</span>
@@ -110,7 +110,7 @@ export default async function Reviews() {
             <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {new Date(r.created_at).toLocaleDateString()}</div>
             <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
             {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <form action={setReviewStatus} style={{ margin: 0 }}>
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="status" value="pending" />
@@ -134,7 +134,7 @@ export default async function Reviews() {
         <h3>Rejected reviews</h3>
         {byStatus.rejected.length === 0 && <p className="meta">No rejected reviews.</p>}
         {byStatus.rejected.map(r => (
-          <div className="item" key={r.id}>
+          <div className="item" key={r.id} style={{ padding: "16px" }}>
             <div className="ihead">
               <strong>{r.author}</strong>
               <span className="badge badge-rejected">Rejected</span>
@@ -142,7 +142,7 @@ export default async function Reviews() {
             <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {new Date(r.created_at).toLocaleDateString()}</div>
             <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
             {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <form action={setReviewStatus} style={{ margin: 0 }}>
                 <input type="hidden" name="id" value={r.id} />
                 <input type="hidden" name="status" value="pending" />

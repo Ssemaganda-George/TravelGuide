@@ -74,7 +74,7 @@ export default async function Content({ searchParams }: { searchParams: Promise<
     sb.from("places").select("name,slug").eq("type", "country"),
   ]);
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <h1>Destination content</h1>
       <div className="tbl"><table>
         <thead><tr><th>Title</th><th>Language</th><th>Status</th><th>Last checked</th><th></th></tr></thead>

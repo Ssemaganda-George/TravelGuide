@@ -42,7 +42,7 @@ export default async function Referrals() {
   const totals: Record<string, number> = {};
   rows.forEach(r => { const k = `${r.commission_status} (${r.currency})`; totals[k] = (totals[k] ?? 0) + Number(r.commission_due ?? 0); });
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <h1>Referrals and commissions</h1>
       <p className="hook">{Object.keys(totals).length ? Object.entries(totals).map(([k, v]) => `${k}: ${v.toFixed(2)}`).join(" · ") : "No referrals yet."}</p>
       <div className="tbl"><table>

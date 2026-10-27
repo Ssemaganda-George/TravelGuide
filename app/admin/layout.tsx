@@ -5,15 +5,7 @@ import { revalidatePath } from "next/cache";
 import { NotificationHandler } from "@/components/NotificationWrapper";
 import { SignOutButton } from "@/components/SignOutButton";
 import { SITE_NAME } from "@/lib/site";
-
-const NAV: { href: string; label: string }[] = [
-  { href: "/admin", label: "Enquiries" },
-  { href: "/admin/referrals", label: "Referrals" },
-  { href: "/admin/partners", label: "Partners" },
-  { href: "/admin/content", label: "Content" },
-  { href: "/admin/insights", label: "Insights" },
-  { href: "/admin/reviews", label: "Reviews" },
-];
+import MobileAdminMenu from "@/components/MobileAdminMenu";
 
 const SECTIONS: Record<string, { title: string; sub: string }> = {
   "/admin": { title: "Enquiries", sub: "Manage traveller enquiries and reply to guests." },
@@ -24,32 +16,13 @@ const SECTIONS: Record<string, { title: string; sub: string }> = {
   "/admin/reviews": { title: "Review moderation", sub: "Approve or reject traveller reviews before they appear publicly." },
 };
 
-async function signOut(fd: FormData) {
-  "use server";
-  const sb = await authClient();
-  await sb.auth.signOut();
-  revalidatePath("/");
-  redirect("/");
-}
-
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const sb = await authClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return children;
   return (
     <div className="appshell">
-      <aside className="admin-sidebar" aria-label="Admin navigation">
-        <Link className="admin-brand" href="/admin">{SITE_NAME}</Link>
-        <nav className="admin-nav">
-          {NAV.map(n => (
-            <Link key={n.href} href={n.href} className="admin-nav-link">{n.label}</Link>
-          ))}
-        </nav>
-        <div className="admin-foot">
-          <span className="admin-user">{user.email ?? "Admin"}</span>
-          <SignOutButton action={signOut} />
-        </div>
-      </aside>
+      <MobileAdminMenu user={user} />
       <main className="admin-main">
         <header className="admin-header">
           <div className="admin-headleft">

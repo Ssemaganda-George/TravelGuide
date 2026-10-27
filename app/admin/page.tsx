@@ -35,14 +35,14 @@ export default async function Admin() {
   const rows = data ?? [];
   const waiting = rows.filter(r => r.status === "new").length;
   return (
-    <div className="wrap page">
+    <div className="wrap page" style={{ padding: "16px" }}>
       <h1>Enquiries</h1>
       <p className="hook">{waiting ? `${waiting} waiting for a first reply` : "No new enquiries."}</p>
-      <form action={signOut}><button className="chip">Sign out</button></form>
+      <form action={signOut} style={{ marginBottom: 16 }}><button className="chip">Sign out</button></form>
       {rows.map(r => {
         const link = r.contact_method === "whatsapp" ? `https://wa.me/${String(r.contact).replace(/\D/g, "")}` : `mailto:${r.contact}`;
         return (
-          <div className="form" key={r.id}>
+          <div className="form" key={r.id} style={{ padding: "16px" }}>
             <h3>{r.name} <span className={`badge badge-${r.status}`}>{r.status}</span> <span className="meta">· {r.places?.name ?? "General"}</span></h3>
             <p className="meta">{new Date(r.created_at).toLocaleString("en-GB", { timeZone: "Africa/Kampala" })} · from {r.source_channel || "direct"}</p>
             <p><a href={link}>{r.contact}</a> ({r.contact_method})<br />
