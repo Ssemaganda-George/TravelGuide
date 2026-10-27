@@ -255,7 +255,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       {filteredItems.map(i => {
         const acts = activitiesByPlace[i.place_id] ?? [];
         const cover = acts.find(a => (a.media ?? []).some(m => safeSrc(m.url ?? ""))) ?? null;
-        const coverUrl = cover ? safeSrc((cover.media ?? [])[0].url ?? "") : null;
+        const coverUrl = cover ? safeSrc((cover.media ?? [])[0].url ?? "") : (i.media?.[0]?.url ? safeSrc(i.media[0].url) : null);
         const path = `/${country}/${i.places.slug}`;
         const eng = engagement[i.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 };
         const isLiked = liked.has(i.place_id);
