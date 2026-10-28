@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import planeImg from "@/logo/plane.png";
+import locationImg from "@/logo/location.png";
 
-const ROUTE = "M -150 350 C 100 250 200 200 300 120 C 400 50 480 60 500 80 C 580 120 640 140 680 160 C 800 220 900 0 1050 -50";
+const ROUTE = "M -150 350 C 100 250 200 200 300 120 C 400 50 480 60 500 80 C 580 120 640 140 680 160 C 740 100 820 100 860 80 C 900 40 980 0 1050 -50";
 
 export default function JourneyAnimation() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -28,28 +29,28 @@ export default function JourneyAnimation() {
     function frame(t: number) {
       const elapsed = ((t - startTime) / DURATION) % 1;
 
-      // Plane leg: A(0) -> C(0.56), visible 0% -> 60% of cycle
+      // Plane leg: A(0) -> C(0.52), visible 0% -> 60% of cycle
       let planeT = 0;
       let planeOpacity = 0;
       if (elapsed < 0.02) {
         planeT = 0;
         planeOpacity = elapsed / 0.02;
       } else if (elapsed < 0.55) {
-        planeT = ((elapsed - 0.02) / 0.53) * 0.56;
+        planeT = ((elapsed - 0.02) / 0.53) * 0.52;
         planeOpacity = 1;
       } else if (elapsed < 0.60) {
-        planeT = 0.56;
+        planeT = 0.52;
         planeOpacity = (0.60 - elapsed) / 0.05;
       } else {
         planeT = 0;
         planeOpacity = 0;
       }
 
-      // Car leg: C(0.56) -> F(1.0), visible 7% -> 100% of cycle
-      let carT = 0.56;
+      // Car leg: C(0.52) -> F(1.0), visible 7% -> 100% of cycle
+      let carT = 0.52;
       let carOpacity = 0;
       if (elapsed >= 0.07 && elapsed < 1.0) {
-        carT = 0.56 + ((elapsed - 0.07) / 0.93) * 0.44;
+        carT = 0.52 + ((elapsed - 0.07) / 0.93) * 0.48;
         carOpacity = 1;
       }
 
@@ -80,16 +81,12 @@ export default function JourneyAnimation() {
       <svg ref={svgRef} className="hero-journey-svg" viewBox="0 0 900 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <path className="route-line" d={ROUTE} />
         <g className="stops">
-          <circle className="stop stop-a" cx="-150" cy="350" r="8" />
-          <text className="stop-label" x="-150" y="350">A</text>
-          <circle className="stop stop-b" cx="300" cy="120" r="8" />
-          <text className="stop-label" x="300" y="120">B</text>
-          <circle className="stop stop-c" cx="500" cy="80" r="8" />
-          <text className="stop-label" x="500" y="80">C</text>
-          <circle className="stop stop-d" cx="680" cy="160" r="8" />
-          <text className="stop-label" x="680" y="160">D</text>
-          <circle className="stop stop-f" cx="1050" cy="-50" r="8" />
-          <text className="stop-label" x="1050" y="-50">F</text>
+          <image href={locationImg.src} width="32" height="32" x="-166" y="334" />
+          <image href={locationImg.src} width="32" height="32" x="224" y="154" />
+          <image href={locationImg.src} width="32" height="32" x="484" y="64" />
+          <image href={locationImg.src} width="32" height="32" x="664" y="144" />
+          <image href={locationImg.src} width="32" height="32" x="844" y="64" />
+          <image href={locationImg.src} width="32" height="32" x="1034" y="-66" />
         </g>
         <g ref={planeRef} className="vehicle vehicle-plane">
           <image href={planeImg.src} width="34" height="34" x="-17" y="-17" />
