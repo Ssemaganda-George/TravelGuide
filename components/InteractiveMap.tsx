@@ -355,11 +355,11 @@ function DestinationCard({
       
       <div style={{ position: "relative" }}>
         {images.length > 0 ? (
-          <div style={{ width: "100%", height: 160, position: "relative", overflow: "hidden", borderRadius: "16px 16px 0 0", background: "var(--mist)" }}>
+          <div style={{ width: "100%", height: 240, position: "relative", overflow: "hidden", borderRadius: "16px 16px 0 0", background: "var(--mist)" }}>
             <img 
               src={images[imageIndex]} 
               alt={marker.name} 
-              style={{ width: "100%", height: 160, objectFit: "cover", display: "block" }}
+              style={{ width: "100%", height: 240, objectFit: "cover", display: "block" }}
               loading="lazy"
             />
             {images.length > 1 && (
@@ -433,7 +433,7 @@ function DestinationCard({
             )}
           </div>
         ) : (
-          <div style={{ width: "100%", height: 160, background: "var(--mist)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", borderRadius: "16px 16px 0 0" }}>
+          <div style={{ width: "100%", height: 240, background: "var(--mist)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", borderRadius: "16px 16px 0 0" }}>
             📍
           </div>
         )}
@@ -476,7 +476,7 @@ function DestinationCard({
         </div>
       </div>
       
-      <div style={{ padding: 16 }}>
+       <div style={{ padding: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
           <h4 style={{ margin: 0, fontSize: "1.1rem", color: "var(--ink)", flex: 1, paddingRight: 12 }}>{marker.name}</h4>
           {stays > 0 && (
@@ -498,10 +498,10 @@ function DestinationCard({
           )}
         </div>
         {marker.hook && (
-          <p style={{ margin: "0 0 12px 0", fontSize: "0.9rem", color: "var(--muted)", lineHeight: 1.5 }}>{marker.hook}</p>
+          <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", color: "var(--muted)", lineHeight: 1.5 }}>{marker.hook}</p>
         )}
         
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
           {durationStr && (
             <span style={{ 
               display: "inline-flex", 
@@ -579,7 +579,7 @@ function DestinationCard({
           )}
         </div>
         
-        <div style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 12, borderTop: "1px solid var(--mist)" }}>
+        <div style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 8, borderTop: "1px solid var(--mist)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--muted)" }} title="Views">
             <Eye size={14} /> {viewCount}
           </span>
@@ -603,8 +603,8 @@ function DestinationCard({
             style={{
               display: "block",
               width: "100%",
-              marginTop: 12,
-              padding: "14px 20px",
+              marginTop: 8,
+              padding: "12px 20px",
               background: "var(--lake)",
               color: "white",
               border: "none",

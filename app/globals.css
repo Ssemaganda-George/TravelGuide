@@ -36,13 +36,13 @@ header .wrap{display:flex;align-items:center;height:96px}
 .card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s,box-shadow .2s}
 .card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(14,90,100,.14);border-color:var(--lake)}
 .cardlink{display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit}
-.cardmedia{position:relative;width:100%;height:240px;overflow:hidden;background:var(--mist)}
+.cardmedia{position:relative;width:100%;height:330px;overflow:hidden;background:var(--mist)}
 .cardmedia img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
 .card:hover .cardmedia img{transform:scale(1.05)}
 .cardplaceholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:44px;background:var(--mist)}
 .cardoverlay{position:absolute;top:12px;right:12px;z-index:2}
 .cardbadge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.9);color:var(--ink);font-size:0.75rem;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.cardcontent{padding:20px;display:flex;flex-direction:column;gap:12px;flex:1}
+.cardcontent{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}
 .cardhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cardhead h3{font-size:1.25rem;margin:0;line-height:1.2;letter-spacing:-.02em;font-weight:700}
 .activitycount{font-size:0.7rem;font-weight:800;background:var(--mist);color:var(--lake);padding:3px 8px;border-radius:999px;letter-spacing:.02em}
@@ -55,7 +55,7 @@ header .wrap{display:flex;align-items:center;height:96px}
 .likestat:hover{color:var(--sun)}
 .likestat:hover svg{color:var(--sun)}
 .likestat svg{transition:color .2s}
-@media(max-width:640px){.grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:200px}.cardcontent{padding:16px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
+@media(max-width:640px){.grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:260px}.cardcontent{padding:12px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
 @media(max-width:400px){.grid{grid-template-columns:1fr}}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}
 .page{padding:40px 20px 64px;max-width:960px}
