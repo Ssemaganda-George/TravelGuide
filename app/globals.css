@@ -7,7 +7,7 @@ h1,h2,h3,.brand,.chip,.meta,dt,dd,label,.go,.back{font-family:var(--head),system
 h1,h2,h3{line-height:1.15;margin:0 0 .5em}
 .wrap{max-width:1280px;margin:0 auto;padding:0 20px}
 header{background:var(--paper);border-bottom:1px solid var(--line)}
-header .wrap{display:flex;align-items:center;height:64px}
+header .wrap{display:flex;align-items:center;height:96px}
 .brand{font-weight:700;font-size:20px;color:var(--ink);text-decoration:none}
 .hero{background:var(--lake);color:#fff;padding:96px 0 80px;position:relative;overflow:hidden}
 .hero h1{font-size:clamp(2.2rem,6vw,4rem);max-width:15em}
@@ -1421,10 +1421,12 @@ tr.off{opacity:.5}
   color: var(--lake);
 }
 
-.brand-icon {
-  width: 36px;
-  height: 36px;
+.brand-img {
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
+  border-radius: 8px;
+  margin-top: 6px;
 }
 
 .brand-text {

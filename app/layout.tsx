@@ -8,6 +8,7 @@ import { ChatBot } from "@/components/ChatBot";
 import BackToTop from "@/components/BackToTop";
 import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import logoImg from "@/logo/logo.png";
 import "./globals.css";
 
 const head = Bricolage_Grotesque({ subsets: ["latin"], variable: "--head" });
@@ -59,10 +60,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <header className="site-header">
           <div className="wrap">
             <a href="/" className="brand" aria-label={`${SITE_NAME} - Home`}>
-              <svg className="brand-icon" viewBox="0 0 32 32" aria-hidden="true">
-                <rect width="32" height="32" rx="6" fill="var(--lake)"/>
-                <text x="50%" y="54%" dominantBaseline="middle" textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="18" fill="white">TI</text>
-              </svg>
+              <img src={logoImg.src} alt="" className="brand-img" width="64" height="64" />
               <span className="brand-text">{SITE_NAME}</span>
             </a>
           </div>
@@ -72,7 +70,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
           <div className="footer-content">
             <div className="footer-about">
               <Link href="/about" className="footer-about-link">
-                About Trip Insights
+                About
               </Link>
             </div>
             <div className="footer-links">
