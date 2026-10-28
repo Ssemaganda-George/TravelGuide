@@ -1500,6 +1500,19 @@ tr.off{opacity:.5}
   transform: translateY(0);
 }
 
+/* ===== Home page: animated journey (behind hero) ===== */
+.hero-journey-wrap{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:hidden}
+.hero-journey-svg{width:100%;height:100%;display:block}
+.route-line{fill:none;stroke:rgba(255,255,255,0.45);stroke-width:2;stroke-dasharray:1090;stroke-dashoffset:1090;animation:drawRoute 2s ease-out forwards}
+.stop{fill:none;stroke:var(--sun);stroke-width:2.5;stroke-linecap:round}
+.stop-label{fill:#fff;font-family:var(--head),system-ui,sans-serif;font-size:12px;font-weight:800;text-anchor:middle;dominant-baseline:middle;pointer-events:none;opacity:.9}
+.vehicle{opacity:0}
+@keyframes drawRoute{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){
+  .route-line{animation:none!important;stroke-dashoffset:0}
+  .vehicle{animation:none!important}
+}
+
 /* Reviews page activity cards */
 .reviews-activities {
   margin-top: 48px;

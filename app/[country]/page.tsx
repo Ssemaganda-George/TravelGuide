@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import Browse from "@/components/Browse";
+import JourneyAnimation from "@/components/JourneyAnimation";
 import { getActivitiesForPlaces, getCountry, getDestinations, getEngagementForPlaces, getStaysCounts, getStays, getViewCounts } from "@/lib/data";
 import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
@@ -63,11 +64,14 @@ export default async function Country({ params }: P) {
   });
   return (
     <>
-      <section className="hero"><div className="wrap">
-        <h1>Know Your Destination, before you go.</h1>
-        {/* <h1>Know your Destination before you go.</h1> */}
-        <p>{SITE_TAGLINE}</p>
-      </div></section>
+      <section className="hero">
+        <JourneyAnimation />
+        <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
+          <h1>Know Your Destination, before you go.</h1>
+          {/* <h1>Know your Destination before you go.</h1> */}
+          <p>{SITE_TAGLINE}</p>
+        </div>
+      </section>
       <Browse country={c.slug} items={items} activitiesByPlace={activitiesByPlace} viewCounts={viewCounts} engagement={engagement} staysCount={staysCount} staysByPlace={staysByPlace} />
     </>
   );
