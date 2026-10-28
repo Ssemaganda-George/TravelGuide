@@ -71,10 +71,12 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       .filter(i => {
         const byTag = tag === "all" || i.tags.includes(tag);
         const q = search.toLowerCase();
-        const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q);
+        const acts = activitiesByPlace[i.place_id] ?? [];
+        const actText = acts.map(a => `${a.name ?? ""} ${a.description ?? ""}`).join(" ").toLowerCase();
+        const byText = !q || i.title.toLowerCase().includes(q) || (i.hook ?? "").toLowerCase().includes(q) || actText.includes(q);
         return byTag && byText;
       });
-  }, [items, tag, search, country, viewCounts]);
+  }, [items, tag, search, country, viewCounts, activitiesByPlace]);
 
   // Build map markers from filtered destinations
   const mapMarkers = useMemo(() => {
