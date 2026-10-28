@@ -9,6 +9,7 @@ import BackToTop from "@/components/BackToTop";
 import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
 import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import logoImg from "@/logo/logo.png";
+import logo1Img from "@/logo/logo1.png";
 import "./globals.css";
 
 const head = Bricolage_Grotesque({ subsets: ["latin"], variable: "--head" });
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
       description: SITE_TAGLINE,
       images: [
         {
-          url: `${SITE}/logo/logo.png`,
+          url: `${SITE}/logo/logo1.png`,
           width: 1200,
           height: 630,
           alt: SITE_NAME,
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
       creator: "@george_travels",
       title: SITE_NAME,
       description: SITE_TAGLINE,
-      images: [`${SITE}/logo/logo.png`],
+      images: [`${SITE}/logo/logo1.png`],
     },
   robots: { index: true, follow: true },
 };

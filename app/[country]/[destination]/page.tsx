@@ -109,7 +109,7 @@ export async function generateMetadata(p: P): Promise<Metadata> {
       url: absoluteUrl,
       images: coverImage
         ? [{ url: (/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`), alt: d.title, width: 1200, height: 630 }]
-        : [{ url: `${SITE}/logo/logo.png`, alt: d.title, width: 1200, height: 630 }],
+        : [{ url: `${SITE}/logo/logo1.png`, alt: d.title, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
@@ -117,7 +117,7 @@ export async function generateMetadata(p: P): Promise<Metadata> {
       description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
       images: coverImage
         ? [/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`]
-        : [`${SITE}/logo/logo.png`],
+        : [`${SITE}/logo/logo1.png`],
     },
     verification: {
       google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
@@ -176,7 +176,7 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
       name: d.title,
       description: d.hook,
       url: `${SITE}/${d.places.slug}`,
-      image: coverImage ? (/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`) : `${SITE}/logo/logo.png`,
+      image: coverImage ? (/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`) : `${SITE}/logo/logo1.png`,
       touristType: d.tags ?? [],
       address: {
         "@type": "PostalAddress",
