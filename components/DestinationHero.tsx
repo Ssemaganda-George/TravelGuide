@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import HeaderStats from "@/components/HeaderStats";
 
 interface DestinationHeroProps {
@@ -17,27 +17,37 @@ interface DestinationHeroProps {
 
 export default function DestinationHero({ images, title, hook, views, placeId, path, engagement, staysCount, activitiesCount }: DestinationHeroProps) {
   const [i, setI] = useState(0);
+  const [prevImage, setPrevImage] = useState<string | null>(null);
   const image = images[i % images.length];
+  const fadingOut = useRef(false);
 
   useEffect(() => {
     if (images.length <= 1) return;
-    const t = setInterval(() => setI((x) => (x + 1) % images.length), 5000);
+    const t = setInterval(() => {
+      setPrevImage(image);
+      fadingOut.current = true;
+      setI((x) => (x + 1) % images.length);
+      setTimeout(() => {
+        fadingOut.current = false;
+      }, 1200);
+    }, 5000);
     return () => clearInterval(t);
-  }, [images.length]);
+  }, [images.length, image]);
+
+  const bgStyle = (src: string | null, fadeOut: boolean): React.CSSProperties => ({
+    position: "absolute",
+    inset: 0,
+    background: src ? `url('${src}') center/cover no-repeat` : "transparent",
+    filter: "brightness(0.88)",
+    zIndex: 0,
+    transition: "opacity 1.2s ease-in-out",
+    opacity: fadeOut ? 0 : 1,
+  });
 
   return (
     <section className="dest-hero" style={{ position: "relative", minHeight: "55vh", overflow: "hidden" }}>
-      <div
-        className="dest-hero-bg"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: image ? `url('${image}') center/cover no-repeat` : "transparent",
-          filter: "brightness(0.88)",
-          zIndex: 0,
-          transition: "opacity 1s ease",
-        }}
-      />
+      {prevImage && <div className="dest-hero-bg" style={bgStyle(prevImage, fadingOut.current)} />}
+      <div className="dest-hero-bg" style={bgStyle(image, false)} />
       <div className="dest-hero-overlay" style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,.12), rgba(0,0,0,.32))", zIndex: 1 }} />
       <div className="dest-hero-content" style={{ position: "relative", zIndex: 2, maxWidth: 900, margin: "0 auto", padding: "120px 20px 60px", textAlign: "center", color: "#fff" }}>
         <h1 style={{ fontSize: "clamp(2rem,7vw,3.6rem)", margin: "0 0 10px", fontWeight: 800, letterSpacing: "-0.5px" }}>{title}</h1>
