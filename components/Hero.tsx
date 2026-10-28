@@ -39,7 +39,7 @@ export default function Hero({ country = "uganda", search = "", setSearch, tag =
     >
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.55))" }} />
       <nav style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ width: 180, maxWidth: "60vw" }}>
+        <div style={{ width: 200, maxWidth: "65vw" }}>
           <img src="/logo/logo1.png" alt="Travel Guide" style={{ width: "100%", height: "auto", borderRadius: "10px", padding: 8, display: "block", objectFit: "contain" }} />
         </div>
         <div style={{ width: 180 }} />
