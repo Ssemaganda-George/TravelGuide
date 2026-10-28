@@ -8,6 +8,7 @@ import MediaGallery from "@/components/MediaGallery";
 import StayImages from "@/components/StayImages";
 import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
+import DestinationHero from "@/components/DestinationHero";
 import HeaderStats from "@/components/HeaderStats";
 import { SITE, SITE_NAME } from "@/lib/site";
 import { getCountry, getCountries, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
@@ -86,7 +87,11 @@ async function load({ params }: P) {
   }
 
   const coverImage = d.media?.[0]?.url ?? activities[0]?.media?.[0]?.url ?? null;
-  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related, viewCounts, duration_min, distance_km };
+  const allImages = [
+    ...(d.media?.map(m => m.url).filter(Boolean) ?? []),
+    ...activities.flatMap(a => (a.media ?? []).map(m => m.url).filter(Boolean)),
+  ];
+  return { c, d, activities, stays, engagement: engagement[d.place_id] ?? { likes: 0, reviews: 0, avgRating: 0 }, coverImage, related, viewCounts, duration_min, distance_km, allImages };
 }
 
 export async function generateMetadata(p: P): Promise<Metadata> {
@@ -255,7 +260,7 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
 export default async function Destination(p: P) {
   const r = await load(p);
   if (!r) notFound();
-  const { c, d, activities, stays, engagement, coverImage, related, viewCounts, duration_min, distance_km } = r;
+  const { c, d, activities, stays, engagement, coverImage, related, viewCounts, duration_min, distance_km, allImages = [] } = r;
   const path = `/${c.slug}/${d.places.slug}`;
   const absoluteUrl = `${SITE}${path}`;
   const facts = [
@@ -337,19 +342,34 @@ export default async function Destination(p: P) {
       <div className="destwrap">
         <main className="destmain">
           <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
+          {coverImage && (
+            <DestinationHero
+              images={allImages}
+              title={d.title}
+              hook={d.hook ?? ""}
+              views={viewCounts[path] ?? 0}
+              placeId={d.place_id}
+              path={path}
+              engagement={engagement}
+              staysCount={normalizedStays.length}
+              activitiesCount={activities.length}
+            />
+          )}
           <header className="desthead">
             <div className="desthead-inner">
               <div>
-                <h1>{d.title}</h1>
-                <p className="hook">{d.hook}</p>
-                <HeaderStats
-                  views={viewCounts[path] ?? 0}
-                  placeId={d.place_id}
-                  path={path}
-                  engagement={engagement}
-                  staysCount={normalizedStays.length}
-                  activitiesCount={activities.length}
-                />
+                {!coverImage && <h1>{d.title}</h1>}
+                {!coverImage && <p className="hook">{d.hook}</p>}
+                {!coverImage && (
+                  <HeaderStats
+                    views={viewCounts[path] ?? 0}
+                    placeId={d.place_id}
+                    path={path}
+                    engagement={engagement}
+                    staysCount={normalizedStays.length}
+                    activitiesCount={activities.length}
+                  />
+                )}
               </div>
             </div>
           </header>

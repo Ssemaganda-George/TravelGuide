@@ -6,9 +6,10 @@ import { Heart } from "lucide-react";
 interface LikeStatProps {
   placeId: string;
   initialLikes: number;
+  inverse?: boolean;
 }
 
-export default function LikeStat({ placeId, initialLikes }: LikeStatProps) {
+export default function LikeStat({ placeId, initialLikes, inverse = false }: LikeStatProps) {
   const [likes, setLikes] = useState(initialLikes);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,12 +38,16 @@ export default function LikeStat({ placeId, initialLikes }: LikeStatProps) {
     }
   };
 
+  const heartFill = inverse ? (liked ? "#ffd54f" : "none") : (liked ? "var(--sun)" : "none");
+  const heartColor = inverse ? (liked ? "#ffd54f" : "rgba(255,255,255,.7)") : (liked ? "var(--sun)" : "inherit");
+  const textColor = inverse ? "rgba(255,255,255,.95)" : "inherit";
+
   return (
-    <button className="stat clickable" onClick={toggleLike} disabled={loading} style={{ cursor: loading ? "not-allowed" : "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-      <Heart className="stat-icon" size={14} strokeWidth={liked ? 0 : 2} fill={liked ? "var(--sun)" : "none"} style={{ color: liked ? "var(--sun)" : "inherit" }} />
+    <button className="stat clickable" onClick={toggleLike} disabled={loading} style={{ cursor: loading ? "not-allowed" : "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: textColor }}>
+      <Heart className="stat-icon" size={14} strokeWidth={liked ? 0 : 2} fill={heartFill} style={{ color: heartColor }} />
       <div>
-        <span className="stat-label">Likes</span>
-        <span className="stat-value">{likes}</span>
+        <span className="stat-label" style={{ color: textColor }}>Likes</span>
+        <span className="stat-value" style={{ color: textColor }}>{likes}</span>
       </div>
     </button>
   );
