@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SiteHeader from "@/components/SiteHeader";
 import type { Metadata } from "next";
 import Script from "next/script";
 import PageView from "@/components/PageView";
@@ -58,14 +59,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
-        <header className="site-header">
-          <div className="wrap">
-            <a href="/" className="brand" aria-label={`${SITE_NAME} - Home`}>
-              <img src={logoImg.src} alt="" className="brand-img" width="64" height="64" />
-              <span className="brand-text">{SITE_NAME}</span>
-            </a>
-          </div>
-        </header>
+        <SiteHeader />
         <main id="main">{children}</main>
         <footer className="about"><div className="wrap">
           <div className="footer-content">

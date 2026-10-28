@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useState, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Activity, Dest, Engagement } from "@/lib/data";
+import { COUNTRY_REFERENCE_POINTS } from "@/lib/data";
 import { safeSrc } from "@/lib/media";
 import { Eye, Heart, Building, Map, List, MessageSquare } from "lucide-react";
 import dynamic from "next/dynamic";
-import { COUNTRY_REFERENCE_POINTS } from "@/lib/data";
+import Hero from "@/components/Hero";
 
 const InteractiveMap = dynamic(() => import("@/components/InteractiveMap"), { ssr: false });
 
@@ -33,13 +34,19 @@ type Props = {
 };
 
 export default function Browse({ country, items, activitiesByPlace, viewCounts, engagement: initialEngagement, staysCount, staysByPlace }: Props) {
-  const [tag, setTag] = useState("all");
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const [tag, setTag] = useState(searchParams.get("tag") || "all");
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [engagement, setEngagement] = useState<Record<string, Engagement>>(initialEngagement);
   const [showMap, setShowMap] = useState(false);
   
-  const searchParams = useSearchParams();
+  useEffect(() => {
+    const q = searchParams.get("q");
+    const t = searchParams.get("tag");
+    if (q !== null) setSearch(q);
+    if (t !== null) setTag(t);
+  }, [searchParams]);
   const destinationSlug = searchParams.get("destination");
   
   // Auto-enable map view if destination parameter is present
@@ -300,15 +307,18 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
 
   const listContent = filteredItems.length > 0 ? listView : emptyView;
 
+  const heroImages = items.map(i => {
+    const acts = activitiesByPlace[i.place_id] ?? [];
+    const cover = acts.find(a => (a.media ?? []).some(m => safeSrc(m.url ?? ""))) ?? null;
+    const coverUrl = cover ? safeSrc((cover.media ?? [])[0].url ?? "") : (i.media?.[0]?.url ? safeSrc(i.media[0].url) : null);
+    return coverUrl;
+  }).filter(Boolean) as string[];
+
   return (
-    <div className="wrap">
-      <div className="searchbar" role="search" aria-label="Search destinations">
-        <label style={{ display: "block", fontSize: "11px", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px", fontFamily: "var(--head),system-ui,sans-serif" }}>Search destinations</label>
-        <input type="search" placeholder="gorillas, chimps, hiking" value={search} onChange={e => setSearch(e.target.value)} />
-        <button className="chip" onClick={() => setSearch("")} title="Clear" aria-label="Clear search" style={{ padding: "0 10px", borderRadius: "10px", fontSize: "1rem", lineHeight: "1", height: "auto", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>✕</button>
-      </div>
+    <div>
+      <Hero search={search} setSearch={setSearch} tag={tag} setTag={setTag} country={country} tags={tags} images={heroImages} />
+      <div className="wrap">
       <div className="chips" role="group" aria-label="Filter destinations">
-        {tags.map(t => <button key={t} className="chip" aria-pressed={t === tag} onClick={() => setTag(t)}>{t === "all" ? "All destinations" : t}</button>)}
         <button 
           key="map-toggle"
           className={`chip ${showMap ? "active" : ""}`} 
@@ -352,6 +362,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
       ) : (
         listContent
       )}
+    </div>
     </div>
   );
 }
