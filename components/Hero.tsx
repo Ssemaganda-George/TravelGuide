@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, ArrowRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, ArrowRight, Map, List } from "lucide-react";
 
 const SCENES = [
   { title: "Discover Uganda’s Most Amazing Destinations", sub: "Mountain lakes, misty peaks, and backpacker trails.", bg: "linear-gradient(135deg,#1e3a2f 0%,#2d5a3d 40%,#6b8e5a 100%)" },
@@ -10,8 +11,9 @@ const SCENES = [
   { title: "Every Journey Starts with Curiosity", sub: "Scenic mountain roads and safari vehicles await.", bg: "linear-gradient(135deg,#1a2533 0%,#2e4a6b 45%,#6b8fa3 100%)" },
 ];
 
-export default function Hero({ country = "uganda", search = "", setSearch, tag = "all", setTag, tags = [], images = [] }: { country?: string; search?: string; setSearch?: (v: string) => void; tag?: string; setTag?: (v: string) => void; tags?: string[]; images?: string[]; }) {
+export default function Hero({ country = "uganda", search = "", setSearch, tag = "all", setTag, tags = [], images = [], showMap = false, setShowMap }: { country?: string; search?: string; setSearch?: (v: string) => void; tag?: string; setTag?: (v: string) => void; tags?: string[]; images?: string[]; showMap?: boolean; setShowMap?: (v: boolean) => void; }) {
   const [i, setI] = useState(0);
+  const searchParams = useSearchParams();
   const actionList = (tags && tags.length) ? ["All destinations", ...tags.filter((t: string) => t !== "all")] : ["All destinations", "culture", "wildlife", "adventure", "gorillas", "relaxing", "chimps", "birds"];
   useEffect(() => {
     const t = setInterval(() => setI((x) => (x + 1) % Math.max(images.length, SCENES.length)), 6000);
@@ -56,12 +58,17 @@ export default function Hero({ country = "uganda", search = "", setSearch, tag =
           {actionList.map((label) => {
             const isActive = (label === "All destinations" && tag === "all") || label === tag;
             return (
-              <button key={label} type="button" onClick={() => setTag?.(label === "All destinations" ? "all" : label)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isActive ? "rgba(255,255,255,.35)" : "rgba(255,255,255,.15)", border: "1px solid rgba(255,255,255,.35)", color: "#fff", borderRadius: 999, padding: "8px 14px", fontSize: 13, cursor: "pointer", backdropFilter: "blur(6px)" }}>
+              <button key={label} type="button" onClick={() => setTag?.(label === "All destinations" ? "all" : label)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: isActive ? "#2e7d32" : "rgba(255,255,255,.15)", border: isActive ? "1px solid #2e7d32" : "1px solid rgba(255,255,255,.35)", color: "#fff", borderRadius: 999, padding: "8px 14px", fontSize: 13, cursor: "pointer", backdropFilter: "blur(6px)" }}>
                 {label}
               </button>
             );
           })}
         </div>
+      </div>
+      <div style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", zIndex: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        <button type="button" onClick={() => setShowMap?.(!showMap)} style={{ background: "rgba(255,255,255,.9)", border: "none", borderRadius: 999, color: "#111", padding: "10px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+          {showMap ? <><List size={16} /> View List</> : <><Map size={16} /> View on Map</>}
+        </button>
       </div>
     </section>
   );

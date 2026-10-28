@@ -39,7 +39,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
   const [search, setSearch] = useState(searchParams.get("q") || "");
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [engagement, setEngagement] = useState<Record<string, Engagement>>(initialEngagement);
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(searchParams.get("map") === "1");
   
   useEffect(() => {
     const q = searchParams.get("q");
@@ -316,29 +316,10 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
 
   return (
     <div>
-      <Hero search={search} setSearch={setSearch} tag={tag} setTag={setTag} country={country} tags={tags} images={heroImages} />
+      <Hero search={search} setSearch={setSearch} tag={tag} setTag={setTag} country={country} tags={tags} images={heroImages} showMap={showMap} setShowMap={setShowMap} />
       <div className="wrap">
-      <div className="chips" role="group" aria-label="Filter destinations">
-        <button 
-          key="map-toggle"
-          className={`chip ${showMap ? "active" : ""}`} 
-          aria-pressed={showMap}
-          onClick={() => setShowMap(!showMap)}
-          style={{ marginLeft: "auto" }}
-        >
-          {showMap ? (
-            <>
-              <List size={14} /> View List
-            </>
-          ) : (
-            <>
-              <Map size={14} /> View on Map
-            </>
-          )}
-        </button>
-      </div>
-      <p className="meta" style={{ margin: "6px 0 24px" }}>{showMap ? "Map view" : `${filteredItems.length} destination${filteredItems.length !== 1 ? "s" : ""} found`}</p>
-      
+        <p className="meta" style={{ textAlign: "center", margin: "8px 0 16px" }}>{`${filteredItems.length} destination${filteredItems.length !== 1 ? "s" : ""} found`}${showMap ? " · Map view" : ""}</p>
+
       {showMap ? (
         <div className="map-container" style={{ borderRadius: 16, overflow: "hidden", marginTop: 16 }}>
           <Suspense fallback={<div style={{ height: "600px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)" }}>Loading map...</div>}>
