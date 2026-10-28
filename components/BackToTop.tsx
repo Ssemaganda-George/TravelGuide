@@ -1,6 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export default function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const halfway = (document.documentElement.scrollHeight - window.innerHeight) / 2;
+      setVisible(window.scrollY >= halfway);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <button
       id="back-to-top"
