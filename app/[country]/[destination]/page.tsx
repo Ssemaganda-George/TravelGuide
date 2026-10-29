@@ -239,6 +239,22 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
     });
   }
 
+  if (d.local_tip && d.tip_author) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: d.tip_author,
+      url: `${SITE}/about`,
+      jobTitle: "Travel Guide",
+      worksFor: {
+        "@type": "Organization",
+        name: "Trip Insights",
+        url: SITE,
+      },
+      knowsAbout: [d.title, ...(d.tags ?? [])],
+    });
+  }
+
   if (engagement.reviews > 0) {
     jsonLd.push({
       "@context": "https://schema.org",
@@ -533,7 +549,16 @@ export default async function Destination(p: P) {
                 </Link>
               </div>
 
-              {d.local_tip && <div className="tip"><strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong><br />{d.local_tip}</div>}
+              {d.local_tip && (
+                <section className="tip local-tip" style={{ borderLeft: "4px solid var(--sun)", background: "var(--paper)", padding: "16px 20px", margin: "28px 0", borderRadius: "0 10px 10px 0" }}>
+                  <blockquote style={{ margin: "0 0 8px 0", paddingLeft: 12, borderLeft: "3px solid var(--sun)", fontStyle: "italic", color: "var(--ink)" }} cite={`${SITE}/${c.slug}/${d.places.slug}`}>
+                    {d.local_tip}
+                  </blockquote>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>
+                    <strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong>
+                  </p>
+                </section>
+              )}
 
               {paras(d.plan_around).length > 0 && (
                 <>
