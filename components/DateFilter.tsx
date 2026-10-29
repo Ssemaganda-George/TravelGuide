@@ -6,9 +6,10 @@ interface DateFilterProps {
   preset: string;
   start?: string;
   end?: string;
+  path?: string;
 }
 
-export function DateFilter({ preset, start, end }: DateFilterProps) {
+export function DateFilter({ preset, start, end, path = "/admin/partners" }: DateFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -25,7 +26,7 @@ export function DateFilter({ preset, start, end }: DateFilterProps) {
     params.set("preset", value);
     params.delete("start");
     params.delete("end");
-    router.push(`/admin/partners?${params.toString()}`);
+    router.push(`${path}?${params.toString()}`);
   };
 
   const handleDateChange = (field: "start" | "end", value: string) => {
@@ -35,7 +36,7 @@ export function DateFilter({ preset, start, end }: DateFilterProps) {
     } else {
       params.delete(field);
     }
-    router.push(`/admin/partners?${params.toString()}`);
+    router.push(`${path}?${params.toString()}`);
   };
 
   return (
