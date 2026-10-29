@@ -80,7 +80,7 @@ export default async function Insights({ searchParams }: { searchParams: Promise
     sb.rpc("page_stats", { p_days: pDays }),
     sb.rpc("source_stats", { p_days: pDays }),
     sb.from("enquiries").select("created_at,status").limit(5000),
-    sb.from("page_views").select("created_at,visitor").gte("created_at", start).lte("created_at", endInclusive),
+    sb.from("page_views").select("created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive),
   ]);
   const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [], pageViews = pv ?? [];
 
@@ -115,6 +115,17 @@ export default async function Insights({ searchParams }: { searchParams: Promise
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const views = sources.reduce((a, s) => a + s.views, 0), visitors = sources.reduce((a, s) => a + s.visitors, 0);
+
+  // Visitor countries from page_views
+  const countryTotals = new Map<string, number>();
+  for (const v of pageViews) {
+    const c = v.country ?? "Unknown";
+    countryTotals.set(c, (countryTotals.get(c) ?? 0) + 1);
+  }
+  const countryRows = Array.from(countryTotals.entries())
+    .sort((a, b) => (b[1] as number) - (a[1] as number))
+    .map(([country, count]) => ({ country: country as string, count: count as number }));
+
   const recent = rows.filter(r => Date.now() - new Date(r.created_at).getTime() < pDays * 864e5);
   const booked = rows.filter(r => r.status === "booked").length;
   const lost = top(rows.filter(r => r.status === "lost"), "lost_reason");
@@ -147,6 +158,22 @@ export default async function Insights({ searchParams }: { searchParams: Promise
         </table></div> : <p className="meta">Nothing yet.</p>}
         <p className="meta">Add ?utm_source=tiktok (or instagram, whatsapp) to links you share, so each channel shows up by name.</p>
       </div>
+
+      <section style={{ marginBottom: 32 }}>
+        <h2>Visitor Countries</h2>
+        <div className="tbl"><table>
+          <thead><tr><th>Country</th><th>Visits</th><th>% of Total</th></tr></thead>
+          <tbody>
+            {countryRows.length > 0 ? countryRows.map(({ country, count }) => (
+              <tr key={country}>
+                <td>{country}</td>
+                <td>{count.toLocaleString()}</td>
+                <td>{((count / (views || 1)) * 100).toFixed(1)}%</td>
+              </tr>
+            )) : <tr><td colSpan={3} className="meta">No visitor country data yet.</td></tr>}
+          </tbody>
+        </table></div>
+      </section>
 
       <div className="form"><h3>Enquiries</h3>
         <p>{rows.length} total · {booked} booked ({pct(booked, rows.length)})</p>
