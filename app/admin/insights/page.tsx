@@ -53,6 +53,57 @@ function daysBetween(start: string, end: string): number {
 type Page = { path: string; views: number; visitors: number; enquiries: number };
 type Source = { channel: string; views: number; visitors: number };
 
+const COUNTRY_NAMES: Record<string, string> = {
+  AF: "Afghanistan", AL: "Albania", DZ: "Algeria", AD: "Andorra", AO: "Angola",
+  AR: "Argentina", AM: "Armenia", AU: "Australia", AT: "Austria", AZ: "Azerbaijan",
+  BS: "Bahamas", BH: "Bahrain", BD: "Bangladesh", BB: "Barbados", BY: "Belarus",
+  BE: "Belgium", BZ: "Belize", BJ: "Benin", BM: "Bermuda", BT: "Bhutan",
+  BO: "Bolivia", BA: "Bosnia and Herzegovina", BW: "Botswana", BR: "Brazil",
+  BN: "Brunei", BG: "Bulgaria", BF: "Burkina Faso", BI: "Burundi", CV: "Cabo Verde",
+  KH: "Cambodia", CM: "Cameroon", CA: "Canada", CF: "Central African Republic",
+  TD: "Chad", CL: "Chile", CN: "China", CO: "Colombia", KM: "Comoros",
+  CG: "Congo", CD: "Congo (Democratic Republic)", CR: "Costa Rica", CI: "Côte d'Ivoire",
+  HR: "Croatia", CU: "Cuba", CY: "Cyprus", CZ: "Czech Republic", DK: "Denmark",
+  DJ: "Djibouti", DM: "Dominica", DO: "Dominican Republic", EC: "Ecuador",
+  EG: "Egypt", SV: "El Salvador", GQ: "Equatorial Guinea", ER: "Eritrea",
+  EE: "Estonia", SZ: "Eswatini", ET: "Ethiopia", FJ: "Fiji", FI: "Finland",
+  FR: "France", GA: "Gabon", GM: "Gambia", GE: "Georgia", DE: "Germany",
+  GH: "Ghana", GR: "Greece", GT: "Guatemala", GN: "Guinea", GW: "Guinea-Bissau",
+  GY: "Guyana", HT: "Haiti", HN: "Honduras", HU: "Hungary", IS: "Iceland",
+  IN: "India", ID: "Indonesia", IR: "Iran", IQ: "Iraq", IE: "Ireland",
+  IL: "Israel", IT: "Italy", JM: "Jamaica", JP: "Japan", JO: "Jordan",
+  KZ: "Kazakhstan", KE: "Kenya", KI: "Kiribati", KP: "Korea (North)",
+  KR: "Korea (South)", KW: "Kuwait", KG: "Kyrgyzstan", LA: "Laos",
+  LV: "Latvia", LB: "Lebanon", LS: "Lesotho", LR: "Liberia", LY: "Libya",
+  LI: "Liechtenstein", LT: "Lithuania", LU: "Luxembourg", MG: "Madagascar",
+  MW: "Malawi", MY: "Malaysia", MV: "Maldives", ML: "Mali", MT: "Malta",
+  MH: "Marshall Islands", MR: "Mauritania", MU: "Mauritius", MX: "Mexico",
+  FM: "Micronesia", MD: "Moldova", MC: "Monaco", MN: "Mongolia", ME: "Montenegro",
+  MA: "Morocco", MZ: "Mozambique", MM: "Myanmar", NA: "Namibia", NR: "Nauru",
+  NP: "Nepal", NL: "Netherlands", NZ: "New Zealand", NI: "Nicaragua",
+  NE: "Niger", NG: "Nigeria", MK: "North Norway", NO: "Norway", OM: "Oman",
+  PK: "Pakistan", PW: "Palau", PA: "Panama", PG: "Papua New Guinea",
+  PY: "Paraguay", PE: "Peru", PH: "Philippines", PL: "Poland", PT: "Portugal",
+  QA: "Qatar", RO: "Romania", RU: "Russia", RW: "Rwanda", KN: "Saint Kitts and Nevis",
+  LC: "Saint Lucia", VC: "Saint Vincent and the Grenadines", WS: "Samoa",
+  SM: "San Marino", ST: "Sao Tome and Principe", SA: "Saudi Arabia", SN: "Senegal",
+  RS: "Serbia", SC: "Seychelles", SL: "Sierra Leone", SG: "Singapore",
+  SK: "Slovakia", SI: "Slovenia", SB: "Solomon Islands", SO: "Somalia",
+  ZA: "South Africa", SS: "South Sudan", ES: "Spain", LK: "Sri Lanka",
+  SD: "Sudan", SR: "Suriname", SE: "Sweden", CH: "Switzerland", SY: "Syria",
+  TW: "Taiwan", TJ: "Tajikistan", TZ: "Tanzania", TH: "Thailand", TL: "Timor-Leste",
+  TG: "Togo", TO: "Tonga", TT: "Trinidad and Tobago", TN: "Tunisia", TR: "Türkiye",
+  TM: "Turkmenistan", TV: "Tuvalu", UG: "Uganda", UA: "Ukraine", AE: "United Arab Emirates",
+  GB: "United Kingdom", US: "United States", UY: "Uruguay", UZ: "Uzbekistan",
+  VU: "Vanuatu", VA: "Vatican City", VE: "Venezuela", VN: "Vietnam",
+  YE: "Yemen", ZM: "Zambia", ZW: "Zimbabwe",
+};
+
+const countryName = (code: string | null | undefined) => {
+  if (!code) return "Unknown";
+  return COUNTRY_NAMES[code.toUpperCase()] || code;
+};
+
 const top = (rows: Record<string, unknown>[], key: string, n = 6): [string, number][] => {
   const c: Record<string, number> = {};
   rows.forEach(r => { const k = String(r[key] ?? "").trim() || "(none)"; c[k] = (c[k] ?? 0) + 1; });
@@ -76,13 +127,22 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const pDays = daysBetween(start, end);
 
   const endInclusive = end + "T23:59:59.999Z";
-  const [{ data: pg }, { data: src }, { data: enq }, { data: pv }] = await Promise.all([
+  const [{ data: pg }, { data: src }, { data: enq }] = await Promise.all([
     sb.rpc("page_stats", { p_days: pDays }),
     sb.rpc("source_stats", { p_days: pDays }),
     sb.from("enquiries").select("created_at,status").limit(5000),
-    sb.from("page_views").select("created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive),
   ]);
-  const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [], pageViews = pv ?? [];
+  const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [];
+
+  // Fetch page_views with country column (may not exist if migration 023 not applied yet)
+  let pageViews: { created_at: string; visitor: string; country?: string | null }[] = [];
+  try {
+    const { data } = await sb.from("page_views").select("created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
+    pageViews = data ?? [];
+  } catch {
+    const { data } = await sb.from("page_views").select("created_at,visitor").gte("created_at", start).lte("created_at", endInclusive);
+    pageViews = data ?? [];
+  }
 
   const dailyMap = new Map<string, { views: number; visitors: number; enquiries: number }>();
   const s = new Date(start + "T00:00:00");
@@ -114,17 +174,22 @@ export default async function Insights({ searchParams }: { searchParams: Promise
     .map(([date, v]) => ({ date, ...v }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const views = sources.reduce((a, s) => a + s.views, 0), visitors = sources.reduce((a, s) => a + s.visitors, 0);
+  const views = pageViews.length;
+  const visitorHashes = new Set(pageViews.map(v => v.visitor));
+  const visitors = visitorHashes.size;
 
   // Visitor countries from page_views
-  const countryTotals = new Map<string, number>();
+  const countryTotals = new Map<string, { views: number; visitors: Set<string> }>();
   for (const v of pageViews) {
     const c = v.country ?? "Unknown";
-    countryTotals.set(c, (countryTotals.get(c) ?? 0) + 1);
+    const existing = countryTotals.get(c) ?? { views: 0, visitors: new Set() };
+    existing.views += 1;
+    existing.visitors.add(v.visitor);
+    countryTotals.set(c, existing);
   }
   const countryRows = Array.from(countryTotals.entries())
-    .sort((a, b) => (b[1] as number) - (a[1] as number))
-    .map(([country, count]) => ({ country: country as string, count: count as number }));
+    .sort((a, b) => b[1].views - a[1].views)
+    .map(([country, v]) => ({ country: country as string, views: v.views, visitors: v.visitors.size }));
 
   const recent = rows.filter(r => Date.now() - new Date(r.created_at).getTime() < pDays * 864e5);
   const booked = rows.filter(r => r.status === "booked").length;
@@ -140,6 +205,15 @@ export default async function Insights({ searchParams }: { searchParams: Promise
       <p className="hook" style={{ marginBottom: 24 }}>
         Showing data from <strong>{formatDate(start)}</strong> to <strong>{formatDate(end)}</strong>: {views} views · {visitors} visitors · {recent.length} enquiries ({pct(recent.length, visitors)} of visitors)
       </p>
+
+      <section style={{ marginBottom: 24 }}>
+        <h2>Visitor Activity</h2>
+        <div className="cardstats">
+          <div className="stat"><strong>{views.toLocaleString()}</strong> Page Views</div>
+          <div className="stat"><strong>{visitors.toLocaleString()}</strong> Unique Visitors</div>
+          <div className="stat"><strong>{visitors > 0 ? (views / visitors).toFixed(1) : 0}</strong> Pages per Visitor</div>
+        </div>
+      </section>
 
       {trendData.length > 0 && <TrendChart data={trendData} start={start} end={end} />}
 
@@ -162,15 +236,17 @@ export default async function Insights({ searchParams }: { searchParams: Promise
       <section style={{ marginBottom: 32 }}>
         <h2>Visitor Countries</h2>
         <div className="tbl"><table>
-          <thead><tr><th>Country</th><th>Visits</th><th>% of Total</th></tr></thead>
+          <thead><tr><th>Country</th><th>Page Views</th><th>Visitors</th><th>Pages per Visitor</th><th>% of Total</th></tr></thead>
           <tbody>
-            {countryRows.length > 0 ? countryRows.map(({ country, count }) => (
+            {countryRows.length > 0 ? countryRows.map(({ country, views: cViews, visitors: cVisitors }) => (
               <tr key={country}>
-                <td>{country}</td>
-                <td>{count.toLocaleString()}</td>
-                <td>{((count / (views || 1)) * 100).toFixed(1)}%</td>
+                <td>{countryName(country)}</td>
+                <td>{cViews.toLocaleString()}</td>
+                <td>{cVisitors.toLocaleString()}</td>
+                <td>{cVisitors > 0 ? (cViews / cVisitors).toFixed(1) : 0}</td>
+                <td>{((cViews / (views || 1)) * 100).toFixed(1)}%</td>
               </tr>
-            )) : <tr><td colSpan={3} className="meta">No visitor country data yet.</td></tr>}
+            )) : <tr><td colSpan={5} className="meta">No visitor country data yet.</td></tr>}
           </tbody>
         </table></div>
       </section>

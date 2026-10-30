@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { db } from "@/lib/data";
+import { authClient } from "@/lib/supabase/server";
 
 const BOT = /bot|crawl|spider|slurp|preview|headless|monitor|lighthouse|curl|wget|facebookexternalhit/i;
 
@@ -11,6 +12,13 @@ export async function POST(req: Request) {
   try { b = await req.json(); } catch { return new Response(null, { status: 400 }); }
   const path = String(b.path ?? "").slice(0, 200);
   if (!path.startsWith("/") || path.startsWith("/admin") || path.startsWith("/api")) return new Response(null, { status: 204 });
+
+  // Never track views from logged-in admin users
+  try {
+    const sb = await authClient();
+    const { data: adminRow } = await sb.from("admins").select("user_id").maybeSingle();
+    if (adminRow) return new Response(null, { status: 204 });
+  } catch {}
 
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
   const day = new Date().toISOString().slice(0, 10);

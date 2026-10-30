@@ -10,9 +10,11 @@ interface TrendChartProps {
   end: string;
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function formatDay(dateStr: string) {
   const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
 export default function TrendChart({ data, start, end }: TrendChartProps) {
