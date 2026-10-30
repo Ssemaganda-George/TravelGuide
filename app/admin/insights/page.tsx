@@ -134,14 +134,17 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   ]);
   const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [];
 
+  // Exclude admin-touched paths from page stats
+  const nonAdminPages = pages.filter(p => !p.path.includes("/admin"));
+
   // Fetch page_views with country column (may not exist if migration 023 not applied yet)
-  let pageViews: { created_at: string; visitor: string; country?: string | null }[] = [];
+  let pageViews: { path: string; created_at: string; visitor: string; country?: string | null }[] = [];
   try {
-    const { data } = await sb.from("page_views").select("created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data ?? [];
+    const { data } = await sb.from("page_views").select("path,created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
+    pageViews = data?.filter(v => !v.path.includes("/admin")) ?? [];
   } catch {
-    const { data } = await sb.from("page_views").select("created_at,visitor").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data ?? [];
+    const { data } = await sb.from("page_views").select("path,created_at,visitor").gte("created_at", start).lte("created_at", endInclusive);
+    pageViews = data?.filter(v => !v.path.includes("/admin")) ?? [];
   }
 
   const dailyMap = new Map<string, { views: number; visitors: number; enquiries: number }>();
@@ -218,9 +221,9 @@ export default async function Insights({ searchParams }: { searchParams: Promise
       {trendData.length > 0 && <TrendChart data={trendData} start={start} end={end} />}
 
       <div className="form"><h3>Pages: views and enquiries</h3>
-        {pages.length ? <div className="tbl"><table>
+        {nonAdminPages.length ? <div className="tbl"><table>
           <thead><tr><th>Page</th><th>Views</th><th>Visitors</th><th>Enquiries</th><th>Enquiry rate</th></tr></thead>
-          <tbody>{pages.map(p => <tr key={p.path}><td>{p.path}</td><td>{p.views}</td><td>{p.visitors}</td><td>{p.enquiries}</td><td>{pct(p.enquiries, p.visitors)}</td></tr>)}</tbody>
+          <tbody>{nonAdminPages.map(p => <tr key={p.path}><td>{p.path}</td><td>{p.views}</td><td>{p.visitors}</td><td>{p.enquiries}</td><td>{pct(p.enquiries, p.visitors)}</td></tr>)}</tbody>
         </table></div> : <p className="meta">No views recorded yet. They appear once visitors open your pages.</p>}
         <p className="meta">Pages with many visitors but no enquiries need a clearer call to action. Pages with few visitors but good enquiry rates deserve more promotion.</p>
       </div>
