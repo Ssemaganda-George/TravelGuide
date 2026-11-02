@@ -8,8 +8,8 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="wrap">
-        <a href="/" className="brand" aria-label="Travel Guide - Home">
-          <img src="/logo/logo1.png" alt="Travel Guide" style={{ width: 180, height: "auto", borderRadius: "10px", padding: 6, display: "block", objectFit: "contain" }} />
+        <a href="/" className="brand" aria-label="Trip Insights - Home">
+          <img src="/logo/logo1.png" alt="Trip Insights" style={{ width: 180, height: "auto", borderRadius: "10px", padding: 6, display: "block", objectFit: "contain" }} />
         </a>
       </div>
     </header>

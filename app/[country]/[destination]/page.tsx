@@ -10,7 +10,7 @@ import Story from "@/components/Story";
 import { ViewTracker } from "@/components/ViewTracker";
 import DestinationHero from "@/components/DestinationHero";
 import HeaderStats from "@/components/HeaderStats";
-import { SITE, SITE_NAME } from "@/lib/site";
+import { SITE, SITE_NAME, absoluteUrl } from "@/lib/site";
 import { getCountry, getCountries, getDestinations, getActivities, getStays, getEngagementForPlaces, getRelatedDestinations, getViewCounts } from "@/lib/data";
 import { COUNTRY_REFERENCE_POINTS } from "@/lib/data";
 import { STAY_TIERS } from "@/lib/tiers";
@@ -99,30 +99,39 @@ export async function generateMetadata(p: P): Promise<Metadata> {
   if (!r) return {};
   const { c, d, coverImage } = r;
   const path = `/${c.slug}/${d.places.slug}`;
-  const absoluteUrl = `${SITE}${path}`;
+  const title = d.meta_title ?? `${d.title}, ${c.name}: travel guide | ${SITE_NAME}`;
+  const description = (
+    d.meta_description ??
+    (d.hook ??
+      `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`)
+  ).slice(0, 160);
+  const ogImage = coverImage
+    ? /^https?:\/\//i.test(coverImage)
+      ? coverImage
+      : coverImage.startsWith("/")
+        ? coverImage
+        : `/${coverImage}`
+    : "/logo/logo1.png";
 
   return {
-    title: d.meta_title ?? `${d.title}, ${c.name}: travel guide | ${SITE_NAME}`,
-    description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
-    alternates: { canonical: `${SITE}/${c.slug}/${d.places.slug}` },
+    title,
+    description,
+    // Path-relative so metadataBase resolves cleanly (no double-host / trailing-space bugs)
+    alternates: { canonical: path },
     openGraph: {
-      title: d.meta_title ?? `${d.title}, ${c.name}: travel guide | ${SITE_NAME}`,
-      description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
+      title,
+      description,
       type: "article",
-      siteName: "Trip Insights",
+      siteName: SITE_NAME,
       locale: "en_GB",
-      url: absoluteUrl,
-      images: coverImage
-        ? [{ url: (/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`), alt: d.title, width: 1200, height: 630 }]
-        : [{ url: `${SITE}/logo/logo1.png`, alt: d.title, width: 1200, height: 630 }],
+      url: path,
+      images: [{ url: ogImage, alt: d.title, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title: d.meta_title ?? `${d.title}, ${c.name}: travel guide, costs and local tips | ${SITE_NAME}`,
-      description: d.meta_description ?? (d.hook ?? `Discover ${d.title} in ${c.name}. Travel guide with real costs, best times, and local tips from a guide who takes people there.`).slice(0, 160),
-      images: coverImage
-        ? [/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`]
-        : [`${SITE}/logo/logo1.png`],
+      description,
+      images: [ogImage],
     },
     verification: {
       google: process.env.NEXT_PUBLIC_GSC_VERIFICATION,
@@ -150,24 +159,66 @@ const money = (lo: number | null, hi: number | null) => {
   return `from $${lo ?? hi}`;
 };
 
-function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: string, absoluteUrl: string, engagement: any, coverImage?: string | null) {
+function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: string, pageUrl: string, engagement: any, coverImage?: string | null) {
+  const countryPath = `/${c.slug}`;
+  const image =
+    coverImage
+      ? /^https?:\/\//i.test(coverImage)
+        ? coverImage
+        : absoluteUrl(coverImage.startsWith("/") ? coverImage : `/${coverImage}`)
+      : absoluteUrl("/logo/logo1.png");
+
+  const touristDestination: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "TouristDestination",
+    name: d.title,
+    description: d.hook,
+    url: pageUrl,
+    image,
+    touristType: d.tags ?? [],
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "UG",
+      addressRegion: d.region ?? undefined,
+    },
+  };
+
+  if (d.latitude && d.longitude) {
+    touristDestination.geo = {
+      "@type": "GeoCoordinates",
+      latitude: d.latitude,
+      longitude: d.longitude,
+    };
+  }
+
+  if (engagement.reviews > 0) {
+    touristDestination.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: engagement.avgRating,
+      reviewCount: engagement.reviews,
+      bestRating: 5,
+      worstRating: 1,
+    };
+  }
+
   const jsonLd: any[] = [
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "Trip Insights",
+      name: SITE_NAME,
       url: SITE,
-      logo: `${SITE}/favicon.svg`,
+      logo: absoluteUrl("/favicon.svg"),
       sameAs: [
         "https://instagram.com/tripinsights",
         "https://tiktok.com/@tripinsights",
-        "https://wa.me/256759918649"
+        "https://www.linkedin.com/company/trip-insights/",
+        "https://wa.me/256759918649",
       ],
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "Trip Insights",
+      name: SITE_NAME,
       url: SITE,
       potentialAction: {
         "@type": "SearchAction",
@@ -175,31 +226,14 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
         "query-input": "required name=search_term_string",
       },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "TouristDestination",
-      name: d.title,
-      description: d.hook,
-      url: `${SITE}/${d.places.slug}`,
-      image: coverImage ? (/^https?:\/\//i.test(coverImage) ? coverImage : `${SITE}${coverImage}`) : `${SITE}/logo/logo1.png`,
-      touristType: d.tags ?? [],
-      address: {
-        "@type": "PostalAddress",
-        addressCountry: d.region ? `${d.region}, Uganda` : "Uganda",
-      },
-      geo: d.latitude && d.longitude ? {
-        "@type": "GeoCoordinates",
-        latitude: d.latitude,
-        longitude: d.longitude,
-      } : undefined,
-    },
+    touristDestination,
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "Home", item: SITE },
-        { "@type": "ListItem", position: 2, name: d.places.name, item: `${SITE}/${d.places.slug}` },
-        { "@type": "ListItem", position: 3, name: d.title, item: `${SITE}/${d.places.slug}` },
+        { "@type": "ListItem", position: 2, name: c.name, item: absoluteUrl(countryPath) },
+        { "@type": "ListItem", position: 3, name: d.title, item: pageUrl },
       ],
     },
     {
@@ -207,20 +241,20 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
       "@type": "WebPage",
       name: d.title,
       description: d.hook,
-      url: `${SITE}/${d.places.slug}`,
-      isPartOf: { "@id": SITE },
+      url: pageUrl,
+      isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE },
       author: {
         "@type": "Person",
         name: "George",
-        url: `${SITE}/about`,
+        url: absoluteUrl("/about"),
         sameAs: [
           "https://instagram.com/tripinsights",
           "https://tiktok.com/@tripinsights",
         ],
       },
       datePublished: d.updated_at ?? undefined,
-      dateModified: d.updated_at ?? undefined,
-      about: d.title,
+      dateModified: d.last_checked ?? d.updated_at ?? undefined,
+      about: { "@type": "TouristDestination", name: d.title, url: pageUrl },
     },
   ];
 
@@ -244,29 +278,14 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
       "@context": "https://schema.org",
       "@type": "Person",
       name: d.tip_author,
-      url: `${SITE}/about`,
+      url: absoluteUrl("/about"),
       jobTitle: "Travel Guide",
       worksFor: {
         "@type": "Organization",
-        name: "Trip Insights",
+        name: SITE_NAME,
         url: SITE,
       },
       knowsAbout: [d.title, ...(d.tags ?? [])],
-    });
-  }
-
-  if (engagement.reviews > 0) {
-    jsonLd.push({
-      "@context": "https://schema.org",
-      "@type": "AggregateRating",
-      itemReviewed: {
-        "@type": "TouristDestination",
-        name: d.title,
-      },
-      ratingValue: engagement.avgRating,
-      reviewCount: engagement.reviews,
-      bestRating: "5",
-      worstRating: "1",
     });
   }
 
@@ -278,7 +297,7 @@ export default async function Destination(p: P) {
   if (!r) notFound();
   const { c, d, activities, stays, engagement, coverImage, related, viewCounts, duration_min, distance_km, allImages = [] } = r;
   const path = `/${c.slug}/${d.places.slug}`;
-  const absoluteUrl = `${SITE}${path}`;
+  const pageUrl = absoluteUrl(path);
   const facts = [
     ["Region", d.region], ["Best time", d.best_months], ["Budget", d.budget_range],
     ["Ideal stay", d.ideal_days && `${d.ideal_days} days`], ["Duration from capital", duration_min ? (() => { const h = Math.floor(duration_min / 60); const m = duration_min % 60; return h === 0 ? `${m} min` : m === 0 ? `${h} hr` : `${h} hr ${m} min`; })() : d.travel_time], ["Distance from capital", distance_km ? `${distance_km} km` : null], ["Last checked", d.last_checked],
@@ -348,7 +367,7 @@ export default async function Destination(p: P) {
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
 
   const otherStays = normalizedStays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
-  const jsonLd = generateJsonLd(d, c, activities, stays, path, `${SITE}${path}`, engagement, coverImage);
+  const jsonLd = generateJsonLd(d, c, activities, stays, path, pageUrl, engagement, coverImage);
   const hasMultipleH2 = (d.story?.match(/^## /gm) || []).length >= 3;
 
   return (
@@ -551,7 +570,7 @@ export default async function Destination(p: P) {
 
               {d.local_tip && (
                 <section className="tip local-tip" style={{ borderLeft: "4px solid var(--sun)", background: "var(--paper)", padding: "16px 20px", margin: "28px 0", borderRadius: "0 10px 10px 0" }}>
-                  <blockquote style={{ margin: "0 0 8px 0", paddingLeft: 12, borderLeft: "3px solid var(--sun)", fontStyle: "italic", color: "var(--ink)" }} cite={`${SITE}/${c.slug}/${d.places.slug}`}>
+                  <blockquote style={{ margin: "0 0 8px 0", paddingLeft: 12, borderLeft: "3px solid var(--sun)", fontStyle: "italic", color: "var(--ink)" }} cite={pageUrl}>
                     {d.local_tip}
                   </blockquote>
                   <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>

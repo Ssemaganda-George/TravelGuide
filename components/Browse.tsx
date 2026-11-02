@@ -273,7 +273,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
             <a href={`/${country}/${i.places.slug}`} className="cardlink">
               <div className="cardmedia">
                 {coverUrl ? (
-                  <img src={coverUrl} alt="" loading="lazy" />
+                  <img src={coverUrl} alt={`${i.title} in ${country}`} loading="lazy" />
                 ) : (
                   <div className="cardplaceholder">📍</div>
                 )}

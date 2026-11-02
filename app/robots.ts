@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { SITE } from "@/lib/data";
+import { absoluteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,10 +10,11 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: "OAI-SearchBot", allow: "/", disallow: ["/admin", "/api"] },
       { userAgent: "ChatGPT-User", allow: "/", disallow: ["/admin", "/api"] },
       { userAgent: "ClaudeBot", allow: "/", disallow: ["/admin", "/api"] },
+      { userAgent: "Claude-SearchBot", allow: "/", disallow: ["/admin", "/api"] },
       { userAgent: "PerplexityBot", allow: "/", disallow: ["/admin", "/api"] },
       { userAgent: "Google-Extended", allow: "/", disallow: ["/admin", "/api"] },
       { userAgent: "*", allow: "/", disallow: ["/admin", "/api"] },
     ],
-    sitemap: `${SITE}/sitemap.xml`,
+    sitemap: absoluteUrl("/sitemap.xml"),
   };
 }

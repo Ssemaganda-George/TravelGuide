@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Search, ArrowRight, Map, List } from "lucide-react";
 
 const SCENES = [
-  { title: "Discover Uganda’s Most Amazing Destinations", sub: "Mountain lakes, misty peaks, and backpacker trails.", bg: "linear-gradient(135deg,#1e3a2f 0%,#2d5a3d 40%,#6b8e5a 100%)" },
+  { title: "Discover Uganda’s Most Amazing Destinations", sub: "Honest guides for diaspora and travellers abroad — costs, timing, and local tips.", bg: "linear-gradient(135deg,#1e3a2f 0%,#2d5a3d 40%,#6b8e5a 100%)" },
   { title: "Real Places. Real Stories.", sub: "Encounter mountain gorillas in lush ancient forest.", bg: "linear-gradient(135deg,#0b2e1f 0%,#1f4d33 45%,#3f7a4a 100%)" },
   { title: "Plan Smarter. Travel Better.", sub: "Golden sunsets over still waters.", bg: "linear-gradient(135deg,#3a2a10 0%,#7a5a1f 40%,#c9a227 100%)" },
   { title: "Every Journey Starts with Curiosity", sub: "Scenic mountain roads and safari vehicles await.", bg: "linear-gradient(135deg,#1a2533 0%,#2e4a6b 45%,#6b8fa3 100%)" },
@@ -40,7 +40,7 @@ export default function Hero({ country = "uganda", search = "", setSearch, tag =
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,.55))" }} />
       <nav style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ width: 200, maxWidth: "65vw" }}>
-          <img src="/logo/logo1.png" alt="Travel Guide" style={{ width: "100%", height: "auto", borderRadius: "10px", padding: 8, display: "block", objectFit: "contain" }} />
+          <img src="/logo/logo1.png" alt="Trip Insights" style={{ width: "100%", height: "auto", borderRadius: "10px", padding: 8, display: "block", objectFit: "contain" }} />
         </div>
         <div style={{ width: 180 }} />
       </nav>

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import Browse from "@/components/Browse";
 import { getActivitiesForPlaces, getCountry, getDestinations, getEngagementForPlaces, getStaysCounts, getStays, getViewCounts } from "@/lib/data";
-import { SITE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
+import { SITE_NAME } from "@/lib/site";
 
 export const revalidate = 3600; // regenerate at most hourly, no redeploy needed after content edits
 
@@ -12,29 +12,29 @@ type P = { params: Promise<{ country: string }>; searchParams?: Promise<{ [key: 
 export async function generateMetadata({ params, searchParams }: P): Promise<Metadata> {
   const c = await getCountry((await params).country);
   if (!c) return {};
-  const ogImage = `${SITE}/logo/logo1.png`;
+  const path = `/${c.slug}`;
   const sp = (await searchParams) ?? {};
   const hasFilters = Boolean(sp.destination || sp.tag || sp.q);
   const title = `${c.name} Travel Guide: Best Time to Visit, Costs & Local Tips | ${SITE_NAME}`;
-  const description = `Honest travel times, rough costs and local tips for ${c.name}. Gorilla trekking, Jinja, Murchison Falls and more from a Kampala-based guide.`;
+  const description = `Honest travel times, rough costs and local tips for ${c.name} — for diaspora and travellers abroad. Gorilla trekking, Jinja, Murchison Falls and more from a Kampala-based guide.`;
   return {
     title,
     description,
-    alternates: { canonical: `${SITE}/${c.slug}` },
+    alternates: { canonical: path },
     openGraph: {
       title,
       description,
       type: "website",
       locale: "en_GB",
-      url: `${SITE}/${c.slug}`,
+      url: path,
       siteName: SITE_NAME,
-      images: [{ url: `${SITE}/logo/logo1.png`, width: 1200, height: 630, alt: `${c.name} travel guides` }],
+      images: [{ url: "/logo/logo1.png", width: 1200, height: 630, alt: `${c.name} travel guides` }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [`${SITE}/logo/logo1.png`],
+      images: ["/logo/logo1.png"],
     },
     robots: hasFilters ? { index: false, follow: true } : { index: true, follow: true },
   };

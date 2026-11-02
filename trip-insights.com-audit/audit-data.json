@@ -1,0 +1,239 @@
+{
+  "summary": {
+    "health_score": 45,
+    "business_type": "publisher / travel guide (Uganda destination guides + enquiry CTA)",
+    "audience_target": "diaspora travelers + global tourism searchers",
+    "top_findings": [
+      "Production NEXT_PUBLIC_SITE_URL has a trailing space, poisoning sitemap, robots, canonicals, OG/Twitter, and JSON-LD",
+      "Google/Bing site: queries show no indexed coverage for trip-insights.com",
+      "Canonical and og:url resolve to double-prefixed garbage URLs",
+      "Strong destination content (E-E-A-T) but almost no diaspora-intent pages",
+      "Brand collision risk with trip-insight.com (Japan tours)"
+    ],
+    "quick_wins": [
+      "Trim NEXT_PUBLIC_SITE_URL in Vercel env and redeploy",
+      "Resubmit clean sitemap in Google Search Console",
+      "Rewrite homepage title/meta for Uganda travel + diaspora intent",
+      "Add alt text to destination card images",
+      "Publish one diaspora pillar: EAC/citizen rates, homecoming itineraries, flying-in from UK/US/UAE"
+    ]
+  },
+  "categories": [
+    {
+      "name": "Technical SEO",
+      "score": 28,
+      "what_works": [
+        "HTTPS + HSTS",
+        "robots.txt allows Googlebot and major AI search crawlers",
+        "Next.js prerender for destination pages (Vercel HIT)",
+        "Privacy + Terms present"
+      ],
+      "findings": [
+        {
+          "title": "Trailing space in SITE_URL breaks discovery",
+          "severity": "Critical",
+          "description": "Live robots.txt declares Sitemap: https://trip-insights.com /sitemap.xml. Every sitemap <loc> includes a space after the host. This matches NEXT_PUBLIC_SITE_URL with a trailing space in production.",
+          "recommendation": "Set NEXT_PUBLIC_SITE_URL=https://trip-insights.com (no trailing slash or space), trim in lib/site.ts as defense-in-depth, redeploy, validate sitemap locs."
+        },
+        {
+          "title": "Canonical and Open Graph URLs are invalid",
+          "severity": "Critical",
+          "description": "Destination pages emit canonical/og:url like https://trip-insights.com/https:/trip-insights.com%20/uganda/bwindi-buhoma because Next metadataBase concatenates onto a broken absolute URL.",
+          "recommendation": "Fix SITE_URL, then verify canonical equals https://trip-insights.com/uganda/{slug} with no double host."
+        },
+        {
+          "title": "Near-zero search index coverage",
+          "severity": "Critical",
+          "description": "site:trip-insights.com returned no usable Google or Bing results at audit time. Broken sitemap/canonicals are the leading hypothesis.",
+          "recommendation": "After URL fix: GSC property verify, submit sitemap, Inspect URL for homepage + Bwindi, request indexing."
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "score": 68,
+      "what_works": [
+        "Destination guides are deep, firsthand, dated (last checked), with local tips attributed (e.g. Winnie)",
+        "About page names George (Kampala-based guide) and Winnie (editor) — strong Who/How/Why",
+        "Practical logistics: sectors, permits, packing, stays by budget, food, FAQs"
+      ],
+      "findings": [
+        {
+          "title": "Diaspora search intent is underserved",
+          "severity": "High",
+          "description": "Competitors already rank for Ugandan diaspora safaris, EAC citizen gorilla rates, and African diaspora tourism. Trip Insights content reads as general traveler guides, not returnee/diaspora planning.",
+          "recommendation": "Add a /guides/diaspora (or similar) hub covering passport/citizen rates, typical trip lengths from UK/US/UAE/Canada, family + safari combos, and WhatsApp planning CTA."
+        },
+        {
+          "title": "Homepage is a destination grid, not a brand/SEO entry",
+          "severity": "Medium",
+          "description": "H1 focuses on Uganda destinations but title/meta stay generic. Thin for brand queries and tourism head terms.",
+          "recommendation": "Add a short intro block targeting Uganda travel planning for visitors abroad; keep the grid as the visual browse layer."
+        }
+      ]
+    },
+    {
+      "name": "On-Page SEO",
+      "score": 35,
+      "what_works": [
+        "Destination titles are keyword-rich (e.g. Bwindi gorillas stays tips)",
+        "Destination meta descriptions are specific and useful",
+        "robots index,follow on public pages"
+      ],
+      "findings": [
+        {
+          "title": "Homepage title/description lack tourism keywords",
+          "severity": "High",
+          "description": "Title is only 'Trip Insights'. Description is 'Best travel times, rough costs and local tips for every destination.' — no Uganda, safari, diaspora, or gorilla terms.",
+          "recommendation": "Example: 'Uganda Travel Guides for Diaspora & Global Travellers | Trip Insights' + meta naming costs, best times, gorilla/wildlife planning."
+        },
+        {
+          "title": "Brand confusion with trip-insight.com",
+          "severity": "Medium",
+          "description": "Web search for brand-like queries surfaces the Japan operator trip-insight.com (singular). Your plural domain is invisible.",
+          "recommendation": "Strengthen unique brand phrases: 'Trip Insights Uganda', Kampala-based guide George, consistent NAP/sameAs; consider Organization schema + Wikipedia/LinkedIn entity clarity."
+        }
+      ]
+    },
+    {
+      "name": "Schema / Structured Data",
+      "score": 40,
+      "what_works": [
+        "Destination pages emit Organization, WebSite, TouristDestination, BreadcrumbList, WebPage, optional FAQPage/Person"
+      ],
+      "findings": [
+        {
+          "title": "All schema URLs inherit the trailing space",
+          "severity": "High",
+          "description": "JSON-LD url/logo/item fields use https://trip-insights.com /… which validators treat as invalid.",
+          "recommendation": "Fix SITE_URL; retest with Rich Results Test / Schema Validator."
+        },
+        {
+          "title": "TouristDestination and breadcrumb paths omit /uganda",
+          "severity": "Medium",
+          "description": "Schema url uses SITE/slug instead of SITE/uganda/slug; breadcrumbs duplicate place names incorrectly.",
+          "recommendation": "Align schema URLs with real routes; Home → Uganda → Destination."
+        }
+      ]
+    },
+    {
+      "name": "Performance (CWV)",
+      "score": 55,
+      "what_works": [
+        "Destination HTML is prerendered and CDN-cached on Vercel",
+        "Images use loading=lazy on homepage cards",
+        "Font preload present"
+      ],
+      "findings": [
+        {
+          "title": "PageSpeed API quota exhausted — lab CWV not measured",
+          "severity": "Info",
+          "description": "Google PageSpeed Insights API returned 429; field CrUX not available without GSC/API credentials.",
+          "recommendation": "Run PSI manually for mobile LCP/INP/CLS after the URL fix; prefer field data in GSC."
+        },
+        {
+          "title": "Homepage Cache-Control: private, no-store",
+          "severity": "Low",
+          "description": "Homepage is not CDN-cacheable like destination pages, which can hurt TTFB for crawlers and users.",
+          "recommendation": "Align home with ISR/public cache where personalization is not required."
+        }
+      ]
+    },
+    {
+      "name": "AI Search Readiness",
+      "score": 50,
+      "what_works": [
+        "GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot, Google-Extended allowed",
+        "Destination prose is highly citable (facts, FAQs, dates, named local tip)"
+      ],
+      "findings": [
+        {
+          "title": "Brand invisibility limits AI citations",
+          "severity": "High",
+          "description": "AI Overviews/ChatGPT cite entities they already know. Zero index + weak brand mentions means low citation odds despite good guide copy.",
+          "recommendation": "Fix indexation first; then earn mentions on diaspora travel forums, LinkedIn, YouTube destination shorts."
+        },
+        {
+          "title": "No llms.txt / missing Claude-SearchBot rule",
+          "severity": "Low",
+          "description": "llms.txt is not a Google ranking factor; optional for agent discovery. Claude-SearchBot not listed separately from ClaudeBot.",
+          "recommendation": "Optional: add Claude-SearchBot allow; add llms.txt summarizing destinations after crawl works."
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "score": 25,
+      "what_works": [
+        "Destination photography is real/on-theme (not stock-generic)",
+        "Lazy loading on listing images"
+      ],
+      "findings": [
+        {
+          "title": "Homepage destination images have empty alt",
+          "severity": "High",
+          "description": "13/13 homepage <img> tags audited had empty or missing meaningful alt (logo says 'Travel Guide' not Trip Insights).",
+          "recommendation": "Alt = destination name + activity cue, e.g. 'Mountain gorillas in Bwindi Impenetrable National Park'."
+        },
+        {
+          "title": "OG image URL broken",
+          "severity": "Critical",
+          "description": "og:image and twitter:image point to https://trip-insights.com/https:/trip-insights.com%20/logo/logo1.png",
+          "recommendation": "After SITE_URL trim, use absolute https://trip-insights.com/logo/logo1.png or a proper 1200x630 social card."
+        },
+        {
+          "title": "Double file extensions in media filenames",
+          "severity": "Low",
+          "description": "URLs like .jpg.jpg and .webp.webp from Supabase storage.",
+          "recommendation": "Normalize upload pipeline to single extension."
+        }
+      ]
+    }
+  ],
+  "action_plan": {
+    "phases": [
+      {
+        "name": "Phase 1: Critical Fixes",
+        "timeframe": "Week 1",
+        "items": [
+          "Trim/fix NEXT_PUBLIC_SITE_URL in Vercel; add .trim() in lib/site.ts",
+          "Redeploy; verify robots sitemap URL and all sitemap locs",
+          "Verify canonical + og:url + og:image on home and one destination",
+          "Submit sitemap + request indexing in Google Search Console"
+        ]
+      },
+      {
+        "name": "Phase 2: High-Impact Improvements",
+        "timeframe": "Weeks 2-3",
+        "items": [
+          "Rewrite homepage title/meta for Uganda + diaspora/global travellers",
+          "Fix schema paths (/uganda/slug) and breadcrumb hierarchy",
+          "Add meaningful image alts sitewide",
+          "Publish diaspora pillar page + internal links from destinations"
+        ]
+      },
+      {
+        "name": "Phase 3: Content & Authority",
+        "timeframe": "Month 2",
+        "items": [
+          "Cluster content: gorilla permits (citizen vs tourist), Entebbe logistics, family homecoming itineraries",
+          "Build brand mentions (LinkedIn company, YouTube, diaspora communities)",
+          "Expand beyond Uganda only when first country is ranking"
+        ]
+      },
+      {
+        "name": "Phase 4: Monitoring & Iteration",
+        "timeframe": "Ongoing",
+        "items": [
+          "Track GSC impressions for diaspora/Uganda queries",
+          "Monitor index coverage and canonical errors",
+          "Re-run PSI for mobile CWV after media/alt pass"
+        ]
+      }
+    ]
+  },
+  "artifacts": {
+    "findings_dir": "findings/",
+    "screenshots_dir": "screenshots/"
+  }
+}
