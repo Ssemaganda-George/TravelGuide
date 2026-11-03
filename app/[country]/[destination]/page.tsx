@@ -159,7 +159,7 @@ const money = (lo: number | null, hi: number | null) => {
   return `from $${lo ?? hi}`;
 };
 
-function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: string, pageUrl: string, engagement: any, coverImage?: string | null) {
+function generateJsonLd(d: any, c: any, _activities: any[], _stays: any[], _path: string, pageUrl: string, coverImage?: string | null) {
   const countryPath = `/${c.slug}`;
   const image =
     coverImage
@@ -191,15 +191,8 @@ function generateJsonLd(d: any, c: any, activities: any[], stays: any[], path: s
     };
   }
 
-  if (engagement.reviews > 0) {
-    touristDestination.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: engagement.avgRating,
-      reviewCount: engagement.reviews,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
+  // No AggregateRating/Review here: Google only supports review snippets on
+  // types like Product, LocalBusiness, Organization — not TouristDestination.
 
   const jsonLd: any[] = [
     {
@@ -367,7 +360,7 @@ export default async function Destination(p: P) {
   const paras = (s: string | null) => (s ?? "").split(/\n\n+/).map(x => x.trim()).filter(Boolean);
 
   const otherStays = normalizedStays.filter(s => !s.tier || !STAY_TIERS.some(([k]) => k === s.tier));
-  const jsonLd = generateJsonLd(d, c, activities, stays, path, pageUrl, engagement, coverImage);
+  const jsonLd = generateJsonLd(d, c, activities, stays, path, pageUrl, coverImage);
   const hasMultipleH2 = (d.story?.match(/^## /gm) || []).length >= 3;
 
   return (
