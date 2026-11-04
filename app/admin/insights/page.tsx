@@ -137,17 +137,17 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   ]);
   const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [];
 
-  // Exclude admin-touched paths from page stats
-  const nonAdminPages = pages.filter(p => !p.path.includes("/admin"));
+  // Exclude admin-touched paths from page stats (case-insensitive)
+  const nonAdminPages = pages.filter(p => !p.path.toLowerCase().includes("/admin"));
 
   // Fetch page_views with country column (may not exist if migration 023 not applied yet)
   let pageViews: { path: string; created_at: string; visitor: string; country?: string | null }[] = [];
   try {
     const { data } = await sb.from("page_views").select("path,created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data?.filter(v => !v.path.includes("/admin")) ?? [];
+    pageViews = data?.filter(v => !v.path.toLowerCase().includes("/admin")) ?? [];
   } catch {
     const { data } = await sb.from("page_views").select("path,created_at,visitor").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data?.filter(v => !v.path.includes("/admin")) ?? [];
+    pageViews = data?.filter(v => !v.path.toLowerCase().includes("/admin")) ?? [];
   }
 
   const dailyMap = new Map<string, { views: number; visitors: number; enquiries: number }>();
