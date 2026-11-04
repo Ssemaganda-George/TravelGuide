@@ -181,12 +181,12 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
   ]);
   const actsWithProviders = ((activities ?? []) as unknown as any[]).map((a: any) => ({ ...a, providers: [] })) as Activity[];
   return (
-    <div className="wrap page" style={{ padding: "16px" }}>
+    <div className="admin-content-editor mx-auto w-full max-w-5xl min-w-0 space-y-4 py-2">
       <Link className="back" href="/admin/content">Back to content</Link>
       <h1>Edit {d.title}</h1>
       {error && <p className="msg" role="alert">{error}</p>}
       <p className="hook">Everything on the public page comes from this form. Save once when you are done.</p>
-      <form className="form" action={saveContent}>
+      <form className="editor-form rounded-xl border bg-card p-5 sm:p-8" action={saveContent}>
         <input type="hidden" name="id" value={d.id} />
         <input type="hidden" name="place_id" value={d.places.id} />
 

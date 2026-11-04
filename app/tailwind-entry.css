@@ -183,3 +183,31 @@ body:has([data-admin-shell]) {
 [data-admin-shell] a[href] { min-height: 0; }
 [data-admin-shell] select { width: 100%; height: 2.25rem; padding: 0 .75rem; border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--background); }
 [data-admin-shell] textarea#po { width: 100%; min-height: 6rem; padding: .75rem; border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--background); }
+
+/* Native fields in the destination editor need their own layout after the admin reset. */
+.admin-content-editor .editor-form { display: flex; min-width: 0; flex-direction: column; gap: 2rem; }
+.admin-content-editor .fsec { min-width: 0; margin: 0; padding: 0; border: 0; }
+.admin-content-editor .fsec + .fsec { padding-top: 2rem; border-top: 1px solid var(--border); }
+.admin-content-editor .fsec h3 { margin: 0 0 1.25rem; font-size: 1.125rem; font-weight: 600; }
+.admin-content-editor .fsec label { display: block; margin: 1rem 0 .5rem; font-size: .875rem; font-weight: 500; }
+.admin-content-editor .fsec :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: .625rem .75rem;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-md);
+  background: var(--background);
+  color: var(--foreground);
+  line-height: 1.5;
+}
+.admin-content-editor .fsec input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+.admin-content-editor .fsec select { min-height: 2.5rem; }
+.admin-content-editor .fsec textarea { min-height: 7rem; resize: vertical; }
+.admin-content-editor .fsec textarea#story { min-height: 18rem; }
+.admin-content-editor .fsec .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem 1.5rem; }
+.admin-content-editor .fsec .row2 > * { min-width: 0; }
+.admin-content-editor .fsec .hint { margin: .5rem 0 0; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.5; }
+@media (max-width: 640px) {
+  .admin-content-editor .fsec .row2 { grid-template-columns: minmax(0, 1fr); }
+}
