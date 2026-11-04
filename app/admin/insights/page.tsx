@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { admin } from "@/lib/admin";
+import { countryDisplayName } from "@/lib/geo";
+import { getSearchConsoleStats } from "@/lib/gsc";
 import { DateFilter } from "@/components/DateFilter";
 import TrendChart from "@/components/TrendChart";
 import { Badge } from "@/components/ui/badge";
@@ -56,56 +58,17 @@ function daysBetween(start: string, end: string): number {
 type Page = { path: string; views: number; visitors: number; enquiries: number };
 type Source = { channel: string; views: number; visitors: number };
 
-const COUNTRY_NAMES: Record<string, string> = {
-  AF: "Afghanistan", AL: "Albania", DZ: "Algeria", AD: "Andorra", AO: "Angola",
-  AR: "Argentina", AM: "Armenia", AU: "Australia", AT: "Austria", AZ: "Azerbaijan",
-  BS: "Bahamas", BH: "Bahrain", BD: "Bangladesh", BB: "Barbados", BY: "Belarus",
-  BE: "Belgium", BZ: "Belize", BJ: "Benin", BM: "Bermuda", BT: "Bhutan",
-  BO: "Bolivia", BA: "Bosnia and Herzegovina", BW: "Botswana", BR: "Brazil",
-  BN: "Brunei", BG: "Bulgaria", BF: "Burkina Faso", BI: "Burundi", CV: "Cabo Verde",
-  KH: "Cambodia", CM: "Cameroon", CA: "Canada", CF: "Central African Republic",
-  TD: "Chad", CL: "Chile", CN: "China", CO: "Colombia", KM: "Comoros",
-  CG: "Congo", CD: "Congo (Democratic Republic)", CR: "Costa Rica", CI: "Côte d'Ivoire",
-  HR: "Croatia", CU: "Cuba", CY: "Cyprus", CZ: "Czech Republic", DK: "Denmark",
-  DJ: "Djibouti", DM: "Dominica", DO: "Dominican Republic", EC: "Ecuador",
-  EG: "Egypt", SV: "El Salvador", GQ: "Equatorial Guinea", ER: "Eritrea",
-  EE: "Estonia", SZ: "Eswatini", ET: "Ethiopia", FJ: "Fiji", FI: "Finland",
-  FR: "France", GA: "Gabon", GM: "Gambia", GE: "Georgia", DE: "Germany",
-  GH: "Ghana", GR: "Greece", GT: "Guatemala", GN: "Guinea", GW: "Guinea-Bissau",
-  GY: "Guyana", HT: "Haiti", HN: "Honduras", HU: "Hungary", IS: "Iceland",
-  IN: "India", ID: "Indonesia", IR: "Iran", IQ: "Iraq", IE: "Ireland",
-  IL: "Israel", IT: "Italy", JM: "Jamaica", JP: "Japan", JO: "Jordan",
-  KZ: "Kazakhstan", KE: "Kenya", KI: "Kiribati", KP: "Korea (North)",
-  KR: "Korea (South)", KW: "Kuwait", KG: "Kyrgyzstan", LA: "Laos",
-  LV: "Latvia", LB: "Lebanon", LS: "Lesotho", LR: "Liberia", LY: "Libya",
-  LI: "Liechtenstein", LT: "Lithuania", LU: "Luxembourg", MG: "Madagascar",
-  MW: "Malawi", MY: "Malaysia", MV: "Maldives", ML: "Mali", MT: "Malta",
-  MH: "Marshall Islands", MR: "Mauritania", MU: "Mauritius", MX: "Mexico",
-  FM: "Micronesia", MD: "Moldova", MC: "Monaco", MN: "Mongolia", ME: "Montenegro",
-  MA: "Morocco", MZ: "Mozambique", MM: "Myanmar", NA: "Namibia", NR: "Nauru",
-  NP: "Nepal", NL: "Netherlands", NZ: "New Zealand", NI: "Nicaragua",
-  NE: "Niger", NG: "Nigeria", MK: "North Norway", NO: "Norway", OM: "Oman",
-  PK: "Pakistan", PW: "Palau", PA: "Panama", PG: "Papua New Guinea",
-  PY: "Paraguay", PE: "Peru", PH: "Philippines", PL: "Poland", PT: "Portugal",
-  QA: "Qatar", RO: "Romania", RU: "Russia", RW: "Rwanda", KN: "Saint Kitts and Nevis",
-  LC: "Saint Lucia", VC: "Saint Vincent and the Grenadines", WS: "Samoa",
-  SM: "San Marino", ST: "Sao Tome and Principe", SA: "Saudi Arabia", SN: "Senegal",
-  RS: "Serbia", SC: "Seychelles", SL: "Sierra Leone", SG: "Singapore",
-  SK: "Slovakia", SI: "Slovenia", SB: "Solomon Islands", SO: "Somalia",
-  ZA: "South Africa", SS: "South Sudan", ES: "Spain", LK: "Sri Lanka",
-  SD: "Sudan", SR: "Suriname", SE: "Sweden", CH: "Switzerland", SY: "Syria",
-  TW: "Taiwan", TJ: "Tajikistan", TZ: "Tanzania", TH: "Thailand", TL: "Timor-Leste",
-  TG: "Togo", TO: "Tonga", TT: "Trinidad and Tobago", TN: "Tunisia", TR: "Türkiye",
-  TM: "Turkmenistan", TV: "Tuvalu", UG: "Uganda", UA: "Ukraine", AE: "United Arab Emirates",
-  GB: "United Kingdom", US: "United States", UY: "Uruguay", UZ: "Uzbekistan",
-  VU: "Vanuatu", VA: "Vatican City", VE: "Venezuela", VN: "Vietnam",
-  YE: "Yemen", ZM: "Zambia", ZW: "Zimbabwe",
+const gscPageLabel = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.pathname || "/";
+  } catch {
+    return url;
+  }
 };
 
-const countryName = (code: string | null | undefined) => {
-  if (!code) return "Unknown";
-  return COUNTRY_NAMES[code.toUpperCase()] || code;
-};
+const fmtCtr = (ctr: number) => `${(ctr * 100).toFixed(1)}%`;
+const fmtPos = (position: number) => (position > 0 ? position.toFixed(1) : "—");
 
 const top = (rows: Record<string, unknown>[], key: string, n = 6): [string, number][] => {
   const c: Record<string, number> = {};
@@ -130,24 +93,28 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const pDays = daysBetween(start, end);
 
   const endInclusive = end + "T23:59:59.999Z";
-  const [{ data: pg }, { data: src }, { data: enq }] = await Promise.all([
+  const [{ data: pg }, { data: src }, { data: enq }, gsc] = await Promise.all([
     sb.rpc("page_stats", { p_days: pDays }),
     sb.rpc("source_stats", { p_days: pDays }),
     sb.from("enquiries").select("created_at,status").limit(5000),
+    getSearchConsoleStats({ start, end }),
   ]);
   const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [];
 
   // Exclude admin-touched paths from page stats (case-insensitive)
   const nonAdminPages = pages.filter(p => !p.path.toLowerCase().includes("/admin"));
 
-  // Fetch page_views with country column (may not exist if migration 023 not applied yet)
+  // Fetch page_views — only rows with a real country (unknowns are purged and no longer recorded)
+  const isKnownCountry = (code: string | null | undefined) => {
+    const c = (code ?? "").trim().toUpperCase();
+    return /^[A-Z]{2}$/.test(c) && c !== "XX" && c !== "T1";
+  };
   let pageViews: { path: string; created_at: string; visitor: string; country?: string | null }[] = [];
   try {
     const { data } = await sb.from("page_views").select("path,created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data?.filter(v => !v.path.toLowerCase().includes("/admin")) ?? [];
+    pageViews = (data ?? []).filter(v => !v.path.toLowerCase().includes("/admin") && isKnownCountry(v.country));
   } catch {
-    const { data } = await sb.from("page_views").select("path,created_at,visitor").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = data?.filter(v => !v.path.toLowerCase().includes("/admin")) ?? [];
+    pageViews = [];
   }
 
   const dailyMap = new Map<string, { views: number; visitors: number; enquiries: number }>();
@@ -184,10 +151,11 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const visitorHashes = new Set(pageViews.map(v => v.visitor));
   const visitors = visitorHashes.size;
 
-  // Visitor countries from page_views
+  // Visitor countries — only real ISO codes (no Unknown / null / XX)
   const countryTotals = new Map<string, { views: number; visitors: Set<string> }>();
   for (const v of pageViews) {
-    const c = v.country ?? "Unknown";
+    const c = (v.country ?? "").trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(c) || c === "XX" || c === "T1") continue;
     const existing = countryTotals.get(c) ?? { views: 0, visitors: new Set() };
     existing.views += 1;
     existing.visitors.add(v.visitor);
@@ -195,7 +163,8 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   }
   const countryRows = Array.from(countryTotals.entries())
     .sort((a, b) => b[1].views - a[1].views)
-    .map(([country, v]) => ({ country: country as string, views: v.views, visitors: v.visitors.size }));
+    .map(([country, v]) => ({ country, views: v.views, visitors: v.visitors.size }));
+  const knownViews = countryRows.reduce((s, r) => s + r.views, 0);
 
   const recent = rows.filter(r => Date.now() - new Date(r.created_at).getTime() < pDays * 864e5);
   const booked = rows.filter(r => r.status === "booked").length;
@@ -230,21 +199,153 @@ export default async function Insights({ searchParams }: { searchParams: Promise
         <p className="text-sm text-muted-foreground">Add a source parameter to shared links so each channel appears by name.</p>
       </CardContent></Card>
 
-      <Card><CardHeader><CardTitle>Visitor countries</CardTitle></CardHeader><CardContent>
+      <Card><CardHeader><CardTitle>Visitor countries</CardTitle><CardDescription>On-site page views by country (CDN geo, with IP lookup fallback). Localhost is not counted.</CardDescription></CardHeader><CardContent>
         <Table><TableHeader><TableRow><TableHead>Country</TableHead><TableHead>Page views</TableHead><TableHead>Visitors</TableHead><TableHead>Pages per visitor</TableHead><TableHead>% of total</TableHead></TableRow></TableHeader>
           <TableBody>
             {countryRows.length > 0 ? countryRows.map(({ country, views: cViews, visitors: cVisitors }) => (
               <TableRow key={country}>
-                <TableCell className="font-medium">{countryName(country)}</TableCell>
+                <TableCell className="font-medium">{countryDisplayName(country)}</TableCell>
                 <TableCell>{cViews.toLocaleString()}</TableCell>
                 <TableCell>{cVisitors.toLocaleString()}</TableCell>
                 <TableCell>{cVisitors > 0 ? (cViews / cVisitors).toFixed(1) : 0}</TableCell>
-                <TableCell>{((cViews / (views || 1)) * 100).toFixed(1)}%</TableCell>
+                <TableCell>{((cViews / (knownViews || 1)) * 100).toFixed(1)}%</TableCell>
               </TableRow>
             )) : <TableRow><TableCell colSpan={5} className="text-muted-foreground">No visitor country data yet.</TableCell></TableRow>}
           </TableBody>
         </Table>
       </CardContent></Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Console</CardTitle>
+          <CardDescription>
+            Google Search clicks and impressions for this date range (data often lags ~2 days)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {!gsc.configured ? (
+            <p className="text-sm text-muted-foreground">
+              Search Console not connected. Add <code className="text-xs">GSC_CLIENT_EMAIL</code>,{" "}
+              <code className="text-xs">GSC_PRIVATE_KEY</code>, and <code className="text-xs">GSC_SITE_URL</code> to the server env, then grant that service account access in Search Console.
+            </p>
+          ) : gsc.error ? (
+            <p className="text-sm text-muted-foreground">Could not load Search Console: {gsc.error}</p>
+          ) : (
+            <>
+              <section aria-label="Search Console totals" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-lg border bg-card p-4">
+                  <p className="text-sm text-muted-foreground">Clicks</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{(gsc.totals?.clicks ?? 0).toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <p className="text-sm text-muted-foreground">Impressions</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{(gsc.totals?.impressions ?? 0).toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <p className="text-sm text-muted-foreground">Click rate</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{fmtCtr(gsc.totals?.ctr ?? 0)}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-4">
+                  <p className="text-sm text-muted-foreground">Average Google rank</p>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{fmtPos(gsc.totals?.position ?? 0)}</p>
+                </div>
+              </section>
+
+              <div className="space-y-8">
+                <section className="min-w-0">
+                  <h3 className="mb-2 text-sm font-semibold">Top pages</h3>
+                  {(gsc.pages?.length ?? 0) > 0 ? (
+                    <Table className="min-w-[720px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Page</TableHead>
+                          <TableHead>Clicks</TableHead>
+                          <TableHead>Times shown</TableHead>
+                          <TableHead>Click rate</TableHead>
+                          <TableHead>Avg. rank</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {gsc.pages!.map((row) => (
+                          <TableRow key={row.key}>
+                            <TableCell className="max-w-96 whitespace-normal break-all font-medium" title={row.key}>{gscPageLabel(row.key)}</TableCell>
+                            <TableCell>{row.clicks}</TableCell>
+                            <TableCell>{row.impressions}</TableCell>
+                            <TableCell>{fmtCtr(row.ctr)}</TableCell>
+                            <TableCell>{fmtPos(row.position)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No page impressions in this range.</p>
+                  )}
+                </section>
+
+                <section className="min-w-0 border-t pt-6">
+                  <h3 className="mb-2 text-sm font-semibold">Search countries</h3>
+                  {(gsc.countries?.length ?? 0) > 0 ? (
+                    <Table className="min-w-[720px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Country</TableHead>
+                          <TableHead>Clicks</TableHead>
+                          <TableHead>Times shown</TableHead>
+                          <TableHead>Click rate</TableHead>
+                          <TableHead>Avg. rank</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {gsc.countries!.map((row) => (
+                          <TableRow key={row.key}>
+                            <TableCell className="font-medium">{countryDisplayName(row.key)}</TableCell>
+                            <TableCell>{row.clicks}</TableCell>
+                            <TableCell>{row.impressions}</TableCell>
+                            <TableCell>{fmtCtr(row.ctr)}</TableCell>
+                            <TableCell>{fmtPos(row.position)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No country breakdown yet.</p>
+                  )}
+                </section>
+              </div>
+
+              <section className="min-w-0 border-t pt-6">
+                <h3 className="mb-2 text-sm font-semibold">Top queries</h3>
+                {(gsc.queries?.length ?? 0) > 0 ? (
+                  <Table className="min-w-[720px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Search term</TableHead>
+                        <TableHead>Clicks</TableHead>
+                        <TableHead>Times shown</TableHead>
+                        <TableHead>Click rate</TableHead>
+                        <TableHead>Avg. rank</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {gsc.queries!.map((row) => (
+                        <TableRow key={row.key}>
+                          <TableCell className="font-medium">{row.key}</TableCell>
+                          <TableCell>{row.clicks}</TableCell>
+                          <TableCell>{row.impressions}</TableCell>
+                          <TableCell>{fmtCtr(row.ctr)}</TableCell>
+                          <TableCell>{fmtPos(row.position)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No queries disclosed yet (common at low volume).</p>
+                )}
+              </section>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       <Card><CardHeader><CardTitle>Enquiries</CardTitle><CardDescription>{rows.length} total · {booked} booked ({pct(booked, rows.length)})</CardDescription></CardHeader><CardContent className="space-y-5">
         <div className="flex flex-wrap gap-2">{top(rows, "status").map(([k, v]) => <Badge variant="secondary" key={k}>{k}: {v}</Badge>)}</div>
@@ -253,7 +354,9 @@ export default async function Insights({ searchParams }: { searchParams: Promise
         </div>
       </CardContent></Card>
 
-      <p className="text-sm leading-6 text-muted-foreground">Visitors are counted per day, so someone returning on another day counts again. Search rankings and queries come from Google Search Console.</p>
+      <p className="text-sm leading-6 text-muted-foreground">
+        On-site visitors are counted per day from your database. Search Console shows Google Search performance only and usually lags a couple of days behind.
+      </p>
     </div>
   );
 }

@@ -12,6 +12,13 @@
 .env
 .env*.local
 
+# Google Cloud service account keys (never commit)
+tripinsights-*.json
+*-service-account*.json
+
+# Supabase CLI local temp
+supabase/.temp/
+
 # typescript incremental build info
 *.tsbuildinfo
 

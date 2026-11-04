@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { db } from "@/lib/data";
+import { resolveVisitorCountry } from "@/lib/geo";
 import { authClient } from "@/lib/supabase/server";
 
 const BOT = /bot|crawl|spider|slurp|preview|headless|monitor|lighthouse|curl|wget|facebookexternalhit/i;
@@ -20,12 +21,13 @@ export async function POST(req: Request) {
     if (adminRow) return new Response(null, { status: 204 });
   } catch {}
 
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+  const ip = (req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "").split(",")[0].trim();
   const day = new Date().toISOString().slice(0, 10);
   const visitor = createHash("sha256").update(`${process.env.ANALYTICS_SALT ?? "dev"}|${day}|${ip}|${ua}`).digest("hex").slice(0, 16);
 
-  // Detect visitor country from CDN/proxy headers
-  const country = req.headers.get("cf-ipcountry") ?? req.headers.get("x-vercel-ip-country") ?? req.headers.get("x-appengine-country") ?? null;
+  // Edge headers (Vercel/CF/…) first; public-IP lookup if headers missing. Skip only when country cannot be resolved (e.g. localhost).
+  const country = await resolveVisitorCountry(req, ip);
+  if (!country) return new Response(null, { status: 204 });
 
   let channel = String(b.utm ?? "").slice(0, 60);
   if (!channel && b.referrer) {
@@ -34,15 +36,11 @@ export async function POST(req: Request) {
       if (host !== new URL(req.url).hostname) channel = host;
     } catch {}
   }
-  
-  console.log("View API: Inserting view for path:", path, "channel:", channel);
-  console.log("View API: Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "SET" : "NOT SET");
-  
+
   const { error } = await db().from("page_views").insert({ path, channel: channel || "direct", visitor, country });
   if (error) {
     console.error("View insert error:", error);
     return new Response(JSON.stringify({ error: error.message, code: error.code }), { status: 500 });
   }
-  console.log("View API: Successfully inserted view for:", path);
   return new Response(null, { status: 204 });
 }
