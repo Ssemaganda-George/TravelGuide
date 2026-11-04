@@ -32,7 +32,7 @@ header .wrap{display:flex;align-items:center;height:96px}
   .searchbar .chip{flex:0 0 auto;margin-left:8px;padding:0 6px;min-width:auto;width:auto}
 }
 .searchbar input[type=search]:focus{border-color:var(--lake);outline:3px solid var(--sun);outline-offset:2px}
-.grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));padding-bottom:48px}
+body:not(:has([data-admin-shell])) .grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));padding-bottom:48px}
 .card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s,box-shadow .2s}
 .card:hover{transform:translateY(-6px);box-shadow:0 20px 40px rgba(14,90,100,.14);border-color:var(--lake)}
 .cardlink{display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit}
@@ -55,8 +55,8 @@ header .wrap{display:flex;align-items:center;height:96px}
 .likestat:hover{color:var(--sun)}
 .likestat:hover svg{color:var(--sun)}
 .likestat svg{transition:color .2s}
-@media(max-width:640px){.grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:260px}.cardcontent{padding:12px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
-@media(max-width:400px){.grid{grid-template-columns:1fr}}
+@media(max-width:640px){body:not(:has([data-admin-shell])) .grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:260px}.cardcontent{padding:12px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
+@media(max-width:400px){body:not(:has([data-admin-shell])) .grid{grid-template-columns:1fr}}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}
 .page{padding:40px 20px 64px;max-width:960px}
 .back{font-weight:500;font-size:15px}

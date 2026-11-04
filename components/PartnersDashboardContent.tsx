@@ -4,6 +4,10 @@ import { useState } from "react";
 import { DateFilter } from "@/components/DateFilter";
 import { BillingModal } from "@/components/BillingModal";
 import { addPartnerAction, togglePartnerAction, updatePartnerBillingAction } from "@/app/actions/partners";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 interface Partner {
   id: string;
@@ -120,29 +124,22 @@ export function PartnersDashboardContent({
   ];
 
   return (
-    <div className="wrap page">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
-        <h1>Partner Dashboard</h1>
+    <div className="mx-auto min-w-0 w-full max-w-7xl space-y-8 py-2 text-foreground">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h1 className="text-2xl font-semibold tracking-tight">Partner dashboard</h1><p className="mt-2 text-sm text-muted-foreground">{formatDate(start)} to {formatDate(end)}</p></div>
         <DateFilter preset={preset} start={start} end={end} />
       </div>
 
-      <p className="hook" style={{ marginBottom: 24 }}>
-        Showing data from <strong>{formatDate(start)}</strong> to <strong>{formatDate(end)}</strong>
-      </p>
-
       {/* Platform Overview Stats */}
-      <div className="cardstats" style={{ marginBottom: 24 }}>
-        <div className="stat"><strong>{totalPageViews.toLocaleString()}</strong> Page Views</div>
-        <div className="stat"><strong>{totalInquiries.toLocaleString()}</strong> Inquiries</div>
-        <div className="stat"><strong>{totalWhatsApp.toLocaleString()}</strong> WhatsApp Clicks</div>
-        <div className="stat"><strong>{totalEmails.toLocaleString()}</strong> Email Clicks</div>
-        <div className="stat"><strong>{activePartners}</strong> Active Partners</div>
-        <div className="stat"><strong>{trialPartners}</strong> On Trial</div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {[["Page views", totalPageViews], ["Enquiries", totalInquiries], ["WhatsApp clicks", totalWhatsApp], ["Email clicks", totalEmails], ["Active partners", activePartners], ["On trial", trialPartners]].map(([label, value]) => (
+          <div key={label} className="min-w-0 rounded-lg border bg-card p-4"><p className="text-xs font-medium text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{Number(value).toLocaleString()}</p></div>
+        ))}
       </div>
 
       {/* Country Breakdown */}
       <section style={{ marginBottom: 32 }}>
-        <h2>Visitor Countries</h2>
+        <h2 className="mb-3 text-lg font-semibold">Visitor countries</h2>
         <div className="tbl"><table>
           <thead><tr><th>Country</th><th>Visits</th><th>% of Total</th></tr></thead>
           <tbody>
@@ -169,8 +166,8 @@ export function PartnersDashboardContent({
 
       {/* Partner Performance Table */}
       <section style={{ marginBottom: 32 }}>
-        <h2>Partner Performance</h2>
-        <div className="tbl"><table>
+        <h2 className="mb-3 text-lg font-semibold">Partner performance</h2>
+        <div className="tbl max-w-full overflow-x-auto"><table className="min-w-[1100px]">
           <thead>
             <tr>
               <th>Partner</th>
@@ -193,10 +190,10 @@ export function PartnersDashboardContent({
               };
               const trialStatus = getTrialStatus(p.trial_ends_at, p.subscription_status);
               return (
-                <tr key={p.id} className={p.active ? "" : "off"}>
+                <tr key={p.id} className={p.active ? "" : "bg-muted/30"}>
                   <td>
                     <strong>{p.name}</strong>
-                    <br /><span className="meta">{p.type}</span>
+                    <br /><span className="text-xs text-muted-foreground">{p.type}</span>
                   </td>
                   <td>{p.type}</td>
                   <td>{a.page_views.toLocaleString()}</td>
@@ -204,20 +201,20 @@ export function PartnersDashboardContent({
                   <td>{a.whatsapp_clicks.toLocaleString()}</td>
                   <td>{a.email_clicks.toLocaleString()}</td>
                   <td>
-                    <span className={`badge ${p.active ? "badge-active" : "badge-off"}`}>
+                    <Badge variant={p.active ? "default" : "secondary"}>
                       {p.active ? "Active" : "Inactive"}
-                    </span>
+                    </Badge>
                   </td>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <span className={`badge ${trialStatus.class}`}>{trialStatus.label}</span>
+                      <Badge variant="outline">{trialStatus.label}</Badge>
                       {p.subscription_price > 0 && (
-                        <span className="meta" style={{ fontSize: "0.75rem" }}>
+                        <span className="text-xs text-muted-foreground">
                           ${p.subscription_price}/month
                         </span>
                       )}
                       {p.trial_ends_at && (
-                        <span className="meta" style={{ fontSize: "0.75rem" }}>
+                        <span className="text-xs text-muted-foreground">
                           Trial ends: {formatDate(p.trial_ends_at)}
                         </span>
                       )}
@@ -236,21 +233,20 @@ export function PartnersDashboardContent({
                           checked={p.featured}
                           onChange={(e) => e.currentTarget.form?.requestSubmit?.()}
                         />
-                        <span className="meta" style={{ fontSize: "0.85rem" }}>Featured</span>
+                        <span className="text-sm text-foreground">Featured</span>
                       </label>
                     </form>
                   </td>
                   <td>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button className="chip" onClick={() => handleTogglePartner(p.id, !p.active)}>
+                      <Button type="button" size="sm" variant="outline" onClick={() => handleTogglePartner(p.id, !p.active)}>
                         {p.active ? "Deactivate" : "Activate"}
-                      </button>
-                      <button 
-                        className={`go ${p.subscription_status === "active" ? "" : "outline"}`}
+                      </Button>
+                      <Button type="button" size="sm" variant="secondary"
                         onClick={() => handleBillingClick(p)}
                       >
                         {p.subscription_status === "active" ? "Manage Billing" : "Upgrade / Renew"}
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -310,24 +306,27 @@ export function PartnersDashboardContent({
         />
       )}
 
-      <form onSubmit={(e) => { e.preventDefault(); addPartnerAction(new FormData(e.currentTarget)); }} className="form">
-        <h2>Add a partner</h2>
-        <label htmlFor="pn">Name</label><input id="pn" name="name" required />
-        <div className="row2">
-          <div><label htmlFor="pt">Type</label><select id="pt" name="type">{["lodge", "operator", "driver", "guide", "activity"].map(x => <option key={x}>{x}</option>)}</select></div>
-          <div><label htmlFor="pc">Contact (WhatsApp or email)</label><input id="pc" name="contact" /></div>
-          <div><label htmlFor="pe">Email</label><input id="pe" name="email" placeholder="info@partner.com" /></div>
-          <div><label htmlFor="pw">Website</label><input id="pw" name="website" placeholder="https://partner.com" /></div>
-          <div><label htmlFor="pr">Commission %</label><input id="pr" name="rate" type="number" step="0.1" min="0" max="100" /></div>
-          <div><label htmlFor="pf">or flat fee</label><input id="pf" name="flat" type="number" step="0.01" min="0" /></div>
-          <div><label htmlFor="pa">Agreement</label><select id="pa" name="agreement"><option>none</option><option>agreed</option><option>signed</option></select></div>
-          <div><label htmlFor="pp">Payment terms</label><input id="pp" name="terms" placeholder="e.g. 30 days after trip" /></div>
-          <div><label htmlFor="sub-price">Subscription Price (USD/month)</label><input id="sub-price" name="sub_price" type="number" step="0.01" min="0" placeholder="0.00" /></div>
-          <div><label htmlFor="trial-ends">Trial Ends At</label><input id="trial-ends" name="trial_ends_at" type="date" /></div>
-        </div>
-        <label htmlFor="po">Notes</label><textarea id="po" name="notes" rows={2} />
-        <button className="go" type="submit">Add partner</button>
-      </form>
+      <section className="w-full max-w-5xl min-w-0 rounded-xl border bg-card p-6 sm:p-8">
+        <h2 className="text-lg font-semibold">Add a partner</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Enter contact, commission, and subscription details.</p>
+        <form onSubmit={(e) => { e.preventDefault(); handleAddPartner(new FormData(e.currentTarget)); }} className="mt-6 space-y-6">
+          <div className="grid min-w-0 grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2"><Label htmlFor="pn">Name</Label><Input id="pn" name="name" required /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pt">Type</Label><select id="pt" name="type">{["lodge", "operator", "driver", "guide", "activity"].map(x => <option key={x}>{x}</option>)}</select></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pc">Contact (WhatsApp or email)</Label><Input id="pc" name="contact" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pe">Email</Label><Input id="pe" name="email" type="email" placeholder="info@partner.com" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pw">Website</Label><Input id="pw" name="website" type="url" placeholder="https://partner.com" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pr">Commission %</Label><Input id="pr" name="rate" type="number" step="0.1" min="0" max="100" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pf">Flat fee</Label><Input id="pf" name="flat" type="number" step="0.01" min="0" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pa">Agreement</Label><select id="pa" name="agreement"><option>none</option><option>agreed</option><option>signed</option></select></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="pp">Payment terms</Label><Input id="pp" name="terms" placeholder="e.g. 30 days after trip" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="sub-price">Subscription price (USD/month)</Label><Input id="sub-price" name="sub_price" type="number" step="0.01" min="0" placeholder="0.00" /></div>
+            <div className="flex min-w-0 flex-col gap-2"><Label htmlFor="trial-ends">Trial ends</Label><Input id="trial-ends" name="trial_ends_at" type="date" /></div>
+            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2"><Label htmlFor="po">Notes</Label><textarea id="po" name="notes" rows={3} className="min-h-24 w-full rounded-md border border-input bg-background p-3 text-sm" /></div>
+          </div>
+          <Button type="submit">Add partner</Button>
+        </form>
+      </section>
     </div>
   );
 }

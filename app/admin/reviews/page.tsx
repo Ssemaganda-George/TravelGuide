@@ -1,174 +1,105 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { admin } from "@/lib/admin";
 import { revalidatePath } from "next/cache";
+import { admin } from "@/lib/admin";
 import { authClient } from "@/lib/supabase/server";
-import { getCountry, getDestinations } from "@/lib/data";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
-// Server actions defined inline to avoid webpack module resolution issues in Next.js 15.5.28
 async function setReviewStatus(fd: FormData) {
   "use server";
   const sb = await authClient();
-  const id = String(fd.get("id"));
-  const status = String(fd.get("status"));
   await sb.from("destination_reviews").update({
-    status: status as any, reviewed_at: new Date().toISOString(),
-  }).eq("id", id);
+    status: String(fd.get("status")) as "pending" | "approved" | "rejected",
+    reviewed_at: new Date().toISOString(),
+  }).eq("id", String(fd.get("id")));
   revalidatePath("/admin/reviews");
 }
 
 async function archiveReview(fd: FormData) {
   "use server";
   const sb = await authClient();
-  const id = String(fd.get("id"));
   await sb.from("destination_reviews").update({
     archived: true, reviewed_at: new Date().toISOString(),
-  }).eq("id", id);
+  }).eq("id", String(fd.get("id")));
   revalidatePath("/admin/reviews");
 }
 
-async function unarchiveReview(fd: FormData) {
-  "use server";
-  const sb = await authClient();
-  const id = String(fd.get("id"));
-  await sb.from("destination_reviews").update({
-    archived: false, reviewed_at: new Date().toISOString(),
-  }).eq("id", id);
-  revalidatePath("/admin/reviews");
+type Review = {
+  id: string;
+  author: string;
+  place_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  status: string;
+};
+
+function ReviewCard({ review: r, destination }: { review: Review; destination: string }) {
+  const actions = r.status === "pending"
+    ? [["Approve", "approved"], ["Reject", "rejected"]]
+    : r.status === "approved"
+      ? [["Unapprove", "pending"], ["Reject", "rejected"]]
+      : [["Recall", "pending"]];
+
+  return <Card className="min-w-0">
+    <CardHeader className="pb-0">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <CardTitle className="break-words text-base font-semibold">{r.author}</CardTitle>
+        <Badge variant={r.status === "approved" ? "secondary" : r.status === "rejected" ? "destructive" : "outline"} className="capitalize">{r.status}</Badge>
+      </div>
+      <p className="text-sm text-muted-foreground">{destination} · {new Date(r.created_at).toLocaleDateString("en-GB")}</p>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <p className="text-sm text-foreground" aria-label={`${r.rating} out of 5 stars`}>{"★".repeat(Math.max(0, Math.min(5, Math.floor(r.rating))))}{"☆".repeat(Math.max(0, 5 - Math.floor(r.rating)))}</p>
+      {r.comment && <p className="max-w-prose whitespace-pre-wrap break-words text-sm leading-6">{r.comment}</p>}
+      <div className="flex flex-wrap gap-2 pt-1">
+        {actions.map(([label, status]) => <form action={setReviewStatus} key={status}>
+          <input type="hidden" name="id" value={r.id} />
+          <input type="hidden" name="status" value={status} />
+          <Button type="submit" size="sm" variant={status === "approved" ? "default" : "outline"}>{label}</Button>
+        </form>)}
+        {r.status !== "pending" && <form action={archiveReview}>
+          <input type="hidden" name="id" value={r.id} />
+          <Button type="submit" size="sm" variant="ghost">Archive</Button>
+        </form>}
+      </div>
+    </CardContent>
+  </Card>;
 }
 
 export default async function Reviews() {
   const sb = await admin();
-  if (!sb) return <div className="wrap page"><h1>No access</h1></div>;
-
+  if (!sb) return <div className="p-6"><h1>No access</h1></div>;
   const [{ data: reviews }, { data: countries }] = await Promise.all([
     sb.from("destination_reviews").select("*, places(name,slug,parent_id)").order("created_at", { ascending: false }),
     sb.from("places").select("id,name,slug,parent_id").eq("type", "country"),
   ]);
-  const rows = (reviews ?? []).filter(r => r.places?.parent_id && !r.archived);
-
-  // Build country -> destination map
+  const rows = (reviews ?? []).filter(r => r.places?.parent_id && !r.archived) as Review[];
   const countryMap = new Map((countries ?? []).map(c => [c.id, c]));
-  const destMap = new Map<string, { name: string; slug: string; country: string }>();
-  for (const r of rows) {
-    const p = r.places as { name: string; slug: string; parent_id: string } | null;
-    if (!p) continue;
-    const c = countryMap.get(p.parent_id);
-    destMap.set(r.place_id, { name: p.name, slug: p.slug, country: c?.name ?? "Unknown" });
+  const destinations = new Map<string, string>();
+  for (const r of reviews ?? []) {
+    const place = r.places as { name: string; parent_id: string } | null;
+    if (place) destinations.set(r.place_id, `${place.name} · ${countryMap.get(place.parent_id)?.name ?? "Unknown"}`);
   }
+  const groups = [
+    { status: "pending", title: "Pending reviews", empty: "No reviews waiting for approval." },
+    { status: "approved", title: "Approved reviews", empty: "No approved reviews yet." },
+    { status: "rejected", title: "Rejected reviews", empty: "No rejected reviews." },
+  ];
 
-  const byStatus = {
-    pending: rows.filter(r => r.status === "pending"),
-    approved: rows.filter(r => r.status === "approved"),
-    rejected: rows.filter(r => r.status === "rejected"),
-  };
-
-  return (
-    <div className="wrap page" style={{ padding: "16px" }}>
-      <h1>Review moderation</h1>
-      <p className="hook">{byStatus.pending.length} pending · {byStatus.approved.length} approved · {byStatus.rejected.length} rejected</p>
-
-      <section className="fsec">
-        <h3>Pending reviews</h3>
-        {byStatus.pending.length === 0 && <p className="meta">No reviews waiting for approval.</p>}
-        {byStatus.pending.map(r => (
-          <div className="item" key={r.id} style={{ padding: "16px" }}>
-            <div className="ihead">
-              <strong>{r.author}</strong>
-              <span className="badge badge-new">Pending</span>
-            </div>
-            <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {destMap.get(r.place_id)?.country ?? ""}</div>
-            <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
-            {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-              <form action={setReviewStatus} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="status" value="approved" />
-                <button className="go" style={{ width: "auto", padding: "6px 14px", minHeight: "auto" }}>Approve</button>
-              </form>
-              <form action={setReviewStatus} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="status" value="rejected" />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Reject</button>
-              </form>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="fsec">
-        <h3>Approved reviews</h3>
-        {byStatus.approved.length === 0 && <p className="meta">No approved reviews yet.</p>}
-        {byStatus.approved.map(r => (
-          <div className="item" key={r.id} style={{ padding: "16px" }}>
-            <div className="ihead">
-              <strong>{r.author}</strong>
-              <span className="badge badge-approved">Approved</span>
-            </div>
-            <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {new Date(r.created_at).toLocaleDateString()}</div>
-            <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
-            {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-              <form action={setReviewStatus} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="status" value="pending" />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Unapprove</button>
-              </form>
-              <form action={setReviewStatus} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="status" value="rejected" />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Reject</button>
-              </form>
-              <form action={archiveReview} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Archive</button>
-              </form>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="fsec">
-        <h3>Rejected reviews</h3>
-        {byStatus.rejected.length === 0 && <p className="meta">No rejected reviews.</p>}
-        {byStatus.rejected.map(r => (
-          <div className="item" key={r.id} style={{ padding: "16px" }}>
-            <div className="ihead">
-              <strong>{r.author}</strong>
-              <span className="badge badge-rejected">Rejected</span>
-            </div>
-            <div className="meta">{destMap.get(r.place_id)?.name ?? "Unknown"} · {new Date(r.created_at).toLocaleDateString()}</div>
-            <div className="stars" style={{ margin: "6px 0" }}>{stars(r.rating)}</div>
-            {r.comment && <p>{r.comment}</p>}
-            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-              <form action={setReviewStatus} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <input type="hidden" name="status" value="pending" />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Recall</button>
-              </form>
-              <form action={archiveReview} style={{ margin: 0 }}>
-                <input type="hidden" name="id" value={r.id} />
-                <button className="chip" style={{ width: "auto", padding: "6px 14px", background: "transparent", borderColor: "var(--muted)", color: "var(--muted)" }}>Archive</button>
-              </form>
-            </div>
-          </div>
-        ))}
-      </section>
+  return <div className="mx-auto w-full max-w-5xl space-y-8 py-2">
+    <div><h1 className="text-2xl font-semibold tracking-tight">Review moderation</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{rows.filter(r => r.status === "pending").length} pending · {rows.filter(r => r.status === "approved").length} approved · {rows.filter(r => r.status === "rejected").length} rejected</p>
     </div>
-  );
-}
-
-function stars(n: number) {
-  const full = Math.floor(n);
-  const half = n % 1 >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  return (
-    <span className="stars" aria-label={`${n.toFixed(1)} of 5`}>
-      {Array.from({ length: full }).map(() => "★")}
-      {half && "☆"}
-      {Array.from({ length: empty }).map(() => "☆")}
-    </span>
-  );
+    {groups.map(group => {
+      const items = rows.filter(r => r.status === group.status);
+      return <section key={group.status} className="space-y-3">
+        <h2 className="text-lg font-semibold">{group.title}</h2>
+        {items.length ? <div className="space-y-3">{items.map(r => <ReviewCard key={r.id} review={r} destination={destinations.get(r.place_id) ?? "Unknown destination"} />)}</div>
+          : <p className="rounded-lg border bg-card px-5 py-6 text-sm text-muted-foreground">{group.empty}</p>}
+      </section>;
+    })}
+  </div>;
 }

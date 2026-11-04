@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { admin } from "@/lib/admin";
 import { DateFilter } from "@/components/DateFilter";
 import TrendChart from "@/components/TrendChart";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Insights", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -199,69 +202,58 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const lost = top(rows.filter(r => r.status === "lost"), "lost_reason");
 
   return (
-    <div className="wrap page" style={{ padding: "16px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
-        <h1>Insights</h1>
+    <div className="mx-auto w-full max-w-7xl space-y-8 py-2 text-foreground">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div><h1 className="text-2xl font-semibold tracking-tight">Insights</h1><p className="mt-2 text-sm text-muted-foreground">{formatDate(start)} to {formatDate(end)}</p></div>
         <DateFilter preset={preset} start={start} end={end} path="/admin/insights" />
       </div>
 
-      <p className="hook" style={{ marginBottom: 24 }}>
-        Showing data from <strong>{formatDate(start)}</strong> to <strong>{formatDate(end)}</strong>: {views} views · {visitors} visitors · {recent.length} enquiries ({pct(recent.length, visitors)} of visitors)
-      </p>
-
-      <section style={{ marginBottom: 24 }}>
-        <h2>Visitor Activity</h2>
-        <div className="cardstats">
-          <div className="stat"><strong>{views.toLocaleString()}</strong> Page Views</div>
-          <div className="stat"><strong>{visitors.toLocaleString()}</strong> Unique Visitors</div>
-          <div className="stat"><strong>{visitors > 0 ? (views / visitors).toFixed(1) : 0}</strong> Pages per Visitor</div>
-        </div>
+      <section aria-label="Visitor activity" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border bg-card p-5"><p className="text-sm text-muted-foreground">Page views</p><p className="mt-2 text-3xl font-semibold tabular-nums">{views.toLocaleString()}</p></div>
+        <div className="rounded-lg border bg-card p-5"><p className="text-sm text-muted-foreground">Unique visitors</p><p className="mt-2 text-3xl font-semibold tabular-nums">{visitors.toLocaleString()}</p></div>
+        <div className="rounded-lg border bg-card p-5"><p className="text-sm text-muted-foreground">Pages per visitor</p><p className="mt-2 text-3xl font-semibold tabular-nums">{visitors > 0 ? (views / visitors).toFixed(1) : 0}</p></div>
+        <div className="rounded-lg border bg-card p-5"><p className="text-sm text-muted-foreground">Enquiries</p><p className="mt-2 text-3xl font-semibold tabular-nums">{recent.length}</p><p className="mt-1 text-xs text-muted-foreground">{pct(recent.length, visitors)} of visitors</p></div>
       </section>
 
       {trendData.length > 0 && <TrendChart data={trendData} start={start} end={end} />}
 
-      <div className="form"><h3>Pages: views and enquiries</h3>
-        {nonAdminPages.length ? <div className="tbl"><table>
-          <thead><tr><th>Page</th><th>Views</th><th>Visitors</th><th>Enquiries</th><th>Enquiry rate</th></tr></thead>
-          <tbody>{nonAdminPages.map(p => <tr key={p.path}><td>{p.path}</td><td>{p.views}</td><td>{p.visitors}</td><td>{p.enquiries}</td><td>{pct(p.enquiries, p.visitors)}</td></tr>)}</tbody>
-        </table></div> : <p className="meta">No views recorded yet. They appear once visitors open your pages.</p>}
-        <p className="meta">Pages with many visitors but no enquiries need a clearer call to action. Pages with few visitors but good enquiry rates deserve more promotion.</p>
-      </div>
+      <Card><CardHeader><CardTitle>Pages</CardTitle><CardDescription>Views and enquiries by page</CardDescription></CardHeader><CardContent className="space-y-4">
+        {nonAdminPages.length ? <Table><TableHeader><TableRow><TableHead>Page</TableHead><TableHead>Views</TableHead><TableHead>Visitors</TableHead><TableHead>Enquiries</TableHead><TableHead>Enquiry rate</TableHead></TableRow></TableHeader>
+          <TableBody>{nonAdminPages.map(p => <TableRow key={p.path}><TableCell className="max-w-72 truncate font-medium" title={p.path}>{p.path}</TableCell><TableCell>{p.views}</TableCell><TableCell>{p.visitors}</TableCell><TableCell>{p.enquiries}</TableCell><TableCell>{pct(p.enquiries, p.visitors)}</TableCell></TableRow>)}</TableBody>
+        </Table> : <p className="text-sm text-muted-foreground">No views recorded yet. They appear once visitors open your pages.</p>}
+        <p className="text-sm text-muted-foreground">Pages with many visitors but no enquiries may need a clearer call to action.</p>
+      </CardContent></Card>
 
-      <div className="form"><h3>Where visitors come from</h3>
-        {sources.length ? <div className="tbl"><table>
-          <thead><tr><th>Source</th><th>Views</th><th>Visitors</th></tr></thead>
-          <tbody>{sources.slice(0, 12).map(s => <tr key={s.channel}><td>{s.channel}</td><td>{s.views}</td><td>{s.visitors}</td></tr>)}</tbody>
-        </table></div> : <p className="meta">Nothing yet.</p>}
-        <p className="meta">Add ?utm_source=tiktok (or instagram, whatsapp) to links you share, so each channel shows up by name.</p>
-      </div>
+      <Card><CardHeader><CardTitle>Traffic sources</CardTitle><CardDescription>Where visitors come from</CardDescription></CardHeader><CardContent className="space-y-4">
+        {sources.length ? <Table><TableHeader><TableRow><TableHead>Source</TableHead><TableHead>Views</TableHead><TableHead>Visitors</TableHead></TableRow></TableHeader>
+          <TableBody>{sources.slice(0, 12).map(s => <TableRow key={s.channel}><TableCell>{s.channel}</TableCell><TableCell>{s.views}</TableCell><TableCell>{s.visitors}</TableCell></TableRow>)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No traffic sources yet.</p>}
+        <p className="text-sm text-muted-foreground">Add a source parameter to shared links so each channel appears by name.</p>
+      </CardContent></Card>
 
-      <section style={{ marginBottom: 32 }}>
-        <h2>Visitor Countries</h2>
-        <div className="tbl"><table>
-          <thead><tr><th>Country</th><th>Page Views</th><th>Visitors</th><th>Pages per Visitor</th><th>% of Total</th></tr></thead>
-          <tbody>
+      <Card><CardHeader><CardTitle>Visitor countries</CardTitle></CardHeader><CardContent>
+        <Table><TableHeader><TableRow><TableHead>Country</TableHead><TableHead>Page views</TableHead><TableHead>Visitors</TableHead><TableHead>Pages per visitor</TableHead><TableHead>% of total</TableHead></TableRow></TableHeader>
+          <TableBody>
             {countryRows.length > 0 ? countryRows.map(({ country, views: cViews, visitors: cVisitors }) => (
-              <tr key={country}>
-                <td>{countryName(country)}</td>
-                <td>{cViews.toLocaleString()}</td>
-                <td>{cVisitors.toLocaleString()}</td>
-                <td>{cVisitors > 0 ? (cViews / cVisitors).toFixed(1) : 0}</td>
-                <td>{((cViews / (views || 1)) * 100).toFixed(1)}%</td>
-              </tr>
-            )) : <tr><td colSpan={5} className="meta">No visitor country data yet.</td></tr>}
-          </tbody>
-        </table></div>
-      </section>
+              <TableRow key={country}>
+                <TableCell className="font-medium">{countryName(country)}</TableCell>
+                <TableCell>{cViews.toLocaleString()}</TableCell>
+                <TableCell>{cVisitors.toLocaleString()}</TableCell>
+                <TableCell>{cVisitors > 0 ? (cViews / cVisitors).toFixed(1) : 0}</TableCell>
+                <TableCell>{((cViews / (views || 1)) * 100).toFixed(1)}%</TableCell>
+              </TableRow>
+            )) : <TableRow><TableCell colSpan={5} className="text-muted-foreground">No visitor country data yet.</TableCell></TableRow>}
+          </TableBody>
+        </Table>
+      </CardContent></Card>
 
-      <div className="form"><h3>Enquiries</h3>
-        <p>{rows.length} total · {booked} booked ({pct(booked, rows.length)})</p>
-        {top(rows, "status").map(([k, v]) => <span className="chip" key={k} style={{ marginRight: 8 }}>{k}: {v}</span>)}
-        <h3 style={{ marginTop: 20 }}>Why enquiries were lost</h3>
-        {lost.length ? <div className="tbl"><table><tbody>{lost.map(([k, v]) => <tr key={k}><td>{k}</td><td>{v}</td></tr>)}</tbody></table></div> : <p className="meta">Nothing yet.</p>}
-      </div>
+      <Card><CardHeader><CardTitle>Enquiries</CardTitle><CardDescription>{rows.length} total · {booked} booked ({pct(booked, rows.length)})</CardDescription></CardHeader><CardContent className="space-y-5">
+        <div className="flex flex-wrap gap-2">{top(rows, "status").map(([k, v]) => <Badge variant="secondary" key={k}>{k}: {v}</Badge>)}</div>
+        <div><h3 className="text-sm font-semibold">Why enquiries were lost</h3>
+          {lost.length ? <Table><TableBody>{lost.map(([k, v]) => <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v}</TableCell></TableRow>)}</TableBody></Table> : <p className="mt-2 text-sm text-muted-foreground">No lost enquiries recorded.</p>}
+        </div>
+      </CardContent></Card>
 
-      <p className="meta">Visitors are counted per day, so someone returning on another day counts again. Search rankings and queries come from Google Search Console.</p>
+      <p className="text-sm leading-6 text-muted-foreground">Visitors are counted per day, so someone returning on another day counts again. Search rankings and queries come from Google Search Console.</p>
     </div>
   );
 }

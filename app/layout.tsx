@@ -8,9 +8,13 @@ import { ToastContainer } from "@/components/Toast";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
 import BackToTop from "@/components/BackToTop";
-import { Bricolage_Grotesque, Source_Serif_4 } from "next/font/google";
+import { Bricolage_Grotesque, Source_Serif_4, Geist } from "next/font/google";
 import { SITE, SITE_HOME_TITLE, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import "./globals.css";
+import "./tailwind-entry.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const fontHead = Bricolage_Grotesque({ subsets: ["latin"], variable: "--head" });
 const fontBody = Source_Serif_4({ subsets: ["latin"], variable: "--body" });
@@ -49,21 +53,22 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/favicon.svg" }],
+    icon: [{ url: "/logo/logo1.png", type: "image/png" }],
+    shortcut: "/logo/logo1.png",
+    apple: [{ url: "/logo/logo1.png", type: "image/png" }],
   },
   manifest: "/manifest.json",
 };
 
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fontHead.variable} ${fontBody.variable}`}>
+    <html lang="en" className={cn(fontHead.variable, fontBody.variable, geist.variable)}>
       <head />
       <body>
         <a href="#main" className="skip-link">Skip to main content</a>
         <SiteHeader />
         <main id="main">{children}</main>
-        <footer className="about">
+        <footer className="about site-footer">
           <div className="wrap">
             <div className="footer-content">
               <div className="footer-about">

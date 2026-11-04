@@ -4,6 +4,12 @@ import { redirect } from "next/navigation";
 import { admin } from "@/lib/admin";
 import { authClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const metadata: Metadata = { title: "Content", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -74,27 +80,39 @@ export default async function Content({ searchParams }: { searchParams: Promise<
     sb.from("places").select("name,slug").eq("type", "country"),
   ]);
   return (
-    <div className="wrap page" style={{ padding: "16px" }}>
-      <h1>Destination content</h1>
-      <div className="tbl"><table>
-        <thead><tr><th>Title</th><th>Language</th><th>Status</th><th>Last checked</th><th></th></tr></thead>
-        <tbody>{(data ?? []).map(d => (
-          <tr key={d.id}><td><Link href={`/admin/content/${d.id}`}>{d.title}</Link></td><td>{d.language}</td><td>{d.status}</td><td>{d.last_checked ?? "never"}</td><td><Link href={`/admin/content/${d.id}`}>Edit</Link></td></tr>))}</tbody>
-      </table></div>
-      <form className="form" action={createDestination}>
-        <h2>New destination</h2>
-        <div className="row2">
-          <div><label htmlFor="dn">Name</label><input id="dn" name="name" required /></div>
-          <div><label htmlFor="dc">Country</label><select id="dc" name="country">{(countries ?? []).map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
-        </div>
-        <div className="row2">
-          <div><label htmlFor="lat">Latitude</label><input id="lat" name="latitude" type="number" step="any" placeholder="-0.123456" /></div>
-          <div><label htmlFor="lng">Longitude</label><input id="lng" name="longitude" type="number" step="any" placeholder="32.123456" /></div>
-        </div>
-        <p className="hint">Enter coordinates first, then save. Travel time from capital will be auto-calculated.</p>
-        {error && <p className="msg" role="alert">Could not create it. The name may already exist.</p>}
-        <button className="go">Create and edit</button>
-      </form>
+    <div className="mx-auto w-full max-w-6xl space-y-8 py-2">
+      <div>
+        <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">Content library</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Destinations</h1>
+        <p className="text-muted-foreground mt-2 text-sm">Review published content and add a destination.</p>
+      </div>
+      <Card>
+        <CardHeader><CardTitle>Destination content</CardTitle><CardDescription>{data?.length ?? 0} destinations</CardDescription></CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <Table>
+            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Language</TableHead><TableHead>Status</TableHead><TableHead>Last checked</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+            <TableBody>{(data ?? []).map(d => (
+              <TableRow key={d.id}><TableCell className="font-medium">{d.title}</TableCell><TableCell>{d.language}</TableCell><TableCell><Badge variant="secondary">{d.status ?? "Draft"}</Badge></TableCell><TableCell className="text-muted-foreground">{d.last_checked ?? "Never"}</TableCell><TableCell className="text-right"><Button asChild variant="ghost" size="sm"><Link href={`/admin/content/${d.id}`}>Edit</Link></Button></TableCell></TableRow>
+            ))}{!data?.length && <TableRow><TableCell colSpan={5} className="text-muted-foreground h-24 text-center">No destinations yet. Add the first one below.</TableCell></TableRow>}</TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle>New destination</CardTitle><CardDescription>Add the location first, then edit its content.</CardDescription></CardHeader>
+        <CardContent>
+          <form action={createDestination} className="space-y-5">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2"><Label htmlFor="dn">Name</Label><Input id="dn" name="name" required /></div>
+              <div className="space-y-2"><Label htmlFor="dc">Country</Label><select id="dc" name="country" className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm">{(countries ?? []).map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
+              <div className="space-y-2"><Label htmlFor="lat">Latitude</Label><Input id="lat" name="latitude" type="number" step="any" placeholder="-0.123456" /></div>
+              <div className="space-y-2"><Label htmlFor="lng">Longitude</Label><Input id="lng" name="longitude" type="number" step="any" placeholder="32.123456" /></div>
+            </div>
+            <p className="text-muted-foreground text-sm">Coordinates let us estimate travel time from the capital.</p>
+            {error && <p className="text-destructive text-sm" role="alert">Could not create this destination. The name may already exist.</p>}
+            <Button type="submit">Create destination</Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
