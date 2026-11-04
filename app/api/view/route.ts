@@ -25,9 +25,9 @@ export async function POST(req: Request) {
   const day = new Date().toISOString().slice(0, 10);
   const visitor = createHash("sha256").update(`${process.env.ANALYTICS_SALT ?? "dev"}|${day}|${ip}|${ua}`).digest("hex").slice(0, 16);
 
-  // Edge headers (Vercel/CF/…) first; public-IP lookup if headers missing. Skip only when country cannot be resolved (e.g. localhost).
+  // Edge headers (Vercel/CF/…) first; public-IP lookup if headers missing. Country may be null;
+  // the view is still recorded — country is optional.
   const country = await resolveVisitorCountry(req, ip);
-  if (!country) return new Response(null, { status: 204 });
 
   let channel = String(b.utm ?? "").slice(0, 60);
   if (!channel && b.referrer) {

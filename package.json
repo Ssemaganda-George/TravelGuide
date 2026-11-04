@@ -2,7 +2,7 @@
   "name": "trip-insights",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS=--experimental-require-module next dev",
     "build": "next build",
     "start": "next start"
   },
