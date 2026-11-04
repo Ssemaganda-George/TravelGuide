@@ -127,7 +127,7 @@ export default function ActivityModal({ open, onClose, activity, placeId, destin
               border: "none",
               fontSize: "2rem",
               cursor: "pointer",
-              color: "var(--muted)",
+              color: "var(--site-muted)",
               lineHeight: 1,
               padding: "8px",
               minWidth: 44,
@@ -279,7 +279,7 @@ export default function ActivityModal({ open, onClose, activity, placeId, destin
                       <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                         <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--ink)" }}>{p.name}</span>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: "0.85rem", color: "var(--muted)" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2, fontSize: "0.85rem", color: "var(--site-muted)" }}>
                         {p.contact && (
                           <a href={`https://wa.me/${p.contact.replace(/\D/g, "")}?text=Hi, I&rsquo;d like to inquire about ${encodeURIComponent(activity.name)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#25D366", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4, minHeight: 44 }}>
                             <Phone size={16} strokeWidth={2} /> WhatsApp
@@ -304,7 +304,7 @@ export default function ActivityModal({ open, onClose, activity, placeId, destin
           )}
 
           {!providers.length && activity.description && (
-            <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: 16 }}>
+            <p style={{ fontSize: "0.9rem", color: "var(--site-muted)", marginBottom: 16 }}>
               No service providers listed for this activity yet.
             </p>
           )}

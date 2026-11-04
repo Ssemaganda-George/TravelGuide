@@ -134,7 +134,7 @@ export default function ReviewForm({ placeId, title, user }: { placeId: string; 
       {(reviewer || autoReviewer) && (
         <>
           <p className="meta">Posting as {(reviewer || autoReviewer)!.name} · {(reviewer || autoReviewer)!.country}</p>
-          {isLoggedIn && <p className="meta" style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Signed in as {user!.email}</p>}
+          {isLoggedIn && <p className="meta" style={{ fontSize: "0.85rem", color: "var(--site-muted)" }}>Signed in as {user!.email}</p>}
           <button type="button" className="chip" onClick={() => { setReviewer(null); localStorage.removeItem(KEY); }} style={{ marginBottom: 12 }}>
             Change details
           </button>

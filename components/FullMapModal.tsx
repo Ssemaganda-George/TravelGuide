@@ -64,7 +64,7 @@ export default function FullMapModalWrapper({ title, center, markers, country, b
                   border: "none",
                   fontSize: "2rem",
                   cursor: "pointer",
-                  color: "var(--muted)",
+                  color: "var(--site-muted)",
                   lineHeight: 1,
                   padding: "4px 8px",
                 }}

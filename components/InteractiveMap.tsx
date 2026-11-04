@@ -167,7 +167,7 @@ function MarkerPopup({ marker }: { marker: MapMarker }) {
         <div style={{ padding: 16, textAlign: "center" }}>
           <div style={{ fontSize: "2rem", marginBottom: 8 }}>🏛️</div>
           <h4 style={{ margin: "0 0 4px 0", fontSize: "1rem", color: "var(--ink)" }}>{marker.name}</h4>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>Reference point (capital city)</p>
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--site-muted)" }}>Reference point (capital city)</p>
           <p style={{ margin: "8px 0 0 0", fontSize: "0.75rem", color: "var(--lake)", fontWeight: 500 }}>Routes to all destinations shown</p>
         </div>
       </div>
@@ -186,10 +186,10 @@ function MarkerPopup({ marker }: { marker: MapMarker }) {
       <div style={{ padding: 12 }}>
         <h4 style={{ margin: "0 0 6px 0", fontSize: "1rem", color: "var(--ink)" }}>{marker.name}</h4>
         {marker.hook && (
-          <p style={{ margin: "0 0 8px 0", fontSize: "0.85rem", color: "var(--muted)", lineHeight: 1.4 }}>{marker.hook}</p>
+          <p style={{ margin: "0 0 8px 0", fontSize: "0.85rem", color: "var(--site-muted)", lineHeight: 1.4 }}>{marker.hook}</p>
         )}
         {marker.travelTime && (
-          <p style={{ margin: "0 0 8px 0", fontSize: "0.8rem", color: "var(--muted)" }}>
+          <p style={{ margin: "0 0 8px 0", fontSize: "0.8rem", color: "var(--site-muted)" }}>
             ⏱️ {marker.travelTime}
           </p>
         )}
@@ -498,7 +498,7 @@ function DestinationCard({
           )}
         </div>
         {marker.hook && (
-          <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", color: "var(--muted)", lineHeight: 1.5 }}>{marker.hook}</p>
+          <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", color: "var(--site-muted)", lineHeight: 1.5 }}>{marker.hook}</p>
         )}
         
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
@@ -580,11 +580,11 @@ function DestinationCard({
         </div>
         
         <div style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 8, borderTop: "1px solid var(--mist)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--muted)" }} title="Views">
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Views">
             <Eye size={14} /> {viewCount}
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--muted)" }} title="Likes">
-            <Heart size={14} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--muted)" }} /> {eng.likes}
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Likes">
+            <Heart size={14} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--site-muted)" }} /> {eng.likes}
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
             <MessageSquare size={14} /> {eng.reviews > 0 ? `${eng.avgRating.toFixed(1)} (${eng.reviews})` : "Review"}

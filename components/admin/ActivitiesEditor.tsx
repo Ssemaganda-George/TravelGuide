@@ -46,7 +46,7 @@ export default function ActivitiesEditor({ initial, providers }: { initial: Acti
           <MediaEditor items={a.media} onChange={media => patch(i, { media })} />
           <label>Providers (partners who run this activity)</label>
           {providers.length === 0 ? (
-            <p className="hint" style={{ margin: "4px 0 10px", color: "var(--muted)", fontSize: "0.85rem" }}>
+            <p className="hint" style={{ margin: "4px 0 10px", color: "var(--muted-foreground)", fontSize: "0.85rem" }}>
               No partners yet. Add one at Partners first, then select it here.
             </p>
           ) : (

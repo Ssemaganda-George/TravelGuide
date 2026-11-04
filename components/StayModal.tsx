@@ -72,7 +72,7 @@ export default function StayModal({ open, onClose, stay }: StayModalProps) {
               border: "none",
               fontSize: "2rem",
               cursor: "pointer",
-              color: "var(--muted)",
+              color: "var(--site-muted)",
               lineHeight: 1,
               padding: "4px 8px",
             }}

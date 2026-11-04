@@ -324,7 +324,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
 
       {showMap ? (
         <div className="map-container" style={{ borderRadius: 16, overflow: "hidden", marginTop: 16 }}>
-          <Suspense fallback={<div style={{ height: "600px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted)" }}>Loading map...</div>}>
+          <Suspense fallback={<div style={{ height: "600px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--site-muted)" }}>Loading map...</div>}>
             <InteractiveMap
               center={mapCenter}
               zoom={mapZoom}

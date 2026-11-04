@@ -566,7 +566,7 @@ export default async function Destination(p: P) {
                   <blockquote style={{ margin: "0 0 8px 0", paddingLeft: 12, borderLeft: "3px solid var(--sun)", fontStyle: "italic", color: "var(--ink)" }} cite={pageUrl}>
                     {d.local_tip}
                   </blockquote>
-                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--site-muted)" }}>
                     <strong>Local tip{d.tip_author ? ` from ${d.tip_author}` : ""}</strong>
                   </p>
                 </section>
