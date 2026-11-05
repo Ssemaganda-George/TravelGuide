@@ -4,6 +4,7 @@ import SiteHeader from "@/components/SiteHeader";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+import PageView from "@/components/PageView";
 import { ToastContainer } from "@/components/Toast";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
@@ -99,6 +100,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
           </div>
         </footer>
         <Analytics />
+        <PageView />
         <ToastContainer />
         <WhatsAppButton />
         <ChatBot />
