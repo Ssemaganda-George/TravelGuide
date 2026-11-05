@@ -151,21 +151,6 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const visitorHashes = new Set(pageViews.map(v => v.visitor));
   const visitors = visitorHashes.size;
 
-  // Visitor countries — only real ISO codes (no Unknown / null / XX)
-  const countryTotals = new Map<string, { views: number; visitors: Set<string> }>();
-  for (const v of pageViews) {
-    const c = (v.country ?? "").trim().toUpperCase();
-    if (!/^[A-Z]{2}$/.test(c) || c === "XX" || c === "T1") continue;
-    const existing = countryTotals.get(c) ?? { views: 0, visitors: new Set() };
-    existing.views += 1;
-    existing.visitors.add(v.visitor);
-    countryTotals.set(c, existing);
-  }
-  const countryRows = Array.from(countryTotals.entries())
-    .sort((a, b) => b[1].views - a[1].views)
-    .map(([country, v]) => ({ country, views: v.views, visitors: v.visitors.size }));
-  const knownViews = countryRows.reduce((s, r) => s + r.views, 0);
-
   const recent = rows.filter(r => Date.now() - new Date(r.created_at).getTime() < pDays * 864e5);
   const booked = rows.filter(r => r.status === "booked").length;
   const lost = top(rows.filter(r => r.status === "lost"), "lost_reason");
@@ -197,22 +182,6 @@ export default async function Insights({ searchParams }: { searchParams: Promise
         {sources.length ? <Table><TableHeader><TableRow><TableHead>Source</TableHead><TableHead>Views</TableHead><TableHead>Visitors</TableHead></TableRow></TableHeader>
           <TableBody>{sources.slice(0, 12).map(s => <TableRow key={s.channel}><TableCell>{s.channel}</TableCell><TableCell>{s.views}</TableCell><TableCell>{s.visitors}</TableCell></TableRow>)}</TableBody></Table> : <p className="text-sm text-muted-foreground">No traffic sources yet.</p>}
         <p className="text-sm text-muted-foreground">Add a source parameter to shared links so each channel appears by name.</p>
-      </CardContent></Card>
-
-      <Card><CardHeader><CardTitle>Visitor countries</CardTitle><CardDescription>On-site page views by country (CDN geo, with IP lookup fallback). Localhost is not counted.</CardDescription></CardHeader><CardContent>
-        <Table><TableHeader><TableRow><TableHead>Country</TableHead><TableHead>Page views</TableHead><TableHead>Visitors</TableHead><TableHead>Pages per visitor</TableHead><TableHead>% of total</TableHead></TableRow></TableHeader>
-          <TableBody>
-            {countryRows.length > 0 ? countryRows.map(({ country, views: cViews, visitors: cVisitors }) => (
-              <TableRow key={country}>
-                <TableCell className="font-medium">{countryDisplayName(country)}</TableCell>
-                <TableCell>{cViews.toLocaleString()}</TableCell>
-                <TableCell>{cVisitors.toLocaleString()}</TableCell>
-                <TableCell>{cVisitors > 0 ? (cViews / cVisitors).toFixed(1) : 0}</TableCell>
-                <TableCell>{((cViews / (knownViews || 1)) * 100).toFixed(1)}%</TableCell>
-              </TableRow>
-            )) : <TableRow><TableCell colSpan={5} className="text-muted-foreground">No visitor country data yet.</TableCell></TableRow>}
-          </TableBody>
-        </Table>
       </CardContent></Card>
 
       <Card>
