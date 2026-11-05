@@ -104,15 +104,11 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   // Exclude admin-touched paths from page stats (case-insensitive)
   const nonAdminPages = pages.filter(p => !p.path.toLowerCase().includes("/admin"));
 
-  // Fetch page_views — only rows with a real country (unknowns are purged and no longer recorded)
-  const isKnownCountry = (code: string | null | undefined) => {
-    const c = (code ?? "").trim().toUpperCase();
-    return /^[A-Z]{2}$/.test(c) && c !== "XX" && c !== "T1";
-  };
+  // Fetch page_views — all rows (admin paths excluded), used for activity stats
   let pageViews: { path: string; created_at: string; visitor: string; country?: string | null }[] = [];
   try {
     const { data } = await sb.from("page_views").select("path,created_at,visitor,country").gte("created_at", start).lte("created_at", endInclusive);
-    pageViews = (data ?? []).filter(v => !v.path.toLowerCase().includes("/admin") && isKnownCountry(v.country));
+    pageViews = (data ?? []).filter(v => !v.path.toLowerCase().includes("/admin"));
   } catch {
     pageViews = [];
   }
@@ -151,9 +147,14 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const visitorHashes = new Set(pageViews.map(v => v.visitor));
   const visitors = visitorHashes.size;
 
-  // Visitor countries from page_views (already filtered to known countries)
+  // Visitor countries from page_views — only rows with a real 2-letter country code
+  const isKnownCountry = (code: string | null | undefined) => {
+    const c = (code ?? "").trim().toUpperCase();
+    return /^[A-Z]{2}$/.test(c) && c !== "XX" && c !== "T1";
+  };
   const countryTotals = new Map<string, { views: number; visitors: Set<string> }>();
   for (const v of pageViews) {
+    if (!isKnownCountry(v.country)) continue;
     const c = (v.country ?? "").trim().toUpperCase();
     const existing = countryTotals.get(c) ?? { views: 0, visitors: new Set() };
     existing.views += 1;
