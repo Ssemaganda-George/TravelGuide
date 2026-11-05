@@ -6,8 +6,11 @@ import { useEffect, useRef } from "react";
 export default function PageView() {
   const path = usePathname();
   const first = useRef(true);
+  const lastPath = useRef<string | null>(null);
   useEffect(() => {
     if (path.startsWith("/admin")) return;
+    if (lastPath.current === path) return;
+    lastPath.current = path;
     const utm = new URLSearchParams(location.search).get("utm_source") ?? "";
     const referrer = first.current ? document.referrer : ""; // only the entry page has an outside referrer
     first.current = false;
