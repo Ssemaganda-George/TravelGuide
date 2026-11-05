@@ -3,7 +3,7 @@ import Image from "next/image";
 import SiteHeader from "@/components/SiteHeader";
 import type { Metadata } from "next";
 import Script from "next/script";
-import PageView from "@/components/PageView";
+import { Analytics } from "@vercel/analytics/react";
 import { ToastContainer } from "@/components/Toast";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
@@ -98,14 +98,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </footer>
-        {process.env.NEXT_PUBLIC_ANALYTICS_SRC && (
-          <Script
-            defer
-            data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN}
-            src={process.env.NEXT_PUBLIC_ANALYTICS_SRC}
-          />
-        )}
-        <PageView />
+        <Analytics />
         <ToastContainer />
         <WhatsAppButton />
         <ChatBot />
