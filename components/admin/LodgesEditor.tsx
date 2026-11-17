@@ -46,6 +46,13 @@ export default function LodgesEditor({ initial }: { initial: Stay[] }) {
     longitude: s.longitude ?? null,
   })));
   const patch = (i: number, p: Partial<Draft>) => setItems(items.map((x, j) => (j === i ? { ...x, ...p } : x)));
+  const move = (i: number, dir: number) => {
+    const ni = i + dir;
+    if (ni < 0 || ni >= items.length) return;
+    const next = [...items];
+    [next[i], next[ni]] = [next[ni], next[i]];
+    setItems(next);
+  };
 
   return (
     <div className="items">
@@ -53,7 +60,11 @@ export default function LodgesEditor({ initial }: { initial: Stay[] }) {
         <div className="item" key={i}>
           <div className="ihead">
             <strong>{l.name || `Stay ${i + 1}`}</strong>
-            <button type="button" className="chip" onClick={() => setItems(items.filter((_, j) => j !== i))}>Remove</button>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button type="button" className="chip" onClick={() => move(i, -1)} disabled={i === 0} title="Move up">▲</button>
+              <button type="button" className="chip" onClick={() => move(i, 1)} disabled={i === items.length - 1} title="Move down">▼</button>
+              <button type="button" className="chip" onClick={() => setItems(items.filter((_, j) => j !== i))}>Remove</button>
+            </div>
           </div>
           <div className="row2">
             <div><label htmlFor={`ln${i}`}>Name</label><input id={`ln${i}`} value={l.name} placeholder="Nile side camp" onChange={e => patch(i, { name: e.target.value })} /></div>

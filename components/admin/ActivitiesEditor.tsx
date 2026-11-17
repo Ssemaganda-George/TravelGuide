@@ -23,6 +23,13 @@ export default function ActivitiesEditor({ initial, providers }: { initial: Acti
     providerIds: (a.providers ?? []).map(p => p.id),
   })));
   const patch = (i: number, p: Partial<Draft>) => setItems(items.map((x, j) => (j === i ? { ...x, ...p } : x)));
+  const move = (i: number, dir: number) => {
+    const ni = i + dir;
+    if (ni < 0 || ni >= items.length) return;
+    const next = [...items];
+    [next[i], next[ni]] = [next[ni], next[i]];
+    setItems(next);
+  };
   const n = (v: string) => (v.trim() === "" || isNaN(Number(v)) ? null : Number(v));
 
   return (
@@ -31,7 +38,11 @@ export default function ActivitiesEditor({ initial, providers }: { initial: Acti
         <div className="item" key={i}>
           <div className="ihead">
             <strong>{a.name || `Activity ${i + 1}`}</strong>
-            <button type="button" className="chip" onClick={() => setItems(items.filter((_, j) => j !== i))}>Remove</button>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button type="button" className="chip" onClick={() => move(i, -1)} disabled={i === 0} title="Move up">▲</button>
+              <button type="button" className="chip" onClick={() => move(i, 1)} disabled={i === items.length - 1} title="Move down">▼</button>
+              <button type="button" className="chip" onClick={() => setItems(items.filter((_, j) => j !== i))}>Remove</button>
+            </div>
           </div>
           <label htmlFor={`an${i}`}>Name</label>
           <input id={`an${i}`} value={a.name} placeholder="White-water rafting" onChange={e => patch(i, { name: e.target.value })} />
