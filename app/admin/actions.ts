@@ -19,7 +19,7 @@ export async function uploadMedia(fd: FormData) {
 
   const ext = file.name.split(".").pop() ?? "bin";
   const fileName = `${crypto.randomUUID()}.${ext}`;
-  const bucket = type === "video" ? "videos" : "images";
+  const bucket = "media";
 
   const { error, data } = await sb.storage.from(bucket).upload(fileName, file, {
     contentType: file.type,
