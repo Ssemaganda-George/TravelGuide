@@ -113,13 +113,14 @@ async function saveContent(fd: FormData) {
   const activitiesJson = String(fd.get("activities_json") ?? "[]");
   const parsedActivities: Array<{ id?: string; name: string; description?: string; cost_low?: number | null; cost_high?: number | null; duration?: string; providerIds?: string[]; media?: unknown }> = JSON.parse(activitiesJson);
   const keep = new Set<string>();
-  for (const a of parsedActivities) {
+  for (const [i, a] of parsedActivities.entries()) {
     const name = (a.name ?? "").trim();
     if (!name) continue;
     const payload = {
       place_id, name, description: a.description?.trim() || null,
       cost_low: a.cost_low ?? null, cost_high: a.cost_high ?? null, currency: "USD",
       duration: a.duration?.trim() || null, media: cleanMedia(a.media), status: "published" as const,
+      order_index: i,
     };
     let actId: string | null = null;
     if (a.id) { keep.add(a.id); actId = a.id; await sb.from("activities").update(payload).eq("id", a.id); }
@@ -138,7 +139,7 @@ async function saveContent(fd: FormData) {
   const staysJson = String(fd.get("lodges_json") ?? "[]");
   const parsedStays: Array<{ id?: string; name: string; tier: string; description: string; contact: string; email: string; website: string; latitude?: number | null; longitude?: number | null; media?: unknown }> = JSON.parse(staysJson);
   const keepStays = new Set<string>();
-  for (const l of parsedStays) {
+  for (const [i, l] of parsedStays.entries()) {
     const name = (l.name ?? "").trim();
     if (!name) continue;
     const tier = ["budget", "mid", "comfort"].includes(l.tier ?? "") ? l.tier : null;
@@ -147,6 +148,7 @@ async function saveContent(fd: FormData) {
       email: l.email?.trim() || null, website: l.website?.trim() || null,
       latitude: l.latitude ?? null, longitude: l.longitude ?? null,
       media: cleanMedia(l.media),
+      order_index: i,
     };
     if (l.id) {
       const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();

@@ -211,7 +211,7 @@ export async function getActivities(placeId: string): Promise<Activity[]> {
     .select("id,name,description,cost_low,cost_high,currency,duration,media")
     .eq("status", "published")
     .eq("place_id", placeId)
-    .order("name");
+    .order("order_index", { ascending: true });
   const acts = (data as Activity[]) ?? [];
   if (!acts.length) return acts;
 
@@ -251,7 +251,7 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
     .select("id,name,description,cost_low,cost_high,currency,duration,media,place_id")
     .eq("status", "published")
     .in("place_id", placeIds)
-    .order("place_id,name");
+    .order("place_id,order_index");
   const acts = (data as unknown as Activity[]) ?? [];
   if (!acts.length) return {};
 
@@ -298,9 +298,9 @@ export async function getStays(placeId: string): Promise<Stay[]> {
     .select("id,name,description,tier,contact,email,website,media,latitude,longitude")
     .eq("type", "lodge")
     .eq("active", true)
-    .contains("place_ids", [placeId]);
-  const order = ["budget", "mid", "comfort"];
-  return ((data as Stay[]) ?? []).sort((a, b) => order.indexOf(a.tier ?? "") - order.indexOf(b.tier ?? ""));
+    .contains("place_ids", [placeId])
+    .order("order_index", { ascending: true });
+  return (data as Stay[]) ?? [];
 }
 
 // All partners that can act as activity providers (any partner type).
