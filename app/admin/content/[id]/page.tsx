@@ -123,8 +123,16 @@ async function saveContent(fd: FormData) {
       order_index: i,
     };
     let actId: string | null = null;
-    if (a.id) { keep.add(a.id); actId = a.id; await sb.from("activities").update(payload).eq("id", a.id); }
-    else { const { data } = await sb.from("activities").insert(payload).select("id").single(); if (data) { keep.add(data.id); actId = data.id; } }
+    if (a.id) {
+      keep.add(a.id);
+      actId = a.id;
+      const { error } = await sb.from("activities").update(payload).eq("id", a.id);
+      if (error) console.error("Failed to update activity", a.id, error);
+    } else {
+      const { data, error } = await sb.from("activities").insert(payload).select("id").single();
+      if (error) console.error("Failed to insert activity", name, error);
+      if (data) { keep.add(data.id); actId = data.id; }
+    }
     if (actId) {
       await sb.from("activity_providers").delete().eq("activity_id", actId);
       const pids: string[] = Array.isArray(a.providerIds) ? a.providerIds : [];
@@ -152,10 +160,12 @@ async function saveContent(fd: FormData) {
     };
     if (l.id) {
       const { data: p } = await sb.from("partners").select("place_ids").eq("id", l.id).maybeSingle();
-      await sb.from("partners").update({ ...payload, type: "lodge", place_ids: Array.from(new Set([...(p?.place_ids ?? []), place_id])) }).eq("id", l.id);
+      const { error } = await sb.from("partners").update({ ...payload, type: "lodge", place_ids: Array.from(new Set([...(p?.place_ids ?? []), place_id])) }).eq("id", l.id);
+      if (error) console.error("Failed to update stay", l.id, error);
       keepStays.add(l.id);
     } else {
-      const { data } = await sb.from("partners").insert({ ...payload, type: "lodge", place_ids: [place_id] }).select("id").single();
+      const { data, error } = await sb.from("partners").insert({ ...payload, type: "lodge", place_ids: [place_id] }).select("id").single();
+      if (error) console.error("Failed to insert stay", name, error);
       if (data) keepStays.add(data.id);
     }
   }
