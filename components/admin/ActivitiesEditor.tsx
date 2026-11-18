@@ -35,7 +35,7 @@ export default function ActivitiesEditor({ initial, providers }: { initial: Acti
   return (
     <div className="items">
       {items.map((a, i) => (
-        <div className="item" key={i}>
+        <div className="item" key={a.id || `activity-${i}`}>
           <div className="ihead">
             <strong>{a.name || `Activity ${i + 1}`}</strong>
             <div style={{ display: "flex", gap: 4 }}>

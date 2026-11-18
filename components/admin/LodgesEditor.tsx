@@ -57,7 +57,7 @@ export default function LodgesEditor({ initial }: { initial: Stay[] }) {
   return (
     <div className="items">
       {items.map((l, i) => (
-        <div className="item" key={i}>
+        <div className="item" key={l.id || `stay-${i}`}>
           <div className="ihead">
             <strong>{l.name || `Stay ${i + 1}`}</strong>
             <div style={{ display: "flex", gap: 4 }}>
