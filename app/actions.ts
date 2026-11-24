@@ -41,7 +41,7 @@ export async function submitEnquiry(_: FormState, fd: FormData): Promise<FormSta
       label: "form",
       path,
       channel,
-      internal: false,
+      is_internal: false,
       visitor,
     });
   } catch {

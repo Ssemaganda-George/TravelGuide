@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     .digest("hex")
     .slice(0, 16);
 
-  const { error } = await db().from("events").insert({ type, label, path, channel, internal, visitor });
+  const { error } = await db().from("events").insert({ type, label, path, channel, is_internal: internal, visitor });
   if (error) {
     console.error("Event insert error:", error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
