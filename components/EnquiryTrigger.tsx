@@ -1,14 +1,23 @@
 "use client";
 import { useState } from "react";
 import EnquirySection from "@/components/EnquirySection";
+import { trackEvent, currentChannel, isInternalDevice } from "@/lib/track";
 
 type Props = { placeId: string; title: string; page: string };
 
 export default function EnquiryTrigger({ placeId, title, page }: Props) {
   const [showEnquiry, setShowEnquiry] = useState(false);
+  const channel = currentChannel();
+  const internal = isInternalDevice();
+
+  const handleAskClick = () => {
+    trackEvent({ type: "plan_click", label: "ask_about_trip", path: page, channel, internal });
+    setShowEnquiry(!showEnquiry);
+  };
+
   return (
     <div className="enquiry-trigger">
-      <button className="go" style={{ width: "auto", padding: "12px 24px", fontSize: "1rem" }} onClick={() => setShowEnquiry(!showEnquiry)}>
+      <button className="go" style={{ width: "auto", padding: "12px 24px", fontSize: "1rem" }} onClick={handleAskClick}>
         {showEnquiry ? "Hide enquiry form" : "Ask about this trip"}
       </button>
       {showEnquiry && (
