@@ -115,8 +115,8 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
 /* Floating chat icons */
 .whatsapp-float {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  right: 24px;
+  bottom: 24px;
   z-index: 1000;
   width: 56px;
   height: 56px;
@@ -363,9 +363,10 @@ html, body {
 /* Mobile responsive adjustments */
 @media(max-width:768px){
   .whatsapp-float {
-    left: 15px;
-    width: 48px;
-    height: 48px;
+    right: 24px;
+    left: auto;
+    width: 56px;
+    height: 56px;
   }
   
   .chatbot-container {
@@ -963,10 +964,10 @@ tr.off{opacity:.5}
   }
   /* Floating icons - ensure they don't overlap */
   .whatsapp-float{
-    bottom: 16px;
-    left: 16px;
-    width: 48px;
-    height: 48px;
+    right: 24px;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
   }
   .chat-toggle{
     bottom: 16px;
@@ -2101,5 +2102,51 @@ tr.off{opacity:.5}
     background: var(--lake);
     color: #fff;
     border-color: var(--lake);
+  }
+}
+
+/* Sticky CTA bottom padding so footer isn't covered on mobile */
+.pb-mobile {
+  padding-bottom: 64px;
+}
+@media (max-width: 768px) {
+  .pb-mobile {
+    padding-bottom: 64px;
+  }
+}
+@media (min-width: 769px) {
+  .pb-mobile {
+    padding-bottom: 0;
+  }
+}
+
+/* Extra bottom margin for enquiry section on mobile so sticky bar doesn't cover submit button */
+.enquiry-full {
+  margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .enquiry-full {
+    margin-bottom: 32px;
+  }
+}
+
+/* Sticky CTA bar — SSR-safe: no JS-dependent inline styles */
+.sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  z-index: 1000;
+  pointer-events: auto;
+}
+@media (max-width: 768px) {
+  .sticky-cta {
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

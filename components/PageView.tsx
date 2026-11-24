@@ -1,16 +1,16 @@
-"use client";
+'use client';
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { useInternalDevice } from "@/lib/useInternalDevice";
 
-// Sends one anonymous view per page per session. Bots that don't run JavaScript are never counted.
 export default function PageView() {
   const path = usePathname();
+  const internal = useInternalDevice();
   const first = useRef(true);
   const lastPath = useRef<string | null>(null);
   useEffect(() => {
     if (path.startsWith("/admin")) return;
     if (lastPath.current === path) return;
-    // Session-level dedup: don't re-fire for a path already tracked this session
     try {
       const viewed = JSON.parse(sessionStorage.getItem("pv:viewed") ?? "[]");
       if (Array.isArray(viewed) && viewed.includes(path)) return;
@@ -22,7 +22,7 @@ export default function PageView() {
     const utm = new URLSearchParams(location.search).get("utm_source") ?? "";
     const referrer = first.current ? document.referrer : ""; // only the entry page has an outside referrer
     first.current = false;
-    fetch("/api/view", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path, referrer, utm }) }).catch(() => {});
-  }, [path]);
+    fetch("/api/view", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path, referrer, utm, internal }) }).catch(() => {});
+  }, [path, internal]);
   return null;
 }

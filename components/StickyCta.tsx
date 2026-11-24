@@ -1,0 +1,107 @@
+'use client';
+import React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Phone } from 'lucide-react';
+import { Target } from 'lucide-react';
+import { useDialog } from '@/components/DialogContext';
+import QuickEnquiryDialog from '@/components/QuickEnquiryDialog';
+import { trackEvent, currentChannel, isInternalDevice } from '@/lib/track';
+
+export default function StickyCta() {
+  const pathname = usePathname();
+
+  const router = useRouter();
+  const barRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const showWhatsApp = Boolean(process.env.NEXT_PUBLIC_WHATSAPP);
+  const { isOpen, open } = useDialog();
+
+  // Intersection observer for form visibility
+  useEffect(() => {
+    if (!formRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      setFormVisible(entry.isIntersecting);
+    }, { threshold: 0.5 });
+    observer.observe(formRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Detect keyboard open (focus)
+  useEffect(() => {
+    const handleFocus = () => setIsKeyboardOpen(true);
+    const handleBlur = () => setIsKeyboardOpen(false);
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(el => {
+      el.addEventListener('focus', handleFocus);
+      el.addEventListener('blur', handleBlur);
+    });
+    return () => {
+      inputs.forEach(el => {
+        el.removeEventListener('focus', handleFocus);
+        el.removeEventListener('blur', handleBlur);
+      });
+    };
+  }, []);
+
+  // Sync local showDialog with context isOpen
+  useEffect(() => {
+    setShowDialog(isOpen);
+  }, [isOpen]);
+
+  const channel = currentChannel();
+  const internal = isInternalDevice();
+
+  // Hide sticky bar on admin pages
+  if (pathname.startsWith('/admin')) return null;
+
+  const handlePlanClick = () => {
+    trackEvent({ type: "plan_click", label: "sticky_bar", path: pathname, channel, internal });
+    if (pathname === '/plan' || pathname.startsWith('/plan/')) {
+      router.push(pathname, { scroll: true });
+      formRef.current?.querySelector('input')?.focus();
+    } else {
+      open();
+    }
+  };
+
+  const handleWhatsApp = () => {
+    if (!showWhatsApp) return;
+    trackEvent({ type: "whatsapp_click", label: "sticky_bar", path: pathname, channel, internal });
+    const title = document.title;
+    const url = window.location.pathname + window.location.search;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(`Hi, I'm interested in ${title}. ${url}`)}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div
+      ref={barRef}
+      className="sticky-cta"
+      style={{ pointerEvents: isKeyboardOpen || formVisible ? 'none' : 'auto' }}
+    >
+      <Button onClick={handlePlanClick} className="text-yellow-600">
+        <Target className="h-5 w-5 mr-2" /> Plan my trip
+      </Button>
+      {showWhatsApp && (
+        <Button
+          onClick={handleWhatsApp}
+          className="flex items-center text-white bg-green-800 hover:bg-green-700"
+        >
+          <Phone className="h-5 w-5 mr-2" /> WhatsApp
+        </Button>
+      )}
+      {showDialog && (
+        <React.Suspense fallback={<div className="text-center py-8">Loading...</div>}>
+          <QuickEnquiryDialog />
+        </React.Suspense>
+      )}
+    </div>
+  );
+}

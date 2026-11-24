@@ -81,14 +81,14 @@ export type Activity = {
   id: string; name: string; description: string | null; cost_low: number | null;
   cost_high: number | null; currency: string | null; duration: string | null;
   media: Media[] | null; providers: { id: string; name: string; contact: string | null; email: string | null; website: string | null }[]; place_id?: string;
-  latitude: number | null; longitude: number | null;
+  latitude: number | null; longitude: number | null; order_index: number | null;
 };
 
 export type Stay = {
   id: string; name: string; description: string | null; tier: string | null;
   contact: string | null; email: string | null; website: string | null;
   media: Media[] | null;
-  latitude: number | null; longitude: number | null;
+  latitude: number | null; longitude: number | null; order_index: number | null;
 };
 
 export { STAY_TIERS };
@@ -208,7 +208,7 @@ export async function getRelatedDestinations(currentPlaceId: string, tags: strin
 export async function getActivities(placeId: string): Promise<Activity[]> {
   const { data } = await db()
     .from("activities")
-    .select("id,name,description,cost_low,cost_high,currency,duration,media")
+    .select("id,name,description,cost_low,cost_high,currency,duration,media,order_index")
     .eq("status", "published")
     .eq("place_id", placeId)
     .order("order_index", { ascending: true });
@@ -248,7 +248,7 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
   if (!placeIds.length) return {};
   const { data } = await db()
     .from("activities")
-    .select("id,name,description,cost_low,cost_high,currency,duration,media,place_id")
+    .select("id,name,description,cost_low,cost_high,currency,duration,media,place_id,order_index")
     .eq("status", "published")
     .in("place_id", placeIds)
     .order("place_id,order_index");
@@ -295,7 +295,7 @@ export async function getActivitiesForPlaces(placeIds: string[]): Promise<Record
 export async function getStays(placeId: string): Promise<Stay[]> {
   const { data } = await db()
     .from("partners")
-    .select("id,name,description,tier,contact,email,website,media,latitude,longitude")
+    .select("id,name,description,tier,contact,email,website,media,latitude,longitude,order_index")
     .eq("type", "lodge")
     .eq("active", true)
     .contains("place_ids", [placeId])

@@ -23,6 +23,7 @@ export default function EnquiryForm({ placeId, title, page }: { placeId: string;
       <div className="row">
         <div><label htmlFor="dates">Travel dates (or &quot;not sure yet&quot;)</label><input id="dates" name="dates" maxLength={120} /></div>
         <div><label htmlFor="group">Travellers</label><input id="group" name="group" type="number" min={1} max={100} defaultValue={2} /></div>
+        <div><label htmlFor="days">Days</label><select id="days" name="days"><option value="">Not sure</option><option value="2-5">2–5 days</option><option value="5-10">5–10 days</option><option value="10-20">10–20 days</option><option value="20-plus">20+ days</option></select></div>
       </div>
       <label htmlFor="budget">Budget per person (optional)</label>
       <select id="budget" name="budget"><option value="">Not sure</option><option>Under $100 a day</option><option>$100-250 a day</option><option>Over $250 a day</option></select>

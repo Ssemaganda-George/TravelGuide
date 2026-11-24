@@ -57,6 +57,7 @@ function daysBetween(start: string, end: string): number {
 
 type Page = { path: string; views: number; visitors: number; enquiries: number };
 type Source = { channel: string; views: number; visitors: number };
+type Cta = { label: string; type: string; clicks: number };
 
 const gscPageLabel = (url: string) => {
   try {
@@ -93,13 +94,14 @@ export default async function Insights({ searchParams }: { searchParams: Promise
   const pDays = daysBetween(start, end);
 
   const endInclusive = end + "T23:59:59.999Z";
-  const [{ data: pg }, { data: src }, { data: enq }, gsc] = await Promise.all([
+  const [{ data: pg }, { data: src }, { data: enq }, { data: cta }, gsc] = await Promise.all([
     sb.rpc("page_stats", { p_days: pDays }),
     sb.rpc("source_stats", { p_days: pDays }),
     sb.from("enquiries").select("created_at,status").limit(5000),
+    sb.rpc("cta_stats", { p_days: pDays }),
     getSearchConsoleStats({ start, end }),
   ]);
-  const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [];
+  const pages = (pg ?? []) as Page[], sources = (src ?? []) as Source[], rows = enq ?? [], buttons = (cta ?? []) as Cta[];
 
   // Exclude admin-touched paths from page stats (case-insensitive)
   const nonAdminPages = pages.filter(p => !p.path.toLowerCase().includes("/admin"));
@@ -353,6 +355,37 @@ export default async function Insights({ searchParams }: { searchParams: Promise
           {lost.length ? <Table><TableBody>{lost.map(([k, v]) => <TableRow key={k}><TableCell>{k}</TableCell><TableCell className="text-right">{v}</TableCell></TableRow>)}</TableBody></Table> : <p className="mt-2 text-sm text-muted-foreground">No lost enquiries recorded.</p>}
         </div>
       </CardContent></Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Buttons that bring leads</CardTitle>
+          <CardDescription>Which labelled button or action drives enquiries</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {buttons && buttons.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Label</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Clicks</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {buttons.map((c: { label: string; type: string; clicks: number }) => (
+                  <TableRow key={`${c.label}-${c.type}`}>
+                    <TableCell>{c.label}</TableCell>
+                    <TableCell>{c.type}</TableCell>
+                    <TableCell className="text-right">{c.clicks}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground">No button clicks recorded yet.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <p className="text-sm leading-6 text-muted-foreground">
         On-site visitors are counted per day from your database. Search Console shows Google Search performance only and usually lags a couple of days behind.

@@ -25,7 +25,7 @@ export default function BackToTop() {
       style={{
         position: "fixed",
         bottom: 24,
-        right: 24,
+        right: 84,
         width: 48,
         height: 48,
         borderRadius: "50%",
