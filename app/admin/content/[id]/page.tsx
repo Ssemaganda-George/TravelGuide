@@ -189,7 +189,7 @@ export default async function Edit({ params, searchParams }: { params: Promise<{
   const providers = await getActivityProviders();
   const [{ data: activities }, { data: stays }] = await Promise.all([
     sb.from("activities").select("id,name,description,cost_low,cost_high,currency,duration,media").eq("place_id", d.places.id).order("name"),
-    sb.from("partners").select("id,name,description,tier,contact,email,website,media,latitude,longitude").eq("type", "lodge").contains("place_ids", [d.places.id]),
+    sb.from("partners").select("id,name,description,tier,contact,email,website,media,latitude,longitude,order_index").eq("type", "lodge").contains("place_ids", [d.places.id]),
   ]);
   const actsWithProviders = ((activities ?? []) as unknown as any[]).map((a: any) => ({ ...a, providers: [] })) as Activity[];
   return (
