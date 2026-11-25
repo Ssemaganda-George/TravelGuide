@@ -55,7 +55,7 @@ body:not(:has([data-admin-shell])) .grid{display:grid;gap:20px;grid-template-col
 .likestat:hover{color:var(--sun)}
 .likestat:hover svg{color:var(--sun)}
 .likestat svg{transition:color .2s}
-@media(max-width:640px){body:not(:has([data-admin-shell])) .grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:260px}.cardcontent{padding:12px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}}
+@media(max-width:640px){body:not(:has([data-admin-shell])) .grid{grid-template-columns:1fr;gap:16px}.cardmedia{height:260px}.cardcontent{padding:12px}.cardhead h3{font-size:1.1rem}.cardstats{font-size:0.72rem}.cardstats .stat{font-size:0.7rem;gap:4px}.cardstats .stat svg{width:14px;height:14px}}
 @media(max-width:400px){body:not(:has([data-admin-shell])) .grid{grid-template-columns:1fr}}
 .meta{font-weight:500;font-size:14px;color:var(--lake)}
 .page{padding:40px 20px 64px;max-width:960px}
