@@ -156,8 +156,10 @@ export async function generateStaticParams() {
 
 const money = (lo: number | null, hi: number | null) => {
   if (lo == null && hi == null) return null;
-  if (lo != null && hi != null) return `$${lo}-${hi}`;
-  return `from $${lo ?? hi}`;
+  if (lo != null && hi != null && lo === hi) return `$${lo}`;
+  if (lo != null && hi != null) return `$${lo} to ${hi}`;
+  if (lo != null) return `from $${lo}`;
+  return `up to $${hi}`;
 };
 
 function generateJsonLd(d: any, c: any, _activities: any[], _stays: any[], _path: string, pageUrl: string, coverImage?: string | null) {
