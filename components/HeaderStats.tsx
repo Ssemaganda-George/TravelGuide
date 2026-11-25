@@ -26,13 +26,15 @@ export default function HeaderStats({
   const textColor = inverse ? "rgba(255,255,255,.95)" : TEXT_COLOR;
   return (
     <div className="header-stats" style={{ color: textColor }}>
-      <div className="stat clickable">
-        <Eye className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
-        <div>
-          <span className="stat-label" style={{ color: textColor }}>{"Views"}</span>
-          <span className="stat-value" style={{ color: textColor }}>{views}</span>
+      {views > 0 && (
+        <div className="stat clickable">
+          <Eye className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
+          <div>
+            <span className="stat-label" style={{ color: textColor }}>{"Views"}</span>
+            <span className="stat-value" style={{ color: textColor }}>{views}</span>
+          </div>
         </div>
-      </div>
+      )}
       <LikeStat placeId={placeId} initialLikes={engagement.likes} inverse={inverse} />
       <button className="stat clickable" onClick={() => window.location.href = `${path}/reviews`} style={{ cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
         <Star className="stat-icon" size={14} strokeWidth={2} fill={starColor} style={{ color: starColor }} />
@@ -43,20 +45,24 @@ export default function HeaderStats({
           </span>
         </div>
       </button>
-      <button className="stat clickable" onClick={() => document.getElementById("where-to-stay")?.scrollIntoView({ behavior: "smooth" })} disabled={staysCount === 0} style={{ cursor: staysCount === 0 ? "default" : "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: staysCount === 0 ? 0.5 : 1 }}>
-        <Building className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
-        <div>
-          <span className="stat-label" style={{ color: textColor }}>Stays Listed</span>
-          <span className="stat-value" style={{ color: textColor }}>{staysCount}</span>
-        </div>
-      </button>
-      <button className="stat clickable" onClick={() => document.getElementById("things-to-do")?.scrollIntoView({ behavior: "smooth" })} disabled={activitiesCount === 0} style={{ cursor: activitiesCount === 0 ? "default" : "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, opacity: activitiesCount === 0 ? 0.5 : 1 }}>
-        <Activity className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
-        <div>
-          <span className="stat-label" style={{ color: textColor }}>Activities</span>
-          <span className="stat-value" style={{ color: textColor }}>{activitiesCount}</span>
-        </div>
-      </button>
+      {staysCount > 0 && (
+        <button className="stat clickable" onClick={() => document.getElementById("where-to-stay")?.scrollIntoView({ behavior: "smooth" })} style={{ cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+          <Building className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
+          <div>
+            <span className="stat-label" style={{ color: textColor }}>Stays Listed</span>
+            <span className="stat-value" style={{ color: textColor }}>{staysCount}</span>
+          </div>
+        </button>
+      )}
+      {activitiesCount > 0 && (
+        <button className="stat clickable" onClick={() => document.getElementById("things-to-do")?.scrollIntoView({ behavior: "smooth" })} style={{ cursor: "pointer", background: "none", border: "none", padding: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+          <Activity className="stat-icon" size={14} strokeWidth={2} style={{ color: iconColor }} />
+          <div>
+            <span className="stat-label" style={{ color: textColor }}>Activities</span>
+            <span className="stat-value" style={{ color: textColor }}>{activitiesCount}</span>
+          </div>
+        </button>
+      )}
     </div>
   );
 }

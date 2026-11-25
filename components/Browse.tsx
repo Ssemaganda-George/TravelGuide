@@ -284,7 +284,9 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
               <div className="cardcontent">
                 <div className="cardhead">
                   <h3>{i.title}</h3>
-                  <span className="stays-badge">{staysCount[i.place_id] ?? 0} Stays</span>
+                  {staysCount[i.place_id] > 0 && (
+                    <span className="stays-badge">{staysCount[i.place_id]} Stays</span>
+                  )}
                 </div>
                 <p>{i.hook}</p>
                 <span className="cardmeta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>

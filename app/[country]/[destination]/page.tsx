@@ -517,10 +517,10 @@ export default async function Destination(p: P) {
                 <p className="empty">No activities listed yet. Check back soon.</p>
               )}
 
-              <h2 id="where-to-stay">Where to stay</h2>
-              <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
               {normalizedStays.length > 0 ? (
                 <>
+                  <h2 id="where-to-stay">Where to stay</h2>
+                  <p className="hook">Places to rest after your day out, grouped by budget tier.</p>
                   {STAY_TIERS.map(([tier, label]) => {
                     const list = normalizedStays.filter(s => s.tier === tier);
                     if (!list.length) return null;
