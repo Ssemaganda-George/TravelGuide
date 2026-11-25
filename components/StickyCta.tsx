@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Phone } from 'lucide-react';
 import { Target } from 'lucide-react';
 import { useDialog } from '@/components/DialogContext';
 import QuickEnquiryDialog from '@/components/QuickEnquiryDialog';
 import { trackEvent, currentChannel, isInternalDevice } from '@/lib/track';
-import { whatsappUrl } from '@/lib/whatsapp';
 
 export default function StickyCta() {
   const pathname = usePathname();
@@ -20,9 +18,7 @@ export default function StickyCta() {
   const [showDialog, setShowDialog] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
-  const showWhatsApp = Boolean(process.env.NEXT_PUBLIC_WHATSAPP);
   const { isOpen, open } = useDialog();
-
   // Intersection observer for form visibility
   useEffect(() => {
     if (!formRef.current) return;
@@ -72,13 +68,6 @@ export default function StickyCta() {
     }
   };
 
-  const handleWhatsApp = () => {
-    if (!showWhatsApp) return;
-    trackEvent({ type: "whatsapp_click", label: "sticky_bar", path: pathname, channel, internal });
-    const url = whatsappUrl({ title: document.title, path: pathname });
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <div
       ref={barRef}
@@ -88,14 +77,6 @@ export default function StickyCta() {
       <Button onClick={handlePlanClick} className="text-yellow-600">
         <Target className="h-5 w-5 mr-2" /> Plan my trip
       </Button>
-      {showWhatsApp && (
-        <Button
-          onClick={handleWhatsApp}
-          className="flex items-center text-white bg-green-800 hover:bg-green-700"
-        >
-          <Phone className="h-5 w-5 mr-2" /> WhatsApp
-        </Button>
-      )}
       {showDialog && (
         <React.Suspense fallback={<div className="text-center py-8">Loading...</div>}>
           <QuickEnquiryDialog />
