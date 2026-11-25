@@ -332,7 +332,7 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
     <div>
       <Hero search={search} setSearch={setSearch} tag={tag} setTag={setTag} country={country} tags={tags} images={heroImages} showMap={showMap} setShowMap={setShowMap} />
       <div className="wrap">
-        <p className="meta" style={{ textAlign: "center", margin: "8px 0 16px" }}>{`${filteredItems.length} destination${filteredItems.length !== 1 ? "s" : ""} found`}${showMap ? " · Map view" : ""}</p>
+        <p className="meta" style={{ textAlign: "center", margin: "8px 0 16px" }}>{`${filteredItems.length} destination${filteredItems.length !== 1 ? "s" : ""} found`}</p>
 
       {showMap ? (
         <div className="map-container" style={{ borderRadius: 16, overflow: "hidden", marginTop: 16 }}>
