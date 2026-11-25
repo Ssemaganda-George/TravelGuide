@@ -63,7 +63,7 @@ export default function ActivityCards({ activities, country, placeId, destinatio
               <div className="activity-card-body">
                 <h3>{a.name}</h3>
                 <div className="activity-card-meta">
-                  {a.cost_low != null && a.cost_high != null && <span>$${a.cost_low} &ndash; $${a.cost_high}</span>}
+                  {a.cost_low == null && a.cost_high == null ? null : a.cost_low != null && a.cost_high != null && a.cost_low === a.cost_high ? <span>${a.currency ?? ""}${a.cost_low}</span> : a.cost_low != null && a.cost_high != null ? <span>${a.currency ?? ""}${a.cost_low} to ${a.cost_high}</span> : a.cost_low != null ? <span>from ${a.currency ?? ""}${a.cost_low}</span> : a.cost_high != null ? <span>up to ${a.currency ?? ""}${a.cost_high}</span> : null}
                   {a.duration && <span>&bull; {a.duration}</span>}
                 </div>
                 {a.description && <p className="activity-card-desc">{a.description}</p>}

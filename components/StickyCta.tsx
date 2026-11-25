@@ -76,7 +76,7 @@ export default function StickyCta() {
     if (!showWhatsApp) return;
     trackEvent({ type: "whatsapp_click", label: "sticky_bar", path: pathname, channel, internal });
     const url = whatsappUrl({ title: document.title, path: pathname });
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (

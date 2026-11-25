@@ -14,6 +14,7 @@ export function WhatsAppButton() {
   const channel = currentChannel();
   const internal = isInternalDevice();
   const url = whatsappUrl({ title: document.title, path: pathname });
+  if (!url) return null;
 
   return (
     <a
