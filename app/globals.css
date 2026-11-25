@@ -118,8 +118,8 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
   right: 24px;
   bottom: 24px;
   z-index: 1000;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   background: #25D366;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
@@ -127,13 +127,9 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
   cursor: pointer;
   border: none;
   padding: 0;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: auto;
-  height: auto;
-  min-width: 44px;
 }
 
 .whatsapp-float:hover {
@@ -142,11 +138,7 @@ input,select,textarea{width:100%;font:16px var(--body),Georgia,serif;padding:10p
 }
 
 .whatsapp-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: white;
-  padding-right: 10px;
-  white-space: nowrap;
+  display: none;
 }
 
 .chatbot-container {
@@ -982,13 +974,6 @@ tr.off{opacity:.5}
     height: auto;
     min-width: 44px;
     min-height: 44px;
-  }
-  .whatsapp-float .whatsapp-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: white;
-    padding-right: 8px;
-    white-space: nowrap;
   }
   .chat-toggle{
     bottom: 16px;
