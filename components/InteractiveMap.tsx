@@ -579,24 +579,24 @@ function DestinationCard({
           )}
         </div>
         
-        <div style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 8, borderTop: "1px solid var(--mist)" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", paddingTop: 8, borderTop: "1px solid var(--mist)" }}>
           {viewCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Views">
-              <Eye size={14} /> {viewCount} views
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "var(--site-muted)" }} title="Views">
+              <Eye size={12} /> {viewCount} views
             </span>
           )}
           {eng.likes > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Likes">
-              <Heart size={14} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--site-muted)" }} /> {eng.likes} likes
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "var(--site-muted)" }} title="Likes">
+              <Heart size={12} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--site-muted)" }} /> {eng.likes} likes
             </span>
           )}
           {eng.reviews > 0 ? (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
-              <MessageSquare size={14} /> {eng.avgRating.toFixed(1)} ({eng.reviews} review{eng.reviews !== 1 ? "s" : ""})
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
+              <MessageSquare size={12} /> {eng.avgRating.toFixed(1)} ({eng.reviews} review{eng.reviews !== 1 ? "s" : ""})
             </span>
           ) : (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
-              <MessageSquare size={14} /> No reviews yet
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: "0.75rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
+              <MessageSquare size={12} /> No reviews yet
             </span>
           )}
         </div>
