@@ -155,8 +155,8 @@ export async function generateStaticParams() {
 }
 
 const money = (lo: number | null, hi: number | null) => {
-  const l = lo ? lo : null;
-  const h = hi ? hi : null;
+  const l = lo == 0 || lo == null ? null : lo;
+  const h = hi == 0 || hi == null ? null : hi;
   if (l == null && h == null) return null;
   if (l != null && h != null && l === h) return `$${l}`;
   if (l != null && h != null) return `$${l} to ${h}`;

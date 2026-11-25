@@ -80,8 +80,8 @@ export default function ActivityModal({ open, onClose, activity, placeId, destin
 
   if (!open) return null;
 
-  const costLow = activity.cost_low ? activity.cost_low : null;
-  const costHigh = activity.cost_high ? activity.cost_high : null;
+  const costLow = activity.cost_low == 0 || activity.cost_low == null ? null : activity.cost_low;
+  const costHigh = activity.cost_high == 0 || activity.cost_high == null ? null : activity.cost_high;
 
   const costText = costLow == null && costHigh == null
     ? null
