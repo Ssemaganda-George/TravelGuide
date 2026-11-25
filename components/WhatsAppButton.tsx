@@ -10,10 +10,9 @@ export function WhatsAppButton() {
   const digits = phoneNumber.replace(/\D/g, '');
   if (!digits) return null;
 
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
   const channel = currentChannel();
   const internal = isInternalDevice();
-  const url = whatsappUrl({ path: pathname });
+  const url = whatsappUrl();
   if (!url) return null;
 
   return (
@@ -23,7 +22,7 @@ export function WhatsAppButton() {
       rel="noopener noreferrer"
       className="whatsapp-float"
       aria-label="Chat on WhatsApp"
-      onClick={() => trackEvent({ type: "whatsapp_click", label: "whatsapp_float", path: pathname, channel, internal })}
+      onClick={() => trackEvent({ type: "whatsapp_click", label: "whatsapp_float", path: typeof window !== "undefined" ? window.location.pathname : "", channel, internal })}
     >
       <Phone size={20} color="white" />
     </a>

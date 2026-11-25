@@ -4,7 +4,9 @@ export function whatsappUrl({ title, path }: { title?: string; path?: string } =
   const digits = number.replace(/\D/g, '');
   if (!digits) return null;
 
-  const isDestination = Boolean(path && path.startsWith('/') && path !== '/' && !path.startsWith('/admin'));
+  // Page-aware message: destination pages (non-admin, non-root) get a destination-specific message,
+  // all other pages get a generic message.
+  const isDestination = Boolean(path && path.startsWith('/') && path !== '/' && !path.startsWith('/admin') && !path.startsWith('/api'));
   const message = isDestination
     ? `Hi, I'm interested in this destination. ${path}`
     : "Hi, I'd like help planning a trip to Uganda.";
