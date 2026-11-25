@@ -155,11 +155,13 @@ export async function generateStaticParams() {
 }
 
 const money = (lo: number | null, hi: number | null) => {
-  if (lo == null && hi == null) return null;
-  if (lo != null && hi != null && lo === hi) return `$${lo}`;
-  if (lo != null && hi != null) return `$${lo} to ${hi}`;
-  if (lo != null) return `from $${lo}`;
-  return `up to $${hi}`;
+  const l = lo ? lo : null;
+  const h = hi ? hi : null;
+  if (l == null && h == null) return null;
+  if (l != null && h != null && l === h) return `$${l}`;
+  if (l != null && h != null) return `$${l} to ${h}`;
+  if (l != null) return `from $${l}`;
+  return `up to $${h}`;
 };
 
 function generateJsonLd(d: any, c: any, _activities: any[], _stays: any[], _path: string, pageUrl: string, coverImage?: string | null) {
