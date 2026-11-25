@@ -492,7 +492,7 @@ export default async function Destination(p: P) {
                 </>
               )}
 
-              {activities.length > 0 && (
+              {activities.length > 0 ? (
                 <>
               <h2 id="things-to-do">Things to do</h2>
               <div className="activities-list">
@@ -513,6 +513,8 @@ export default async function Destination(p: P) {
                     ))}
                   </div>
                 </>
+              ) : (
+                <p className="empty">No activities listed yet. Check back soon.</p>
               )}
 
               <h2 id="where-to-stay">Where to stay</h2>
