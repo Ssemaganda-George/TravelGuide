@@ -580,15 +580,25 @@ function DestinationCard({
         </div>
         
         <div style={{ display: "flex", gap: 16, alignItems: "center", paddingTop: 8, borderTop: "1px solid var(--mist)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Views">
-            <Eye size={14} /> {viewCount}
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Likes">
-            <Heart size={14} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--site-muted)" }} /> {eng.likes}
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
-            <MessageSquare size={14} /> {eng.reviews > 0 ? `${eng.avgRating.toFixed(1)} (${eng.reviews})` : "Review"}
-          </span>
+          {viewCount > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Views">
+              <Eye size={14} /> {viewCount} views
+            </span>
+          )}
+          {eng.likes > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--site-muted)" }} title="Likes">
+              <Heart size={14} strokeWidth={2} fill={eng.likes > 0 ? "var(--sun)" : "none"} style={{ color: eng.likes > 0 ? "var(--sun)" : "var(--site-muted)" }} /> {eng.likes} likes
+            </span>
+          )}
+          {eng.reviews > 0 ? (
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
+              <MessageSquare size={14} /> {eng.avgRating.toFixed(1)} ({eng.reviews} review{eng.reviews !== 1 ? "s" : ""})
+            </span>
+          ) : (
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--lake)", cursor: "pointer" }} title="Reviews" onClick={() => onNavigate(`${path}/reviews`)}>
+              <MessageSquare size={14} /> No reviews yet
+            </span>
+          )}
         </div>
         
         {marker.link && (
