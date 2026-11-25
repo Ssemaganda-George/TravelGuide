@@ -9,6 +9,7 @@ import { Target } from 'lucide-react';
 import { useDialog } from '@/components/DialogContext';
 import QuickEnquiryDialog from '@/components/QuickEnquiryDialog';
 import { trackEvent, currentChannel, isInternalDevice } from '@/lib/track';
+import { whatsappUrl } from '@/lib/whatsapp';
 
 export default function StickyCta() {
   const pathname = usePathname();
@@ -74,10 +75,8 @@ export default function StickyCta() {
   const handleWhatsApp = () => {
     if (!showWhatsApp) return;
     trackEvent({ type: "whatsapp_click", label: "sticky_bar", path: pathname, channel, internal });
-    const title = document.title;
-    const url = window.location.pathname + window.location.search;
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(`Hi, I'm interested in ${title}. ${url}`)}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+    const url = whatsappUrl({ title: document.title, path: pathname });
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
