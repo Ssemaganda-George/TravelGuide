@@ -25,9 +25,9 @@ export default function BackToTop() {
       style={{
         position: "fixed",
         bottom: 24,
-        right: 84,
-        width: 48,
-        height: 48,
+        right: 72,
+        width: 44,
+        height: 44,
         borderRadius: "50%",
         background: "var(--lake)",
         color: "white",
@@ -36,10 +36,10 @@ export default function BackToTop() {
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        fontSize: "1.5rem",
+        fontSize: "1.25rem",
         lineHeight: 1,
-        zIndex: 100,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+        zIndex: 1000,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
         touchAction: "manipulation",
       }}
     >

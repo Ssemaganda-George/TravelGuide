@@ -19,7 +19,7 @@ export function WhatsAppButton() {
       aria-label="Chat on WhatsApp"
       onClick={() => trackEvent({ type: "whatsapp_click", label: "whatsapp_float", path: typeof window !== "undefined" ? window.location.pathname : "", channel, internal })}
     >
-      <Phone size={24} weight={2} color="white" />
+      <Phone size={20} weight={2} color="white" />
     </a>
   );
 }
