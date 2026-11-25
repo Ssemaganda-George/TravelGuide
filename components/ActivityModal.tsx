@@ -80,16 +80,19 @@ export default function ActivityModal({ open, onClose, activity, placeId, destin
 
   if (!open) return null;
 
-  const costText = activity.cost_low == null && activity.cost_high == null
+  const costLow = activity.cost_low == null || activity.cost_low === 0 ? null : activity.cost_low;
+  const costHigh = activity.cost_high == null || activity.cost_high === 0 ? null : activity.cost_high;
+
+  const costText = costLow == null && costHigh == null
     ? null
-    : activity.cost_low != null && activity.cost_high != null && activity.cost_low === activity.cost_high
-      ? `${activity.currency ?? ""}${activity.cost_low}`
-      : activity.cost_low != null && activity.cost_high != null
-        ? `${activity.currency ?? ""}${activity.cost_low} to ${activity.cost_high}`
-        : activity.cost_low != null
-          ? `from ${activity.currency ?? ""}${activity.cost_low}`
-          : activity.cost_high != null
-            ? `up to ${activity.currency ?? ""}${activity.cost_high}`
+    : costLow != null && costHigh != null && costLow === costHigh
+      ? `${activity.currency ?? ""}${costLow}`
+      : costLow != null && costHigh != null
+        ? `${activity.currency ?? ""}${costLow} to ${costHigh}`
+        : costLow != null
+          ? `from ${activity.currency ?? ""}${costLow}`
+          : costHigh != null
+            ? `up to ${activity.currency ?? ""}${costHigh}`
             : null;
 
   return (

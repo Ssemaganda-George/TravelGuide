@@ -63,7 +63,16 @@ export default function ActivityCards({ activities, country, placeId, destinatio
               <div className="activity-card-body">
                 <h3>{a.name}</h3>
                 <div className="activity-card-meta">
-                  {a.cost_low == null && a.cost_high == null ? null : a.cost_low != null && a.cost_high != null && a.cost_low === a.cost_high ? <span>${a.currency ?? ""}${a.cost_low}</span> : a.cost_low != null && a.cost_high != null ? <span>${a.currency ?? ""}${a.cost_low} to ${a.cost_high}</span> : a.cost_low != null ? <span>from ${a.currency ?? ""}${a.cost_low}</span> : a.cost_high != null ? <span>up to ${a.currency ?? ""}${a.cost_high}</span> : null}
+                  {(() => {
+                    const cl = a.cost_low == null || a.cost_low === 0 ? null : a.cost_low;
+                    const ch = a.cost_high == null || a.cost_high === 0 ? null : a.cost_high;
+                    if (cl == null && ch == null) return null;
+                    if (cl != null && ch != null && cl === ch) return <span>${a.currency ?? ""}${cl}</span>;
+                    if (cl != null && ch != null) return <span>${a.currency ?? ""}${cl} to ${ch}</span>;
+                    if (cl != null) return <span>from ${a.currency ?? ""}${cl}</span>;
+                    if (ch != null) return <span>up to ${a.currency ?? ""}${ch}</span>;
+                    return null;
+                  })()}
                   {a.duration && <span>&bull; {a.duration}</span>}
                 </div>
                 {a.description && <p className="activity-card-desc">{a.description}</p>}
