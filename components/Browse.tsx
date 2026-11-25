@@ -289,13 +289,23 @@ export default function Browse({ country, items, activitiesByPlace, viewCounts, 
                 <p>{i.hook}</p>
                 <span className="cardmeta">{i.ideal_days ? `${i.ideal_days} days` : ""}{i.best_months ? ` · best ${i.best_months}` : ""}</span>
                 <div className="cardstats">
-                  <span className="stat" title="Views"><Eye /> {viewCounts[path] ?? 0}</span>
-                  <span className="stat likestat" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
-                    <Heart className={isLiked ? "liked" : ""} size={16} strokeWidth={2} fill={isLiked ? "var(--sun)" : "none"} /> {eng.likes}
-                  </span>
-                  <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer", textDecoration: "none", color: "var(--lake)", transition: "color 0.2s" }}>
-                    <MessageSquare size={14} /> {eng.reviews > 0 ? `${eng.avgRating.toFixed(1)} (${eng.reviews})` : "Review"}
-                  </span>
+                  {viewCounts[path] && viewCounts[path] > 0 && (
+                    <span className="stat" title="Views"><Eye /> {viewCounts[path]} views</span>
+                  )}
+                  {eng.likes && eng.likes > 0 && (
+                    <span className="stat likestat" title="Likes" onClick={e => toggleLike(i.place_id, e)} style={{ cursor: "pointer" }}>
+                      <Heart className={isLiked ? "liked" : ""} size={16} strokeWidth={2} fill={isLiked ? "var(--sun)" : "none"} /> {eng.likes} likes
+                    </span>
+                  )}
+                  {eng.reviews && eng.reviews > 0 ? (
+                    <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer", textDecoration: "none", color: "var(--lake)", transition: "color 0.2s" }}>
+                      <MessageSquare size={14} /> {eng.avgRating.toFixed(1)} ({eng.reviews} review{eng.reviews !== 1 ? "s" : ""})
+                    </span>
+                  ) : (
+                    <span className="stat" title="Reviews" onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/${country}/${i.places.slug}/reviews`; }} style={{ cursor: "pointer", textDecoration: "none", color: "var(--lake)", transition: "color 0.2s" }}>
+                      <MessageSquare size={14} /> No reviews yet
+                    </span>
+                  )}
                 </div>
               </div>
             </a>
