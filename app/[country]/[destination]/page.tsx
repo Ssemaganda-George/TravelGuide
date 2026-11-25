@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 import EnquirySection from "@/components/EnquirySection";
 import EnquiryTrigger from "@/components/EnquiryTrigger";
 import MediaGallery from "@/components/MediaGallery";
@@ -369,7 +370,10 @@ export default async function Destination(p: P) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="destwrap">
         <main className="destmain">
-          <Link className="back" href={`/${c.slug}`}>Back to destinations</Link>
+          <Link className="back" href={`/${c.slug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <ArrowLeft size={14} />
+            Back to destinations
+          </Link>
           {coverImage && (
             <DestinationHero
               images={allImages}
