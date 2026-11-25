@@ -11,9 +11,10 @@ export function WhatsAppButton() {
   if (!digits) return null;
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const title = typeof document !== "undefined" ? document.title : "";
   const channel = currentChannel();
   const internal = isInternalDevice();
-  const url = whatsappUrl({ title: document.title, path: pathname });
+  const url = whatsappUrl({ title, path: pathname });
   if (!url) return null;
 
   return (
